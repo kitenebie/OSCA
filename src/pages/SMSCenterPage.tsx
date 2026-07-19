@@ -19,9 +19,9 @@ export default function SMSCenterPage() {
         </div>
 
         {/* Mini stats count */}
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-xl text-white text-xs font-semibold font-mono shadow-sm">
-          <Send size={12} className="text-teal-400" />
-          <span>Outbound Dispatched: <strong className="text-teal-400 font-black">{totalLogs}</strong></span>
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-xs font-semibold font-mono shadow-sm">
+          <Send size={12} className="text-teal-600" />
+          <span>Outbound Dispatched: <strong className="text-teal-600 font-black">{totalLogs}</strong></span>
         </div>
       </div>
 

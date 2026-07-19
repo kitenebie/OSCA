@@ -269,29 +269,29 @@ export default function FindUserPage() {
               </div>
 
               {/* Simulated Scanner Terminal screen */}
-              <div className="relative w-full aspect-video md:aspect-[4/3] bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex flex-col items-center justify-center p-4">
+              <div className="relative w-full aspect-video md:aspect-[4/3] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 flex flex-col items-center justify-center p-4">
                 
                 {/* Matrix code rain bg placeholder or ambient grid */}
-                <div className="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:16px_16px] opacity-40"></div>
+                <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] opacity-50"></div>
                 
                 {/* Hologram Circle */}
                 <div className={`w-36 h-36 rounded-full border border-dashed flex items-center justify-center transition-all duration-500
                   ${isScanning 
                     ? 'border-teal-500/40 bg-teal-500/5 animate-pulse' 
-                    : 'border-slate-800 bg-slate-900/10'}`}
+                    : 'border-slate-200 bg-slate-100/10'}`}
                 >
                   <div className={`w-28 h-28 rounded-full border border-teal-500/10 flex items-center justify-center relative
                     ${isScanning ? 'animate-spin' : ''}`}
                     style={{ animationDuration: '10s' }}
                   >
-                    <Smartphone size={32} className={`text-teal-400/20 transform -rotate-12`} />
+                    <Smartphone size={32} className={`text-teal-600/10 transform -rotate-12`} />
                   </div>
                 </div>
 
                 {/* Laser beam swipe down line (VERTICAL ANIMATION) */}
                 {isScanning && (
                   <div 
-                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-400 to-transparent shadow-[0_0_12px_#2dd4bf] animate-laserSweep pointer-events-none z-10"
+                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent shadow-[0_0_12px_#14b8a6] animate-laserSweep pointer-events-none z-10"
                     style={{
                       animation: 'laserSweep 3s infinite ease-in-out'
                     }}
@@ -299,10 +299,10 @@ export default function FindUserPage() {
                 )}
 
                 {/* Tech Stats overlay info inside scanner */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[8px] font-mono text-slate-500 tracking-wider">
+                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[8px] font-mono text-slate-400 tracking-wider">
                   <span>FREQ: 13.56 MHz</span>
                   <span className="flex items-center gap-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-teal-400 animate-ping' : 'bg-rose-500'}`}></span>
+                    <span className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-teal-500 animate-ping' : 'bg-rose-500'}`}></span>
                     {isScanning ? 'READY FOR TAG' : 'MUTED'}
                   </span>
                   <span>ISO/IEC 14443A</span>
@@ -310,8 +310,8 @@ export default function FindUserPage() {
 
                 {/* Simulated Tag detected success popup inside scanner screen */}
                 {selectedSenior && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-teal-900/90 border border-teal-500 text-teal-300 px-3 py-1.5 rounded-xl text-[9px] font-mono flex items-center gap-1.5 shadow-lg backdrop-blur-sm animate-bounce">
-                    <CheckCircle size={10} className="text-teal-400 shrink-0" />
+                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-teal-50/95 border border-teal-200 text-teal-800 px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 shadow-md backdrop-blur-sm animate-bounce">
+                    <CheckCircle size={10} className="text-teal-600 shrink-0" />
                     <span>TAG READ OK: #{selectedSenior.oscaNumber.split('-').pop()}</span>
                   </div>
                 )}
@@ -333,25 +333,25 @@ export default function FindUserPage() {
 
           {/* Box 3: Live Scan logs */}
           {nfcEnabled && (
-            <div className="bg-slate-900 text-slate-400 rounded-3xl p-5 md:p-6 shadow-inner space-y-3.5 border border-slate-800">
+            <div className="bg-slate-50 text-slate-600 rounded-3xl p-5 md:p-6 shadow-sm space-y-3.5 border border-slate-200">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold text-teal-500 font-mono tracking-widest uppercase">
+                <span className="text-[10px] font-extrabold text-teal-700 font-mono tracking-widest uppercase">
                   Telemetry Log Stream
                 </span>
                 <button 
                   onClick={() => {
                     setScanLogs([`[${new Date().toLocaleTimeString()}] Logs cleared. Real-time antenna monitoring running.`]);
                   }}
-                  className="text-[9px] text-slate-500 hover:text-slate-300 flex items-center gap-1 transition-colors"
+                  className="text-[9px] text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors cursor-pointer"
                 >
                   <RefreshCw size={10} />
                   <span>Clear Logs</span>
                 </button>
               </div>
 
-              <div className="font-mono text-[9px] md:text-[10px] space-y-2 max-h-[140px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800">
+              <div className="font-mono text-[9px] md:text-[10px] space-y-2 max-h-[140px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
                 {scanLogs.map((log, index) => (
-                  <p key={index} className={`leading-normal border-b border-slate-800/50 pb-1.5 flex gap-1.5 ${index === 0 ? 'text-teal-400' : 'text-slate-500'}`}>
+                  <p key={index} className={`leading-normal border-b border-slate-200/50 pb-1.5 flex gap-1.5 ${index === 0 ? 'text-teal-600 font-bold' : 'text-slate-500'}`}>
                     <CornerDownRight size={10} className="shrink-0 mt-0.5 text-teal-600" />
                     <span className="break-all">{log}</span>
                   </p>

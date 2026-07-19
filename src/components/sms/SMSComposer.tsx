@@ -251,13 +251,13 @@ export default function SMSComposer() {
       </div>
 
       {/* Templates Library panel */}
-      <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-sm flex flex-col">
-        <div className="border-b border-slate-800 pb-3 mb-4">
-          <div className="flex items-center gap-2 text-teal-400">
+      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+        <div className="border-b border-slate-100 pb-3 mb-4">
+          <div className="flex items-center gap-2 text-teal-600">
             <FileText size={16} />
-            <h4 className="font-bold text-xs uppercase tracking-wide text-teal-300">LGU Preset Templates</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wide text-teal-700">LGU Preset Templates</h4>
           </div>
-          <p className="text-[10px] text-slate-500 mt-1">Official communication presets for quick layouts selection</p>
+          <p className="text-[10px] text-slate-400 mt-1">Official communication presets for quick layouts selection</p>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">
@@ -266,16 +266,16 @@ export default function SMSComposer() {
               key={i}
               type="button"
               onClick={() => handleSelectTemplate(tpl.text)}
-              className="w-full text-left p-3.5 bg-slate-950/80 hover:bg-slate-950 border border-slate-850 hover:border-teal-500/50 rounded-xl transition-all duration-150 group active:scale-99"
+              className="w-full text-left p-3.5 bg-slate-50 hover:bg-teal-50/20 border border-slate-200/80 hover:border-teal-500/50 rounded-xl transition-all duration-150 group active:scale-99"
             >
-              <div className="flex items-center gap-1.5 text-teal-400 group-hover:text-teal-300 transition-colors">
+              <div className="flex items-center gap-1.5 text-teal-600 group-hover:text-teal-700 transition-colors">
                 <MessageSquare size={12} />
                 <h5 className="font-bold text-[10.5px] truncate">{tpl.title}</h5>
               </div>
-              <p className="text-[10px] text-slate-400 leading-normal line-clamp-3 mt-1.5 font-sans italic">
+              <p className="text-[10px] text-slate-500 leading-normal line-clamp-3 mt-1.5 font-sans italic">
                 "{tpl.text}"
               </p>
-              <span className="inline-block text-[9px] font-bold text-teal-500 bg-teal-950 px-1.5 py-0.5 rounded border border-teal-900/30 mt-2.5 opacity-0 group-hover:opacity-100 transition-all">
+              <span className="inline-block text-[9px] font-bold text-teal-600 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-100 mt-2.5 opacity-0 group-hover:opacity-100 transition-all">
                 I-load ito (Load Template)
               </span>
             </button>

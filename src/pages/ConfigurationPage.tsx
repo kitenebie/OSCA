@@ -91,33 +91,33 @@ export default function ConfigurationPage() {
 
         {/* Sidebar Info Panel */}
         <div className="space-y-6">
-          <div className="bg-slate-900 text-slate-100 rounded-2xl p-5 border border-slate-800 shadow-md relative overflow-hidden">
-            <div className="absolute -right-8 -bottom-8 opacity-10">
+          <div className="bg-white text-slate-800 rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+            <div className="absolute -right-8 -bottom-8 opacity-[0.03] text-teal-600">
               <Cpu size={140} />
             </div>
             
             <div className="flex items-center gap-2 mb-3">
-              <Radio size={16} className="text-teal-400 animate-pulse" />
-              <span className="text-[10px] tracking-wider uppercase font-mono font-bold text-teal-400">Node Configuration</span>
+              <Radio size={16} className="text-teal-600 animate-pulse" />
+              <span className="text-[10px] tracking-wider uppercase font-mono font-bold text-teal-700">Node Configuration</span>
             </div>
 
-            <h5 className="font-extrabold text-sm tracking-tight mb-2 text-white">Contactless Ecosystem</h5>
-            <p className="text-[11px] text-slate-300 leading-relaxed mb-4">
+            <h5 className="font-extrabold text-sm tracking-tight mb-2 text-slate-800">Contactless Ecosystem</h5>
+            <p className="text-[11px] text-slate-500 leading-relaxed mb-4">
               Juban's smart portal supports both magnetic induction tags and high frequency transceiver nodes. This setting dynamically optimizes resource utilization in real-time.
             </p>
 
-            <div className="space-y-2 border-t border-slate-800 pt-4 font-mono text-[10px]">
+            <div className="space-y-2 border-t border-slate-100 pt-4 font-mono text-[10px]">
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Firmware Protocol:</span>
-                <span className="text-teal-300 font-semibold">ISO/IEC 14443-A</span>
+                <span className="text-teal-600 font-semibold">ISO/IEC 14443-A</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Antenna Node:</span>
-                <span className="text-slate-200">Virtual Port 3000</span>
+                <span className="text-slate-700">Virtual Port 3000</span>
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-400">Transceiver Range:</span>
-                <span className="text-slate-200">10cm Proximity</span>
+                <span className="text-slate-700">10cm Proximity</span>
               </div>
             </div>
           </div>
