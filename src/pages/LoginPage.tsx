@@ -70,8 +70,8 @@ export default function LoginPage() {
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-teal-500/8 rounded-full blur-[140px] pointer-events-none z-0"></div>
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/8 rounded-full blur-[140px] pointer-events-none z-0"></div>
       
-      {/* Republic colors header stripe */}
-      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-teal-600 via-teal-500 to-emerald-500 z-10"></div>
+      {/* Republic colors header stripe (Tri-color security ribbon) */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 z-10" style={{ background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }}></div>
 
       {/* Persistent Navigation Bar (Landing Page Style) */}
       <header className="w-full max-w-7xl mx-auto flex items-center justify-between py-4 border-b border-slate-200/60 relative z-10" id="portal-navigation-header">
@@ -79,14 +79,14 @@ export default function LoginPage() {
           <div className="w-11 h-11 bg-white border border-slate-150 rounded-full flex items-center justify-center p-1 shadow-sm">
             <img 
               referrerPolicy="no-referrer"
-              src="https://juban-boms.lguapps.com/wp-content/uploads/2025/08/cropped-jubanlogo-1.png" 
+              src="/juban-logo.png" 
               alt="Juban Logo" 
               className="w-full h-full object-contain"
             />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold text-slate-500 tracking-wider uppercase font-mono">LGU JUBAN</span>
+              <span className="text-[9px] font-extrabold text-[#02A952] tracking-wider uppercase font-mono">LGU JUBAN</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
             <h1 className="font-extrabold text-sm md:text-base text-slate-800 uppercase tracking-tight">Portal ng mga Senior Citizen</h1>
@@ -97,10 +97,10 @@ export default function LoginPage() {
           {viewMode === 'landing' ? (
             <button 
               onClick={() => setViewMode('login')}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2 bg-[#02A952] hover:bg-[#018c43] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
               id="goto-login-btn"
             >
-              <Lock size={12} />
+              <Lock size={12} className="text-[#FDFE00]" />
               <span>Mag-login bilang Opisyal</span>
             </button>
           ) : (
@@ -109,7 +109,7 @@ export default function LoginPage() {
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer"
               id="goto-landing-btn"
             >
-              <ArrowLeft size={12} />
+              <ArrowLeft size={12} className="text-emerald-700" />
               <span>Bumalik sa Landing Page</span>
             </button>
           )}
@@ -126,13 +126,13 @@ export default function LoginPage() {
             {/* Left Side: Welcoming Hero Section */}
             <div className="lg:col-span-6 space-y-6">
               <div className="space-y-3.5">
-                <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100/60 text-teal-800 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  <Award size={13} className="text-teal-600 animate-pulse" />
+                <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <Award size={13} className="text-emerald-600 animate-pulse" />
                   Sentralisadong Impormasyon para sa Nakatatanda
                 </div>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight leading-[1.1] uppercase">
                   Maagap na Serbisyo, <br />
-                  <span className="text-teal-600">Dekalidad na Alaga</span> <br />
+                  <span className="text-[#02A952]">Dekalidad na Alaga</span> <br />
                   sa Bayan ng Juban
                 </h1>
                 <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-xl">
@@ -143,16 +143,16 @@ export default function LoginPage() {
               {/* Quick statistics badge row */}
               <div className="grid grid-cols-3 gap-3 max-w-lg bg-white/70 border border-slate-200/50 p-3 rounded-2xl shadow-sm">
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
-                  <span className="block font-black text-lg md:text-xl text-teal-600">25</span>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Barangay Hall Nodes</span>
+                  <span className="block font-black text-lg md:text-xl text-[#0000FD]">25</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Barangay Hall Nodes</span>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
-                  <span className="block font-black text-lg md:text-xl text-emerald-600">100%</span>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Libreng Profiling</span>
+                  <span className="block font-black text-lg md:text-xl text-[#02A952]">100%</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Libreng Profiling</span>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
-                  <span className="block font-black text-lg md:text-xl text-slate-800">₱1,000</span>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Buwanang Pension</span>
+                  <span className="block font-black text-lg md:text-xl text-[#FD0000]">₱1,000</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Buwanang Pension</span>
                 </div>
               </div>
 
@@ -160,10 +160,10 @@ export default function LoginPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <button 
                   onClick={() => setViewMode('login')}
-                  className="px-6 py-3.5 bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs rounded-2xl shadow-md shadow-teal-600/15 hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer group active:scale-95"
+                  className="px-6 py-3.5 bg-[#02A952] hover:bg-[#018c43] text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer group active:scale-95"
                 >
                   <span>Magsimula sa System (Portal Login)</span>
-                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform text-[#FDFE00]" />
                 </button>
                 <a 
                   href="#announcements-section" 
@@ -298,111 +298,117 @@ export default function LoginPage() {
         ) : (
           /* ==================== VIEW 2: DEDICATED SECURE LOGIN FORM ==================== */
           <div className="w-full max-w-md mx-auto animate-fadeIn" id="login-view-container">
-            
-            <div className="w-full bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-xl shadow-slate-200/60 p-6 md:p-8 flex flex-col" id="login-main-card">
-              
-              {/* Seal Header */}
-              <div className="text-center space-y-3 mb-8" id="login-header-section">
-                <div className="mx-auto w-20 h-20 bg-teal-50/50 border border-teal-100/60 flex items-center justify-center p-2 rounded-full shadow-sm relative">
-                  <div className="absolute inset-1 rounded-full border border-dashed border-teal-200"></div>
-                  <img 
-                    referrerPolicy="no-referrer"
-                    src="https://juban-boms.lguapps.com/wp-content/uploads/2025/08/cropped-jubanlogo-1.png" 
-                    alt="Juban LGU Logo" 
-                    className="w-full h-full object-contain"
-                    id="login-lgu-logo"
-                  />
-                </div>
+            {/* Gradient border wrapper for official login card (40% red, 20% yellow, 40% blue) */}
+            <div style={{
+              borderRadius: 24,
+              padding: 2.5,
+              background: 'linear-gradient(to right, #FD0000 0%, #FD0000 40%, #FDFE00 40%, #FDFE00 60%, #0000FD 60%, #0000FD 100%)',
+              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
+            }}>
+              <div className="w-full bg-white rounded-[21.5px] overflow-hidden p-6 md:p-8 flex flex-col" id="login-main-card">
                 
-                <div className="space-y-1.5">
-                  <span className="inline-block text-[9px] font-bold text-teal-700 font-mono tracking-widest uppercase bg-teal-50 px-3 py-0.5 rounded-full border border-teal-100/50">
-                    OFFICIAL LOGIN PORTAL
-                  </span>
-                  <h2 className="font-extrabold text-lg text-slate-800 uppercase tracking-tight">
-                    Mag-login sa System
-                  </h2>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    Gamitin ang opisyal na account upang buksan ang e-Census database.
-                  </p>
-                </div>
-              </div>
-
-              {/* Official Login Credentials Form */}
-              <form onSubmit={handleLogin} className="space-y-5" id="login-form">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label htmlFor="login-username" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                      Username ng Opisyal / Encoder
-                    </label>
-                    <span className="text-[9px] text-teal-600 font-bold flex items-center gap-1 font-mono">
-                      <ShieldCheck size={11} className="text-teal-600" />
-                      SECURE
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                      <Lock size={14} />
-                    </span>
-                    <input
-                      id="login-username"
-                      type="text"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      placeholder="Isulat ang username (e.g. superadmin)"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-2xl text-xs text-slate-850 placeholder:text-slate-400 font-semibold focus:outline-none focus:ring-4 focus:ring-teal-500/10 font-mono transition-all"
+                {/* Seal Header */}
+                <div className="text-center space-y-3 mb-8" id="login-header-section">
+                  <div className="mx-auto w-20 h-20 bg-emerald-50/50 border border-emerald-100 flex items-center justify-center p-2 rounded-full shadow-sm relative">
+                    <div className="absolute inset-1 rounded-full border border-dashed border-emerald-300"></div>
+                    <img 
+                      referrerPolicy="no-referrer"
+                      src="/juban-logo.png" 
+                      alt="Juban LGU Logo" 
+                      className="w-full h-full object-contain"
+                      id="login-lgu-logo"
                     />
                   </div>
+                  
+                  <div className="space-y-1.5">
+                    <span className="inline-block text-[9px] font-bold text-emerald-800 font-mono tracking-widest uppercase bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-100">
+                      OFFICIAL LOGIN PORTAL
+                    </span>
+                    <h2 className="font-extrabold text-lg text-slate-800 uppercase tracking-tight">
+                      Mag-login sa System
+                    </h2>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      Gamitin ang opisyal na account upang buksan ang e-Census database.
+                    </p>
+                  </div>
                 </div>
 
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-3.5 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold text-white rounded-2xl shadow-md shadow-teal-600/15 hover:shadow-lg transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-                  id="login-submit-btn"
+                {/* Official Login Credentials Form */}
+                <form onSubmit={handleLogin} className="space-y-5" id="login-form">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label htmlFor="login-username" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                        Username ng Opisyal / Encoder
+                      </label>
+                      <span className="text-[9px] text-[#02A952] font-bold flex items-center gap-1 font-mono">
+                        <ShieldCheck size={11} className="text-[#02A952]" />
+                        SECURE
+                      </span>
+                    </div>
+                    <div className="relative">
+                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                        <Lock size={14} className="text-emerald-700" />
+                      </span>
+                      <input
+                        id="login-username"
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Isulat ang username (e.g. superadmin)"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:border-[#02A952] focus:bg-white rounded-2xl text-xs text-slate-850 placeholder:text-slate-400 font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-3.5 bg-[#02A952] hover:bg-[#018c43] disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                    id="login-submit-btn"
+                  >
+                    <LogIn size={13} className={isLoading ? 'animate-spin text-[#FDFE00]' : 'text-[#FDFE00]'} />
+                    <span>{isLoading ? 'Sumusuri sa System...' : 'Magsimula (Login to Portal)'}</span>
+                  </button>
+                </form>
+
+                {/* Demo Accounts List panel inside Form */}
+                <div className="mt-6 border-t border-slate-100 pt-5" id="login-demo-panel">
+                  <div className="flex items-center gap-2 text-slate-400 mb-3 justify-center">
+                    <Sparkles size={11} className="text-[#FDFE00] fill-[#FDFE00] animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mabilis na Access (Demo Accounts)</span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
+                    {activeUsers.slice(0, 4).map((user) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => handleQuickLogin(user.username)}
+                        className="p-2.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-150 hover:border-[#02A952]/40 rounded-2xl flex items-center gap-2 text-left transition-all group active:scale-[0.98] cursor-pointer"
+                        id={`quick-login-${user.username}`}
+                      >
+                        <div className="w-7 h-7 rounded-full bg-white text-emerald-700 border border-slate-200 flex items-center justify-center shrink-0 font-bold text-[10px] font-mono shadow-sm">
+                          {user.fullName.split(' ').pop()?.charAt(0) || 'U'}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h5 className="font-bold text-[10px] text-slate-700 truncate group-hover:text-emerald-700 transition-colors">{user.fullName}</h5>
+                          <p className="text-[8px] font-mono text-slate-400 mt-0.5 uppercase truncate tracking-wider">{user.role}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Return to home link */}
+                <button 
+                  onClick={() => setViewMode('landing')}
+                  className="mt-5 text-center text-xs text-slate-400 hover:text-emerald-700 font-bold transition-colors cursor-pointer"
                 >
-                  <LogIn size={13} className={isLoading ? 'animate-spin' : ''} />
-                  <span>{isLoading ? 'Sumusuri sa System...' : 'Magsimula (Login to Portal)'}</span>
+                  ← Bumalik sa Landing Page (Guest Mode)
                 </button>
-              </form>
 
-              {/* Demo Accounts List panel inside Form */}
-              <div className="mt-6 border-t border-slate-100 pt-5" id="login-demo-panel">
-                <div className="flex items-center gap-2 text-slate-400 mb-3 justify-center">
-                  <Sparkles size={11} className="text-teal-500 animate-pulse" />
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mabilis na Access (Demo Accounts)</span>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  {activeUsers.slice(0, 4).map((user) => (
-                    <button
-                      key={user.id}
-                      type="button"
-                      onClick={() => handleQuickLogin(user.username)}
-                      className="p-2.5 bg-slate-50 hover:bg-teal-50/50 border border-slate-150 hover:border-teal-200 rounded-2xl flex items-center gap-2 text-left transition-all group active:scale-[0.98] cursor-pointer"
-                      id={`quick-login-${user.username}`}
-                    >
-                      <div className="w-7 h-7 rounded-full bg-white text-teal-600 border border-slate-200 flex items-center justify-center shrink-0 font-bold text-[10px] font-mono">
-                        {user.fullName.split(' ').pop()?.charAt(0) || 'U'}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h5 className="font-bold text-[10px] text-slate-700 truncate group-hover:text-teal-600 transition-colors">{user.fullName}</h5>
-                        <p className="text-[8px] font-mono text-slate-400 mt-0.5 uppercase truncate tracking-wider">{user.role}</p>
-                      </div>
-                    </button>
-                  ))}
-                </div>
               </div>
-
-              {/* Return to home link */}
-              <button 
-                onClick={() => setViewMode('landing')}
-                className="mt-5 text-center text-xs text-slate-400 hover:text-teal-600 font-bold transition-colors cursor-pointer"
-              >
-                ← Bumalik sa Landing Page (Guest Mode)
-              </button>
-
             </div>
-
           </div>
         )}
 

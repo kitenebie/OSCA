@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useAuthStore } from '../store/authStore';
+import { useUIStore } from '../store/uiStore';
 import StatCard from '../components/dashboard/StatCard';
 import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
@@ -9,6 +10,7 @@ import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucid
 export default function DashboardPage() {
   const { seniors } = useSeniorsStore();
   const { currentUser } = useAuthStore();
+  const { nfcEnabled } = useUIStore();
 
   const totalSeniors = seniors.length;
   const pensionSeniors = seniors.filter((s) => s.pensionBeneficiary).length;
@@ -35,22 +37,25 @@ export default function DashboardPage() {
     <div className="space-y-6 animate-fadeIn font-sans">
       
       {/* Greetings Header block */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-6 bg-slate-900 text-white rounded-3xl shadow-lg border border-slate-950">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-6 bg-[#128f82] text-white rounded-3xl shadow-lg border border-[#128f82]/40 relative overflow-hidden">
+        {/* Philippine National Colors Tri-Color Security Accent Ribbon */}
+        <div style={{ height: 3, background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }} className="absolute top-0 left-0 right-0" />
+        
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-widest text-teal-400 font-mono">Bayan ng Juban Portal</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse"></div>
+            <span className="text-xs font-bold uppercase tracking-widest text-[#FDFE00] font-mono">Bayan ng Juban Portal</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></div>
           </div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase truncate">
             {getGreeting()}, {currentUser?.fullName || 'LGU User'}!
           </h2>
-          <p className="text-[11px] text-slate-400 font-medium">
+          <p className="text-[11px] text-slate-100/90 font-semibold">
             Maaari mong subaybayan, irehistro, at i-audit ang records ng mga nakatira nating Senior Citizens dito.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 bg-slate-950/50 p-3 rounded-2xl border border-slate-800 shrink-0 font-medium text-slate-300 text-xs font-mono">
-          <Calendar size={13} className="text-teal-400" />
+        <div className="flex items-center gap-2.5 bg-slate-950/20 p-3 rounded-2xl border border-slate-950/10 shrink-0 font-bold text-white text-xs font-mono">
+          <Calendar size={13} className="text-[#FDFE00]" />
           <span>{formattedDate}</span>
         </div>
       </div>
@@ -64,8 +69,8 @@ export default function DashboardPage() {
           change="+4.2% buwanang taas"
           changeType="increase"
           icon={Users}
-          bgColor="bg-teal-50"
-          iconColor="text-teal-600"
+          bgColor="bg-emerald-50"
+          iconColor="text-[#02A952]"
         />
         <StatCard
           title="Social Pensioners (SocPen)"
@@ -74,8 +79,8 @@ export default function DashboardPage() {
           change={`${Math.round((pensionSeniors / (totalSeniors || 1)) * 100)}% ng kabuuan`}
           changeType="neutral"
           icon={CreditCard}
-          bgColor="bg-emerald-50"
-          iconColor="text-emerald-600"
+          bgColor="bg-blue-50"
+          iconColor="text-[#0000FD]"
         />
         <StatCard
           title="Mga Hinihintay (Pending Approvals)"
@@ -84,18 +89,18 @@ export default function DashboardPage() {
           change={pendingSeniors > 0 ? "Kailangan Suriin" : "Malinis ang Queue"}
           changeType={pendingSeniors > 0 ? "decrease" : "increase"}
           icon={Clock}
-          bgColor="bg-amber-50"
-          iconColor="text-amber-600"
+          bgColor="bg-red-50"
+          iconColor="text-[#FD0000]"
         />
         <StatCard
           title="Aktibong Aprobado (Approved)"
           value={approvedSeniors}
-          description="Active records issued with NFC cards"
+          description={nfcEnabled ? "Active records issued with NFC cards" : "Active records issued with ID cards"}
           change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% Active`}
           changeType="increase"
           icon={Landmark}
-          bgColor="bg-blue-50"
-          iconColor="text-blue-600"
+          bgColor="bg-emerald-50"
+          iconColor="text-[#02A952]"
         />
       </div>
 

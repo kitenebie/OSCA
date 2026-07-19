@@ -25,7 +25,7 @@ export default function UserManagement() {
       showToast('Hindi mo maaaring i-deactivate ang sarili mong account!', 'error');
       return;
     }
-    const nextStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
+    const nextStatus = currentStatus === 'Active' ? 'Deactivated' : 'Active';
     updateUser(id, { status: nextStatus });
     showToast(`Account status updated to ${nextStatus}!`, 'success');
   };

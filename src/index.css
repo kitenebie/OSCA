@@ -33,3 +33,17 @@
   z-index: 10;
 }
 
+/* Scanner active laser sweeping keyframes and class */
+@keyframes laserSweep {
+  0%, 100% {
+    top: 0%;
+  }
+  50% {
+    top: 100%;
+  }
+}
+
+.animate-laserSweep {
+  animation: laserSweep 3s infinite ease-in-out;
+}
+

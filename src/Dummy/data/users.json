@@ -63,6 +63,16 @@
     "role": "Viewer",
     "contactNumber": "+63 916 111 2222",
     "email": "francisco.reyes@audit.gov.ph",
+    "status": "Deactivated"
+  },
+  {
+    "id": "usr-08",
+    "username": "retired_encoder",
+    "fullName": "Josefa Marasigan",
+    "role": "Barangay Encoder",
+    "barangayAssigned": "Milagrosa",
+    "contactNumber": "+63 915 222 3333",
+    "email": "josefa.m@carmonagov.ph",
     "status": "Inactive"
   }
 ]

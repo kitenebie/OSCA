@@ -29,8 +29,12 @@ export default function BarangayChart() {
     }
   });
 
-  const barangayNames = Object.keys(barangayCounts);
-  const barangayDataValues = Object.values(barangayCounts);
+  // Sort barangays based on their data count from highest to lowest
+  const sortedBarangays = Object.entries(barangayCounts)
+    .sort((a, b) => b[1] - a[1]);
+
+  const barangayNames = sortedBarangays.map(([name]) => name);
+  const barangayDataValues = sortedBarangays.map(([, count]) => count);
 
   // 2. Age Bracket Counts
   let brackets = {
@@ -53,7 +57,8 @@ export default function BarangayChart() {
     Approved: 0,
     Pending: 0,
     'For Verification': 0,
-    Rejected: 0
+    Rejected: 0,
+    Deactivated: 0
   };
   seniors.forEach(s => {
     if (statusCounts[s.status] !== undefined) {
@@ -107,9 +112,34 @@ export default function BarangayChart() {
       }
     },
     colors: [
-      '#0d9488', '#14b8a6', '#2dd4bf', '#99f6e4', '#0f766e', 
-      '#115e59', '#134e4a', '#0a3632', '#064e3b', '#022c22',
-      '#0d9488', '#14b8a6', '#2dd4bf', '#99f6e4'
+      '#F25F4C', // 1. Red-Orange
+      '#F87171', // 2. Coral
+      '#FB923C', // 3. Orange
+      '#FDBA74', // 4. Apricot
+      '#F59E0B', // 5. Yellow-Gold
+      '#EAB308', // 6. Mustard
+      '#A3E635', // 7. Lime
+      '#84CC16', // 8. Olive Green
+      '#4ADE80', // 9. Grass Green
+      '#34D399', // 10. Emerald
+      '#2DD4BF', // 11. Mint
+      '#14B8A6', // 12. Turquoise
+      '#06B6D4', // 13. Teal-Cyan
+      '#38BDF8', // 14. Sky Blue
+      '#60A5FA', // 15. Ocean Blue
+      '#3B82F6', // 16. Royal Blue
+      '#6366F1', // 17. Cornflower
+      '#818CF8', // 18. Lavender
+      '#8B5CF6', // 19. Indigo-Purple
+      '#A78BFA', // 20. Violet
+      '#C084FC', // 21. Orchid
+      '#E879F9', // 22. Purple-Fuchsia
+      '#F472B6', // 23. Hot Pink
+      '#F43F5E', // 24. Rose-Pink
+      '#CD5C5C', // 25. Terracotta
+      '#4682B4', // 26. Steel Blue
+      '#66CDAA', // 27. Medium Aquamarine
+      '#F4A460'  // 28. Sandy Brown
     ],
     dataLabels: {
       enabled: true,
@@ -140,7 +170,7 @@ export default function BarangayChart() {
   const donutChartOptions: ApexOptions = {
     chart: { type: 'donut' },
     labels: Object.keys(brackets),
-    colors: ['#0d9488', '#0f766e', '#0369a1', '#f59e0b', '#ef4444'],
+    colors: ['#60A5FA', '#34D399', '#F59E0B', '#8B5CF6', '#F87171'], // Sky Blue, Emerald Green, Amber, Violet, Coral Red
     legend: {
       position: 'bottom',
       fontSize: '11px',
@@ -174,7 +204,7 @@ export default function BarangayChart() {
   const statusChartOptions: ApexOptions = {
     chart: { type: 'pie' },
     labels: Object.keys(statusCounts),
-    colors: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'], // Green, Blue, Yellow, Red
+    colors: ['#34D399', '#60A5FA', '#F59E0B', '#F87171', '#A78BFA'], // Emerald Green, Sky Blue, Amber, Coral Red, Violet
     legend: {
       position: 'bottom',
       fontSize: '11px',
@@ -186,12 +216,27 @@ export default function BarangayChart() {
 
   const statusChartSeries = Object.values(statusCounts);
 
-  // Line Chart options (trends)
+  // Compute trend dynamic colors (Up = Green, Down = Red, Same/Base = Blue)
+  const actualTrendValues = trendValues.length > 0 ? trendValues : [2, 4, 3, 5, 8, 12];
+  const trendColors = actualTrendValues.map((val, idx) => {
+    if (idx === 0) return '#3B82F6'; // Blue baseline
+    const prevVal = actualTrendValues[idx - 1];
+    if (val > prevVal) return '#34D399'; // Balanced Emerald Green for increase (taas)
+    if (val < prevVal) return '#F87171'; // Balanced Coral Red for decrease (baba)
+    return '#3B82F6'; // Balanced Blue for neutral (stayed the same)
+  });
+
+  // Line/Bar Chart options (trends)
   const lineChartOptions: ApexOptions = {
-    chart: { type: 'line', toolbar: { show: false } },
-    stroke: { curve: 'smooth', width: 3 },
-    colors: ['#0d9488'],
-    markers: { size: 4, colors: ['#ffffff'], strokeColors: '#0d9488', strokeWidth: 2 },
+    chart: { type: 'bar', toolbar: { show: false } },
+    plotOptions: {
+      bar: {
+        borderRadius: 5,
+        columnWidth: '55%',
+        distributed: true
+      }
+    },
+    colors: trendColors,
     xaxis: {
       categories: trendLabels.length > 0 ? trendLabels : ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
       labels: { style: { colors: '#64748b', fontSize: '10px' } }
@@ -200,12 +245,16 @@ export default function BarangayChart() {
       labels: { style: { colors: '#64748b', fontSize: '10px' } }
     },
     grid: { borderColor: '#f1f5f9' },
-    tooltip: { theme: 'light' }
+    tooltip: { 
+      theme: 'light',
+      y: { formatter: (val) => `${val} Senior Citizens` }
+    },
+    legend: { show: false }
   };
 
   const lineChartSeries = [{
     name: 'New Registrations',
-    data: trendValues.length > 0 ? trendValues : [2, 4, 3, 5, 8, 12]
+    data: actualTrendValues
   }];
 
   return (
@@ -223,7 +272,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('barangay')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
               ${activeTab === 'barangay' 
-                ? 'bg-white text-teal-600 shadow-sm' 
+                ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <BarChart size={13} />
@@ -233,7 +282,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('demographic')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
               ${activeTab === 'demographic' 
-                ? 'bg-white text-teal-600 shadow-sm' 
+                ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <PieChart size={13} />
@@ -243,7 +292,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('trends')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
               ${activeTab === 'trends' 
-                ? 'bg-white text-teal-600 shadow-sm' 
+                ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <TrendingUp size={13} />
@@ -301,7 +350,7 @@ export default function BarangayChart() {
             <ReactApexChart 
               options={lineChartOptions} 
               series={lineChartSeries} 
-              type="line" 
+              type="bar" 
               height={340} 
             />
             <div className="mt-4 flex items-center gap-2 p-3 bg-teal-50 border border-teal-100/50 rounded-xl">

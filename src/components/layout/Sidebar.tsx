@@ -12,11 +12,12 @@ import {
   LogOut, 
   Menu,
   X,
-  MapPin
+  MapPin,
+  Scan
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar } = useUIStore();
+  const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar, nfcEnabled } = useUIStore();
   const { currentUser, logout, hasPermission } = useAuthStore();
 
   const menuItems = [
@@ -30,6 +31,12 @@ export default function Sidebar() {
       id: 'SeniorsList' as AppPages, 
       label: 'Senior Profiles', 
       icon: Users, 
+      permission: 'canViewSeniors' as const 
+    },
+    { 
+      id: 'FindUser' as AppPages, 
+      label: nfcEnabled ? 'Find User / NFC' : 'Find User', 
+      icon: Scan, 
       permission: 'canViewSeniors' as const 
     },
     { 
@@ -56,6 +63,12 @@ export default function Sidebar() {
       icon: Settings, 
       permission: 'canManageUsers' as const 
     },
+    { 
+      id: 'Configuration' as AppPages, 
+      label: 'Configuration', 
+      icon: Settings, 
+      permission: 'canViewSeniors' as const 
+    },
   ];
 
   const handleLogout = () => {
@@ -74,48 +87,51 @@ export default function Sidebar() {
       )}
 
       <aside 
-        className={`fixed inset-y-0 left-0 bg-slate-900 text-slate-100 flex flex-col transition-all duration-300 z-50 shadow-2xl
+        className={`fixed inset-y-0 left-0 bg-[#128f82] text-slate-100 flex flex-col transition-all duration-300 z-50 shadow-2xl border-r border-[#128f82]/40
           ${sidebarOpen ? 'w-64' : 'w-20'} 
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
       >
         {/* Header Branding */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-slate-800">
+        <div className="h-16 flex items-center justify-between px-4 shrink-0">
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-md shrink-0">
               <img 
                 referrerPolicy="no-referrer"
-                src="https://juban-boms.lguapps.com/wp-content/uploads/2025/08/cropped-jubanlogo-1.png" 
+                src="/juban-logo.png" 
                 alt="Juban Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
             {sidebarOpen && (
               <div className="flex flex-col">
-                <span className="font-bold text-sm tracking-wide leading-none text-teal-400 font-sans">JUBAN, SORSOGON</span>
-                <span className="text-[10px] text-slate-400 mt-0.5">Senior Citizen Portal</span>
+                <span className="font-extrabold text-sm tracking-wide leading-none text-white font-sans">JUBAN, SORSOGON</span>
+                <span className="text-[9px] font-bold text-[#FDFE00] uppercase tracking-widest mt-0.5">OSCA LGU Portal</span>
               </div>
             )}
           </div>
           <button 
             onClick={toggleSidebar} 
-            className="lg:hidden p-1 rounded-md text-slate-400 hover:text-white hover:bg-slate-800"
+            className="lg:hidden p-1 rounded-md text-slate-100 hover:text-white hover:bg-slate-950/20"
           >
             <X size={18} />
           </button>
         </div>
 
+        {/* Philippine National Colors Tri-Color Security Accent Ribbon */}
+        <div style={{ height: 2, background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }} className="w-full shrink-0" />
+
         {/* Logged User Info Badge */}
         {currentUser && sidebarOpen && (
-          <div className="mx-4 my-6 p-3 bg-slate-800/50 rounded-xl border border-slate-800 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 shrink-0 font-bold">
+          <div className="mx-4 my-6 p-3 bg-slate-950/20 rounded-xl border border-slate-950/10 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-slate-950/15 border border-slate-950/25 flex items-center justify-center text-white shrink-0 font-extrabold">
               {currentUser.fullName.split(' ').pop()?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">
-              <h4 className="font-medium text-xs truncate text-slate-200">{currentUser.fullName}</h4>
-              <p className="text-[10px] text-slate-400 font-mono mt-0.5 truncate uppercase">{currentUser.role}</p>
+              <h4 className="font-bold text-xs truncate text-white">{currentUser.fullName}</h4>
+              <p className="text-[8px] font-mono text-[#FDFE00] font-semibold mt-0.5 truncate uppercase tracking-widest">{currentUser.role}</p>
               {currentUser.barangayAssigned && (
-                <div className="flex items-center gap-1 mt-1 text-[9px] text-teal-400">
-                  <MapPin size={8} />
+                <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-200">
+                  <MapPin size={8} className="text-slate-200" />
                   <span>Brgy: {currentUser.barangayAssigned}</span>
                 </div>
               )}
@@ -140,16 +156,16 @@ export default function Sidebar() {
                   // Auto close sidebar on mobile
                   if (window.innerWidth < 1024) toggleSidebar();
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 relative group
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 relative group
                   ${isActive 
-                    ? 'bg-teal-600 text-white font-semibold' 
-                    : 'text-slate-400 hover:bg-slate-800 hover:text-slate-100'}`}
+                    ? 'bg-slate-950/20 text-white border-l-4 border-[#FDFE00] rounded-l-none' 
+                    : 'text-slate-100/80 hover:bg-slate-950/10 hover:text-white'}`}
               >
-                <Icon size={18} className={isActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-200'} />
+                <Icon size={18} className={isActive ? 'text-[#FDFE00]' : 'text-slate-100/70 group-hover:text-white'} />
                 {sidebarOpen ? (
                   <span className="truncate">{item.label}</span>
                 ) : (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-950 text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-md">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-950 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-md border border-slate-950/30 font-bold">
                     {item.label}
                   </div>
                 )}
@@ -159,18 +175,18 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer Actions */}
-        <div className="p-3 border-t border-slate-800 space-y-1">
+        <div className="p-3 border-t border-slate-950/20 space-y-1">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-400 hover:bg-red-500/10 transition-all duration-150 group"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-200 hover:bg-red-950/20 transition-all duration-150 group"
           >
-            <LogOut size={18} className="text-red-400 group-hover:translate-x-1 transition-transform" />
+            <LogOut size={18} className="text-red-300 group-hover:translate-x-1 transition-transform" />
             {sidebarOpen && <span>Magsara (Logout)</span>}
           </button>
           
           {sidebarOpen && (
             <div className="pt-2 text-center">
-              <span className="text-[9px] text-slate-500 font-mono uppercase">LGU-JUBAN v1.0.0</span>
+              <span className="text-[8px] text-slate-100/40 font-mono uppercase tracking-widest">LGU-JUBAN v1.0.0</span>
             </div>
           )}
         </div>

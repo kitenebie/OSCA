@@ -10,6 +10,8 @@ import SeniorRegistrationPage from './pages/SeniorRegistrationPage';
 import ReportsPage from './pages/ReportsPage';
 import SMSCenterPage from './pages/SMSCenterPage';
 import UserManagementPage from './pages/UserManagementPage';
+import FindUserPage from './pages/FindUserPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 export default function App() {
@@ -38,6 +40,10 @@ export default function App() {
         return <SMSCenterPage />;
       case 'UserManagement':
         return <UserManagementPage />;
+      case 'FindUser':
+        return <FindUserPage />;
+      case 'Configuration':
+        return <ConfigurationPage />;
       default:
         return <DashboardPage />;
     }

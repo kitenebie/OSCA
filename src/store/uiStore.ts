@@ -7,7 +7,9 @@ export type AppPages =
   | 'Register' 
   | 'Reports' 
   | 'SMSCenter' 
-  | 'UserManagement';
+  | 'UserManagement'
+  | 'FindUser'
+  | 'Configuration';
 
 interface Toast {
   id: string;
@@ -20,12 +22,14 @@ interface UIState {
   selectedSeniorId: string | null;
   sidebarOpen: boolean;
   toasts: Toast[];
+  nfcEnabled: boolean;
   
   setCurrentPage: (page: AppPages, seniorId?: string | null) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   showToast: (message: string, type?: Toast['type']) => void;
   removeToast: (id: string) => void;
+  setNfcEnabled: (enabled: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set, get) => ({
@@ -33,6 +37,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   selectedSeniorId: null,
   sidebarOpen: true,
   toasts: [],
+  nfcEnabled: false,
 
   setCurrentPage: (page, seniorId = null) => {
     set({ currentPage: page, selectedSeniorId: seniorId });
@@ -56,5 +61,7 @@ export const useUIStore = create<UIState>((set, get) => ({
 
   removeToast: (id) => {
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
-  }
+  },
+
+  setNfcEnabled: (enabled) => set({ nfcEnabled: enabled })
 }));

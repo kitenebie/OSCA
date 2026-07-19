@@ -111,6 +111,7 @@ export default function SeniorProfilePage() {
               ${senior.status === 'Pending' ? 'bg-amber-50 border-amber-200 text-amber-600 animate-pulse' : ''}
               ${senior.status === 'For Verification' ? 'bg-blue-50 border-blue-200 text-blue-600' : ''}
               ${senior.status === 'Rejected' ? 'bg-red-50 border-red-200 text-red-600' : ''}
+              ${senior.status === 'Deactivated' ? 'bg-slate-50 border-slate-200 text-slate-500' : ''}
             `}>
               {senior.status}
             </span>

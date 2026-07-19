@@ -32,7 +32,22 @@ const getStoredSeniors = (): SeniorCitizen[] => {
   const stored = localStorage.getItem('senior_system_seniors');
   if (stored) {
     try {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored) as SeniorCitizen[];
+      let modified = false;
+      const cleaned = parsed.map((s) => {
+        if (s.signatureData && s.signatureData.includes('...')) {
+          modified = true;
+          return {
+            ...s,
+            signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+          };
+        }
+        return s;
+      });
+      if (modified) {
+        localStorage.setItem('senior_system_seniors', JSON.stringify(cleaned));
+      }
+      return cleaned;
     } catch {
       return initialSeniors as SeniorCitizen[];
     }

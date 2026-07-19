@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import { domToCanvas } from 'modern-screenshot';
 import { jsPDF } from 'jspdf';
 
 /**
@@ -22,20 +22,12 @@ export const exportElementToPDF = async (
   }
 
   try {
-    // Add temporary styles to ensure everything is rendered in high resolution
-    const originalWidth = element.style.width;
-    const originalHeight = element.style.height;
-    
-    // Create the canvas from HTML element
-    const canvas = await html2canvas(element, {
+    const canvas = await domToCanvas(element, {
       scale: 2, // Retain high resolution for text and barcodes
-      useCORS: true, // Allow external Unsplash photos to load in canvas
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false
+      backgroundColor: '#ffffff'
     });
 
-    const imgData = canvas.toDataURL('image/png');
+    const imgData = canvas.toDataURL('image/png', 1.0);
     
     // Create jsPDF instance
     const pdf = new jsPDF({
@@ -82,19 +74,17 @@ export const exportSeniorIDCardPDF = async (
   }
 
   try {
-    const opts = {
+    const canvasFront = await domToCanvas(front, {
       scale: 3, // Very high definition for printing
-      useCORS: true,
-      allowTaint: true,
-      backgroundColor: '#ffffff',
-      logging: false
-    };
+      backgroundColor: '#ffffff'
+    });
+    const canvasBack = await domToCanvas(back, {
+      scale: 3,
+      backgroundColor: '#ffffff'
+    });
 
-    const canvasFront = await html2canvas(front, opts);
-    const canvasBack = await html2canvas(back, opts);
-
-    const imgFront = canvasFront.toDataURL('image/png');
-    const imgBack = canvasBack.toDataURL('image/png');
+    const imgFront = canvasFront.toDataURL('image/png', 1.0);
+    const imgBack = canvasBack.toDataURL('image/png', 1.0);
 
     // Create a landscape PDF with custom CR80 dimensions: 85.6mm x 54.0mm
     const pdf = new jsPDF({

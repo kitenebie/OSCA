@@ -135,6 +135,7 @@ export default function SeniorsListPage() {
             <option value="Pending">Pending Application</option>
             <option value="For Verification">For Verification</option>
             <option value="Rejected">Rejected</option>
+            <option value="Deactivated">Deactivated</option>
           </select>
         </div>
 
@@ -245,6 +246,7 @@ export default function SeniorsListPage() {
                         ${senior.status === 'Pending' ? 'bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse' : ''}
                         ${senior.status === 'For Verification' ? 'bg-blue-500/10 text-blue-600 border border-blue-500/20' : ''}
                         ${senior.status === 'Rejected' ? 'bg-red-500/10 text-red-600 border border-red-500/20' : ''}
+                        ${senior.status === 'Deactivated' ? 'bg-slate-500/10 text-slate-500 border border-slate-500/20' : ''}
                       `}>
                         {senior.status}
                       </span>
