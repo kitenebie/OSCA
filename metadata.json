@@ -1,0 +1,6 @@
+{
+  "name": "Senior Citizen Profiling System",
+  "description": "Government-grade admin portal and census dashboard for the Local Government Unit (LGU) of Juban, Sorsogon, supporting digital registration, mapping, face capture, biometric simulations, and NFC-ID generation.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

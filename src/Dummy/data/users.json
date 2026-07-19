@@ -1,0 +1,68 @@
+[
+  {
+    "id": "usr-01",
+    "username": "superadmin",
+    "fullName": "Engr. Ricardo De Guia",
+    "role": "Super Admin",
+    "contactNumber": "+63 917 123 4567",
+    "email": "ricardo.deguia@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-02",
+    "username": "mswdo_officer",
+    "fullName": "Maria Consuelo Santos, RSW",
+    "role": "MSWDO Officer",
+    "contactNumber": "+63 918 234 5678",
+    "email": "consuelo.santos@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-03",
+    "username": "encoder_bancal",
+    "fullName": "Juan dela Cruz",
+    "role": "Barangay Encoder",
+    "barangayAssigned": "Bancal",
+    "contactNumber": "+63 919 345 6789",
+    "email": "juan.delacruz@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-04",
+    "username": "encoder_milagrosa",
+    "fullName": "Elena Rostata",
+    "role": "Barangay Encoder",
+    "barangayAssigned": "Milagrosa",
+    "contactNumber": "+63 920 456 7890",
+    "email": "elena.rostata@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-05",
+    "username": "encoder_lantic",
+    "fullName": "Arnel Dimaculangan",
+    "role": "Barangay Encoder",
+    "barangayAssigned": "Lantic",
+    "contactNumber": "+63 921 567 8901",
+    "email": "arnel.d@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-06",
+    "username": "viewer_mayor",
+    "fullName": "Hon. Mayor Dahlia Loyola",
+    "role": "Viewer",
+    "contactNumber": "+63 917 888 9999",
+    "email": "dahlia.loyola@carmonagov.ph",
+    "status": "Active"
+  },
+  {
+    "id": "usr-07",
+    "username": "viewer_audit",
+    "fullName": "Auditor Francisco Reyes",
+    "role": "Viewer",
+    "contactNumber": "+63 916 111 2222",
+    "email": "francisco.reyes@audit.gov.ph",
+    "status": "Inactive"
+  }
+]

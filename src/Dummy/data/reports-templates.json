@@ -1,0 +1,34 @@
+[
+  {
+    "id": "rep-01",
+    "name": "Master List of Senior Citizens per Barangay",
+    "description": "Comprehensive alphabetical listing of senior citizens grouped by their residential barangays. Standard report for LGU profiling.",
+    "type": "MasterList",
+    "category": "Demographic",
+    "parameters": ["Barangay", "Status", "Age Range"]
+  },
+  {
+    "id": "rep-02",
+    "name": "Indigent Pension Beneficiary Master List",
+    "description": "Master list of senior citizens eligible for DSWD Social Pension programs. Used for auditing cash disbursements.",
+    "type": "Pension",
+    "category": "Financial",
+    "parameters": ["Barangay", "Pension Status", "Disbursement Status"]
+  },
+  {
+    "id": "rep-03",
+    "name": "Municipal Census and Demographic Summary Report",
+    "description": "Statistical census detailing sex distribution, age bracket counts, civil status, and growth trend across Juban, Sorsogon.",
+    "type": "Census",
+    "category": "Demographic",
+    "parameters": ["Fiscal Year", "Barangay Split"]
+  },
+  {
+    "id": "rep-04",
+    "name": "Individual Senior Citizen Profiling Form (OSCA Form 1)",
+    "description": "Detailed multi-page form containing full personal, biometrics, signature, and address data. Official record sheet for individual filing.",
+    "type": "Individual",
+    "category": "Administrative",
+    "parameters": ["OSCA ID Number"]
+  }
+]

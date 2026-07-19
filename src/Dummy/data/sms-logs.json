@@ -1,0 +1,52 @@
+[
+  {
+    "id": "sms-001",
+    "recipientName": "Severino Macaraig",
+    "recipientPhone": "+63 915 444 3210",
+    "barangay": "Bancal",
+    "message": "Magandang araw Severino! Nais naming ipaalala na ang pamamahagi ng inyong Social Pension para sa buwang ito ay gaganapin sa Bancal Barangay Hall sa darating na Hulyo 25, 2026, 9:00 AM. Magdala ng Senior ID at ballpen. Salamat mula sa LGU Juban MSWDO.",
+    "status": "Sent",
+    "timestamp": "2026-07-18T10:00:00-07:00",
+    "sentBy": "Maria Consuelo Santos"
+  },
+  {
+    "id": "sms-002",
+    "recipientName": "Lourdes Panganiban",
+    "recipientPhone": "+63 920 555 6789",
+    "barangay": "Milagrosa",
+    "message": "Magandang araw Lourdes! Ang inyong aplikasyon para sa Senior Citizen ID ay APRUBADO na. Maaari ninyong makuha ang inyong physical NFC ID card sa OSCA Office, Juban Municipal Hall simula Lunes. Magdala ng kopya ng inyong registration form. Salamat!",
+    "status": "Sent",
+    "timestamp": "2026-07-17T14:30:00-07:00",
+    "sentBy": "Elena Rostata"
+  },
+  {
+    "id": "sms-003",
+    "recipientName": "Demetrio Almeda",
+    "recipientPhone": "+63 918 333 4455",
+    "barangay": "Lantic",
+    "message": "PAUNAWA para kay Demetrio Almeda: May libreng Hypertension maintenance medicine subsidy na ipamamahagi sa Lantic Health Center sa Martes, Hulyo 21, 2026. Mangyaring pumunta para makuha ang inyong quarterly supply. Salamat mula sa Juban Municipal Health Office.",
+    "status": "Sent",
+    "timestamp": "2026-07-18T08:15:00-07:00",
+    "sentBy": "Arnel Dimaculangan"
+  },
+  {
+    "id": "sms-004",
+    "recipientName": "Rosario Delos Santos",
+    "recipientPhone": "+63 917 222 3344",
+    "barangay": "Barangay III (Poblacion)",
+    "message": "Magandang araw Rosario! Nais naming ipaalala ang Barangay Birthday Cash Voucher na nagkakahalagang Php 500.00 ay maaari niyo nang i-claim sa inyong barangay hall. Maligayang Kaarawan! Mula sa Barangay III Council.",
+    "status": "Pending",
+    "timestamp": "2026-07-18T23:00:00-07:00",
+    "sentBy": "Engr. Ricardo De Guia"
+  },
+  {
+    "id": "sms-005",
+    "recipientName": "Filemon Katigbak",
+    "recipientPhone": "+63 922 999 8888",
+    "barangay": "Maduya",
+    "message": "Magandang araw Filemon! Nais naming ipagbigay-alam na kailangan ng inyong personal na presensya sa MSWDO Office para sa mandatory 'For Verification' profile validation. Mangyaring magdala ng birth certificate o valid ID. Salamat.",
+    "status": "Failed",
+    "timestamp": "2026-07-15T09:00:00-07:00",
+    "sentBy": "Maria Consuelo Santos"
+  }
+]

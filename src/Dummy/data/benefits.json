@@ -1,0 +1,47 @@
+[
+  {
+    "id": "ben-01",
+    "title": "National Social Pension for Indigent Senior Citizens (SocPen)",
+    "description": "Monthly stipend of Php 1,000.00 given by DSWD and distributed by LGU Juban to indigent senior citizens to augment daily subsistence and medical needs.",
+    "amount": 1000,
+    "frequency": "Monthly",
+    "status": "Active",
+    "distributionDate": "2026-07-25"
+  },
+  {
+    "id": "ben-02",
+    "title": "LGU Juban Centenarian Cash Gift",
+    "description": "One-time cash gift of Php 50,000.00 for senior citizens reaching 100 years old, as authorized under Local Ordinance.",
+    "amount": 50000,
+    "frequency": "Annual",
+    "status": "Active",
+    "distributionDate": "2026-08-15"
+  },
+  {
+    "id": "ben-03",
+    "title": "Milestone Cash Gift (80, 90 years old)",
+    "description": "LGU cash incentive for senior citizens celebrating their 80th birthday (Php 5,000.00) and 90th birthday (Php 10,000.00) to support longevity.",
+    "amount": 5000,
+    "frequency": "Annual",
+    "status": "Active",
+    "distributionDate": "2026-07-30"
+  },
+  {
+    "id": "ben-04",
+    "title": "Free Medical Maintenance Subsidy",
+    "description": "Quarterly provision of essential hypertension and diabetes medications (Amlodipine, Metformin, Losartan) from the Municipal Health Office.",
+    "amount": 1500,
+    "frequency": "Quarterly",
+    "status": "Active",
+    "distributionDate": "2026-09-01"
+  },
+  {
+    "id": "ben-05",
+    "title": "Barangay Birthday Cash Voucher",
+    "description": "Php 500.00 birthday cash voucher sponsored by Barangay Councils of Juban, Sorsogon.",
+    "amount": 500,
+    "frequency": "Annual",
+    "status": "Active",
+    "distributionDate": "2026-07-20"
+  }
+]

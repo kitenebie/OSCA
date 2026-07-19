@@ -1,0 +1,202 @@
+[
+  {
+    "id": "brgy-anog",
+    "name": "Añog",
+    "population": 1500,
+    "seniorCount": 180,
+    "centerCoordinates": { "lat": 12.8550, "lng": 123.9720 },
+    "barangayHallAddress": "Barangay Hall, Añog, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-aroroy",
+    "name": "Aroroy",
+    "population": 1350,
+    "seniorCount": 150,
+    "centerCoordinates": { "lat": 12.8310, "lng": 123.9450 },
+    "barangayHallAddress": "Barangay Hall, Aroroy, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-bacolod",
+    "name": "Bacolod",
+    "population": 2200,
+    "seniorCount": 250,
+    "centerCoordinates": { "lat": 12.8680, "lng": 123.9850 },
+    "barangayHallAddress": "Barangay Hall, Bacolod, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-binanuahan",
+    "name": "Binanuahan",
+    "population": 1900,
+    "seniorCount": 210,
+    "centerCoordinates": { "lat": 12.8850, "lng": 123.9920 },
+    "barangayHallAddress": "Barangay Hall, Binanuahan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-biriran",
+    "name": "Biriran",
+    "population": 1300,
+    "seniorCount": 140,
+    "centerCoordinates": { "lat": 12.8450, "lng": 123.9650 },
+    "barangayHallAddress": "Barangay Hall, Biriran, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-buraburan",
+    "name": "Buraburan",
+    "population": 1100,
+    "seniorCount": 120,
+    "centerCoordinates": { "lat": 12.8950, "lng": 124.0050 },
+    "barangayHallAddress": "Barangay Hall, Buraburan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-calateo",
+    "name": "Calateo",
+    "population": 1200,
+    "seniorCount": 130,
+    "centerCoordinates": { "lat": 12.8250, "lng": 123.9350 },
+    "barangayHallAddress": "Barangay Hall, Calateo, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-calmayon",
+    "name": "Calmayon",
+    "population": 1450,
+    "seniorCount": 160,
+    "centerCoordinates": { "lat": 12.8150, "lng": 123.9250 },
+    "barangayHallAddress": "Barangay Hall, Calmayon, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-caruhayon",
+    "name": "Caruhayon",
+    "population": 1050,
+    "seniorCount": 115,
+    "centerCoordinates": { "lat": 12.8050, "lng": 123.9150 },
+    "barangayHallAddress": "Barangay Hall, Caruhayon, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-catanagan",
+    "name": "Catanagan",
+    "population": 1850,
+    "seniorCount": 200,
+    "centerCoordinates": { "lat": 12.8400, "lng": 123.9300 },
+    "barangayHallAddress": "Barangay Hall, Catanagan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-catanusan",
+    "name": "Catanusan",
+    "population": 1600,
+    "seniorCount": 175,
+    "centerCoordinates": { "lat": 12.8300, "lng": 123.9200 },
+    "barangayHallAddress": "Barangay Hall, Catanusan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-cogon",
+    "name": "Cogon",
+    "population": 2800,
+    "seniorCount": 320,
+    "centerCoordinates": { "lat": 12.8600, "lng": 123.9900 },
+    "barangayHallAddress": "Barangay Hall, Cogon, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-embarcadero",
+    "name": "Embarcadero",
+    "population": 1400,
+    "seniorCount": 160,
+    "centerCoordinates": { "lat": 12.8720, "lng": 123.9820 },
+    "barangayHallAddress": "Barangay Hall, Embarcadero, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-guruyan",
+    "name": "Guruyan",
+    "population": 3100,
+    "seniorCount": 360,
+    "centerCoordinates": { "lat": 12.8500, "lng": 123.9800 },
+    "barangayHallAddress": "Barangay Hall, Guruyan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-lajong",
+    "name": "Lajong",
+    "population": 4100,
+    "seniorCount": 480,
+    "centerCoordinates": { "lat": 12.8900, "lng": 123.9880 },
+    "barangayHallAddress": "Barangay Hall, Lajong, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-maalo",
+    "name": "Maalo",
+    "population": 1650,
+    "seniorCount": 185,
+    "centerCoordinates": { "lat": 12.8650, "lng": 123.9600 },
+    "barangayHallAddress": "Barangay Hall, Maalo, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-north-poblacion",
+    "name": "North Poblacion",
+    "population": 2400,
+    "seniorCount": 290,
+    "centerCoordinates": { "lat": 12.8753, "lng": 123.9878 },
+    "barangayHallAddress": "Barangay Hall, North Poblacion, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-puting-sapa",
+    "name": "Puting Sapa",
+    "population": 1550,
+    "seniorCount": 170,
+    "centerCoordinates": { "lat": 12.8550, "lng": 123.9100 },
+    "barangayHallAddress": "Barangay Hall, Puting Sapa, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-rangas",
+    "name": "Rangas",
+    "population": 1700,
+    "seniorCount": 190,
+    "centerCoordinates": { "lat": 12.8450, "lng": 123.9500 },
+    "barangayHallAddress": "Barangay Hall, Rangas, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-sablayan",
+    "name": "Sablayan",
+    "population": 2150,
+    "seniorCount": 240,
+    "centerCoordinates": { "lat": 12.8350, "lng": 123.9400 },
+    "barangayHallAddress": "Barangay Hall, Sablayan, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-sipaya",
+    "name": "Sipaya",
+    "population": 1250,
+    "seniorCount": 135,
+    "centerCoordinates": { "lat": 12.8250, "lng": 123.9120 },
+    "barangayHallAddress": "Barangay Hall, Sipaya, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-south-poblacion",
+    "name": "South Poblacion",
+    "population": 2600,
+    "seniorCount": 310,
+    "centerCoordinates": { "lat": 12.8725, "lng": 123.9860 },
+    "barangayHallAddress": "Barangay Hall, South Poblacion, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-taboc",
+    "name": "Taboc",
+    "population": 1500,
+    "seniorCount": 165,
+    "centerCoordinates": { "lat": 12.8180, "lng": 123.9480 },
+    "barangayHallAddress": "Barangay Hall, Taboc, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-tinago",
+    "name": "Tinago",
+    "population": 1300,
+    "seniorCount": 145,
+    "centerCoordinates": { "lat": 12.8280, "lng": 123.9580 },
+    "barangayHallAddress": "Barangay Hall, Tinago, Juban, Sorsogon"
+  },
+  {
+    "id": "brgy-tughan",
+    "name": "Tughan",
+    "population": 2050,
+    "seniorCount": 225,
+    "centerCoordinates": { "lat": 12.8680, "lng": 123.9780 },
+    "barangayHallAddress": "Barangay Hall, Tughan, Juban, Sorsogon"
+  }
+]

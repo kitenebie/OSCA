@@ -1,0 +1,50 @@
+[
+  {
+    "role": "Super Admin",
+    "permissions": {
+      "canViewSeniors": true,
+      "canCreateSenior": true,
+      "canEditSenior": true,
+      "canApproveReject": true,
+      "canManageUsers": true,
+      "canGenerateReports": true,
+      "canSendSMS": true
+    }
+  },
+  {
+    "role": "MSWDO Officer",
+    "permissions": {
+      "canViewSeniors": true,
+      "canCreateSenior": true,
+      "canEditSenior": true,
+      "canApproveReject": true,
+      "canManageUsers": false,
+      "canGenerateReports": true,
+      "canSendSMS": true
+    }
+  },
+  {
+    "role": "Barangay Encoder",
+    "permissions": {
+      "canViewSeniors": true,
+      "canCreateSenior": true,
+      "canEditSenior": true,
+      "canApproveReject": false,
+      "canManageUsers": false,
+      "canGenerateReports": true,
+      "canSendSMS": false
+    }
+  },
+  {
+    "role": "Viewer",
+    "permissions": {
+      "canViewSeniors": true,
+      "canCreateSenior": false,
+      "canEditSenior": false,
+      "canApproveReject": false,
+      "canManageUsers": false,
+      "canGenerateReports": true,
+      "canSendSMS": false
+    }
+  }
+]
