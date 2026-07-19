@@ -4,9 +4,9 @@ import { SeniorCitizen } from '../types';
 import { useUIStore } from '../store/uiStore';
 import { renderBarcodeBits } from '../utils/idGenerator';
 // @ts-ignore
-import phLogo from '../../assets/images/ph_logo.png';
+import phLogo from '../../assets/imageshttps://kitenebie.github.io/OSCA/ph_logo.png';
 // @ts-ignore
-import fingerprintImg from '../../assets/images/fingerprint.png';
+import fingerprintImg from '../../assets/imageshttps://kitenebie.github.io/OSCA/fingerprint.png';
 import { 
   Scan, 
   Search, 
@@ -646,7 +646,7 @@ export default function FindUserPage() {
                           }}>
                             <img 
                               referrerPolicy="no-referrer"
-                              src="/juban-logo.png" 
+                              src="https://kitenebie.github.io/OSCA/juban-logo.png" 
                               alt="Juban Logo" 
                               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />
@@ -1079,7 +1079,7 @@ export default function FindUserPage() {
                           }}>
                             <img 
                               referrerPolicy="no-referrer"
-                              src="/juban-logo.png" 
+                              src="https://kitenebie.github.io/OSCA/juban-logo.png" 
                               alt="Juban Logo" 
                               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />

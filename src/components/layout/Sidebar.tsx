@@ -97,7 +97,7 @@ export default function Sidebar() {
             <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-md shrink-0">
               <img 
                 referrerPolicy="no-referrer"
-                src="/juban-logo.png" 
+                src="https://kitenebie.github.io/OSCA/juban-logo.png" 
                 alt="Juban Logo" 
                 className="w-full h-full object-contain"
               />
