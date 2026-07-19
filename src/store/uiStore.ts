@@ -9,7 +9,8 @@ export type AppPages =
   | 'SMSCenter' 
   | 'UserManagement'
   | 'FindUser'
-  | 'Configuration';
+  | 'Configuration'
+  | 'Mapping';
 
 interface Toast {
   id: string;

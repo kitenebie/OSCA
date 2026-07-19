@@ -17,7 +17,8 @@ export default function Topbar() {
     SMSCenter: 'SMS Communications & Notifications',
     UserManagement: 'System User Administration',
     FindUser: nfcEnabled ? 'Find User & Biometric NFC Scanner' : 'Find User & Biometric Scanner',
-    Configuration: 'System Configuration & Parameters'
+    Configuration: 'System Configuration & Parameters',
+    Mapping: 'Demographics & Barangay GIS Mapping'
   };
 
   useEffect(() => {

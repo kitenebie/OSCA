@@ -34,6 +34,12 @@ export default function Sidebar() {
       permission: 'canViewSeniors' as const 
     },
     { 
+      id: 'Mapping' as AppPages, 
+      label: 'Demographics Map', 
+      icon: MapPin, 
+      permission: 'canViewSeniors' as const 
+    },
+    { 
       id: 'FindUser' as AppPages, 
       label: nfcEnabled ? 'Find User / NFC' : 'Find User', 
       icon: Scan, 

@@ -12,6 +12,7 @@ import SMSCenterPage from './pages/SMSCenterPage';
 import UserManagementPage from './pages/UserManagementPage';
 import FindUserPage from './pages/FindUserPage';
 import ConfigurationPage from './pages/ConfigurationPage';
+import MappingPage from './pages/MappingPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 
 export default function App() {
@@ -44,6 +45,8 @@ export default function App() {
         return <FindUserPage />;
       case 'Configuration':
         return <ConfigurationPage />;
+      case 'Mapping':
+        return <MappingPage />;
       default:
         return <DashboardPage />;
     }
