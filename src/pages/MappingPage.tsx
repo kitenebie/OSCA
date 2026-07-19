@@ -12,26 +12,26 @@ import MarkerClusterGroup from '../components/mapping/MarkerClusterGroup';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
-// Coordinates for all Juban Sorsogon barangays in the database
+// Coordinates for all Juban Sorsogon barangays in the database (verified inland)
 const barangayCoordinates: Record<string, { lat: number; lng: number }> = {
-  'Añog': { lat: 12.865, lng: 123.998 },
-  'Bacolod': { lat: 12.872, lng: 123.981 },
-  'Binanuahan': { lat: 12.898, lng: 123.992 },
-  'Biriran': { lat: 12.855, lng: 123.975 },
-  'Buraburan': { lat: 12.842, lng: 124.015 },
-  'Calateo': { lat: 12.887, lng: 124.008 },
-  'Calmayon': { lat: 12.835, lng: 123.989 },
-  'Cogon': { lat: 12.891, lng: 123.982 },
-  'Embarcadero': { lat: 12.895, lng: 123.972 },
-  'Guruyan': { lat: 12.861, lng: 123.962 },
-  'Lajong': { lat: 12.912, lng: 123.979 },
-  'Maalo': { lat: 12.851, lng: 124.004 },
-  'North Poblacion': { lat: 12.882, lng: 123.988 },
-  'South Poblacion': { lat: 12.878, lng: 123.988 }
+  'Añog': { lat: 12.7892, lng: 124.0287 },
+  'Bacolod': { lat: 12.7931, lng: 123.9972 },
+  'Binanuahan': { lat: 12.8450, lng: 123.9858 },
+  'Biriran': { lat: 12.8570, lng: 123.9581 },
+  'Buraburan': { lat: 12.7761, lng: 123.9907 },
+  'Calateo': { lat: 12.8040, lng: 123.9847 },
+  'Calmayon': { lat: 12.7826, lng: 123.9592 },
+  'Cogon': { lat: 12.8382, lng: 123.9963 },
+  'Embarcadero': { lat: 12.8520, lng: 123.9880 },
+  'Guruyan': { lat: 12.7503, lng: 123.9742 },
+  'Lajong': { lat: 12.8214, lng: 123.9623 },
+  'Maalo': { lat: 12.8010, lng: 123.9563 },
+  'North Poblacion': { lat: 12.8490, lng: 123.9890 },
+  'South Poblacion': { lat: 12.8450, lng: 123.9890 }
 };
 
-// Center of Juban, Sorsogon
-const JUBAN_CENTER: [number, number] = [12.8797, 123.9878];
+// Center of Juban, Sorsogon (Town Proper / Municipal Hall)
+const JUBAN_CENTER: [number, number] = [12.8478, 123.9894];
 
 const getCoordinatesForBarangay = (brgy: string): { lat: number; lng: number } => {
   if (barangayCoordinates[brgy]) return barangayCoordinates[brgy];

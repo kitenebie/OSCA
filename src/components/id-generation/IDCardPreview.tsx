@@ -29,6 +29,11 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
   )}`;
 
   const handleExportPDF = async () => {
+    if (senior.status !== 'Approved') {
+      showToast('Hindi maaaring i-download ang ID ng hindi pa aprubadong senior citizen.', 'error');
+      return;
+    }
+
     setIsExporting(true);
     showToast('Inihahanda ang PDF layout para sa ID Card...', 'info');
     
@@ -173,12 +178,19 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
           {/* Download PDF button */}
           <button
             type="button"
-            disabled={isExporting}
+            disabled={isExporting || senior.status !== 'Approved'}
             onClick={handleExportPDF}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 shadow-sm transition-all duration-150 active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-all duration-150 active:scale-95"
+            title={senior.status !== 'Approved' ? 'Maaari lamang i-download ang ID kung ang status ng Senior ay Approved.' : ''}
           >
             <FileDown size={14} />
-            <span>{isExporting ? 'Rendering...' : 'I-download (CR80 PDF)'}</span>
+            <span>
+              {isExporting 
+                ? 'Rendering...' 
+                : senior.status !== 'Approved' 
+                  ? 'Hindi Aprubado (Bawal I-download)' 
+                  : 'I-download (CR80 PDF)'}
+            </span>
           </button>
         </div>
       </div>
