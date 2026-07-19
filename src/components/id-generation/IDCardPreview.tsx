@@ -5,10 +5,8 @@ import { useUIStore } from '../../store/uiStore';
 import { FileDown, Radio, ShieldCheck, Printer } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
-// @ts-ignore
-import phLogo from '../../../assets/imageshttps://kitenebie.github.io/OSCA/ph_logo.png';
-// @ts-ignore
-import fingerprintImg from '../../../assets/imageshttps://kitenebie.github.io/OSCA/fingerprint.png';
+const phLogo = 'https://kitenebie.github.io/OSCA/ph_logo.png';
+const fingerprintImg = 'https://kitenebie.github.io/OSCA/fingerprint.png';
 
 interface IDCardPreviewProps {
   senior: SeniorCitizen;

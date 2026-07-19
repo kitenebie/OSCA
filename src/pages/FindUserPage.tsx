@@ -4,9 +4,9 @@ import { SeniorCitizen } from '../types';
 import { useUIStore } from '../store/uiStore';
 import { renderBarcodeBits } from '../utils/idGenerator';
 // @ts-ignore
-import phLogo from '../../assets/imageshttps://kitenebie.github.io/OSCA/ph_logo.png';
+const phLogo = 'https://kitenebie.github.io/OSCA/ph_logo.png';
 // @ts-ignore
-import fingerprintImg from '../../assets/imageshttps://kitenebie.github.io/OSCA/fingerprint.png';
+const fingerprintImg = 'https://kitenebie.github.io/OSCA/fingerprint.png';
 import { 
   Scan, 
   Search, 
