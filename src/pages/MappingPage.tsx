@@ -1,11 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useUIStore } from '../store/uiStore';
-import { MapPin, Users, Heart, GraduationCap, Building2, Search, Map as MapIcon, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Heart, Building2, Search, Map as MapIcon, ChevronRight } from 'lucide-react';
 import { SeniorCitizen } from '../types';
 import MapViewUpdater from '../components/mapping/MapViewUpdater';
+import MarkerClusterGroup from '../components/mapping/MarkerClusterGroup';
+
+// Import Leaflet MarkerCluster CSS files
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 
 // Coordinates for all Juban Sorsogon barangays in the database
 const barangayCoordinates: Record<string, { lat: number; lng: number }> = {
@@ -43,39 +48,6 @@ const getCoordinatesForBarangay = (brgy: string): { lat: number; lng: number } =
     lat: JUBAN_CENTER[0] + latOffset,
     lng: JUBAN_CENTER[1] + lngOffset
   };
-};
-
-/**
- * Leaflet custom divIcon cluster marker showing senior count.
- */
-const createClusterIcon = (count: number, isSelected: boolean) => {
-  let colorClass = 'bg-[#128f82] border-teal-100 text-white';
-  let size = 36;
-  
-  if (count > 5) {
-    colorClass = 'bg-[#02A952] border-emerald-100 text-white';
-    size = 40;
-  }
-  if (count > 10) {
-    colorClass = 'bg-teal-800 border-teal-50 text-white ring-4 ring-teal-500/10';
-    size = 44;
-  }
-  if (isSelected) {
-    colorClass = 'bg-[#FD0000] border-red-100 text-white ring-4 ring-red-500/20';
-    size = 48;
-  }
-  
-  return L.divIcon({
-    html: `
-      <div class="flex items-center justify-center rounded-full border-2 font-black shadow-lg text-xs leading-none transition-all duration-300 ${colorClass}" 
-           style="width: ${size}px; height: ${size}px;">
-        <span>${count}</span>
-      </div>
-    `,
-    className: 'custom-cluster-marker',
-    iconSize: L.point(size, size),
-    iconAnchor: L.point(size / 2, size / 2)
-  });
 };
 
 export default function MappingPage() {
@@ -257,51 +229,12 @@ export default function MappingPage() {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
 
-              {/* Barangay Marker Clusters */}
-              {mappingData.map((item) => (
-                <Marker
-                  key={item.name}
-                  position={[item.coordinates.lat, item.coordinates.lng]}
-                  icon={createClusterIcon(item.seniors.length, selectedBrgyName === item.name)}
-                  eventHandlers={{
-                    click: () => {
-                      setSelectedBrgyName(item.name);
-                    }
-                  }}
-                >
-                  <Popup>
-                    <div className="p-1 min-w-[180px] font-sans">
-                      <h4 className="font-extrabold text-slate-800 text-xs border-b border-slate-100 pb-1 mb-1.5 uppercase">
-                        Brgy. {item.name}
-                      </h4>
-                      <div className="space-y-1 text-[10px] text-slate-600">
-                        <div className="flex justify-between">
-                          <span>Total Seniors:</span>
-                          <strong className="text-slate-800">{item.seniors.length}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Pensioners:</span>
-                          <strong className="text-slate-800">{item.pensionCount}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Approved:</span>
-                          <strong className="text-teal-600">{item.approvedCount}</strong>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Pending:</span>
-                          <strong className="text-amber-500">{item.pendingCount}</strong>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleBarangaySelect(item.name, item.coordinates)}
-                        className="mt-3 w-full py-1 bg-[#128f82] text-white text-[9px] font-bold rounded-lg hover:bg-teal-700 transition-colors"
-                      >
-                        I-select Barangay
-                      </button>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
+              {/* Individual Marker Clustering Group */}
+              <MarkerClusterGroup 
+                seniors={seniors} 
+                onSelectSenior={(id) => setCurrentPage('SeniorProfile', id)} 
+                getCoordinatesForBarangay={getCoordinatesForBarangay} 
+              />
 
               {/* Dynamic View Update Agent */}
               <MapViewUpdater center={mapCenter} zoom={mapZoom} />
