@@ -6,7 +6,8 @@
     "role": "Super Admin",
     "contactNumber": "+63 917 123 4567",
     "email": "ricardo.deguia@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@fywrh23ssi.co.uk"
   },
   {
     "id": "usr-02",
@@ -15,7 +16,8 @@
     "role": "MSWDO Officer",
     "contactNumber": "+63 918 234 5678",
     "email": "consuelo.santos@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@anvc2iib90.co.uk"
   },
   {
     "id": "usr-03",
@@ -25,7 +27,8 @@
     "barangayAssigned": "Bancal",
     "contactNumber": "+63 919 345 6789",
     "email": "juan.delacruz@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@5wblre8nf3.co.uk"
   },
   {
     "id": "usr-04",
@@ -35,7 +38,8 @@
     "barangayAssigned": "Milagrosa",
     "contactNumber": "+63 920 456 7890",
     "email": "elena.rostata@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@e7qtmrgb5i.co.uk"
   },
   {
     "id": "usr-05",
@@ -45,7 +49,8 @@
     "barangayAssigned": "Lantic",
     "contactNumber": "+63 921 567 8901",
     "email": "arnel.d@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@2h8611u0er.co.uk"
   },
   {
     "id": "usr-06",
@@ -54,7 +59,8 @@
     "role": "Viewer",
     "contactNumber": "+63 917 888 9999",
     "email": "dahlia.loyola@carmonagov.ph",
-    "status": "Active"
+    "status": "Active",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@3h75onqn9n.co.uk"
   },
   {
     "id": "usr-07",
@@ -63,7 +69,8 @@
     "role": "Viewer",
     "contactNumber": "+63 916 111 2222",
     "email": "francisco.reyes@audit.gov.ph",
-    "status": "Deactivated"
+    "status": "Deactivated",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@adz9rrt0hv.co.uk"
   },
   {
     "id": "usr-08",
@@ -73,6 +80,7 @@
     "barangayAssigned": "Milagrosa",
     "contactNumber": "+63 915 222 3333",
     "email": "josefa.m@carmonagov.ph",
-    "status": "Inactive"
+    "status": "Inactive",
+    "profilePhoto": "https://i.pravatar.cc/250?u=mail@uwggm7mvld.co.uk"
   }
 ]

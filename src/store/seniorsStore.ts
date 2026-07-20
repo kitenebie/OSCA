@@ -28,32 +28,67 @@ interface SeniorsState {
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
 }
 
+// Version key based on the count of seed records — bumps automatically when seniors.json grows
+const SEED_VERSION_KEY = 'senior_system_seed_version';
+const SEED_VERSION = String((initialSeniors as SeniorCitizen[]).length);
+
 const getStoredSeniors = (): SeniorCitizen[] => {
+  const storedVersion = localStorage.getItem(SEED_VERSION_KEY);
   const stored = localStorage.getItem('senior_system_seniors');
-  if (stored) {
-    try {
-      const parsed = JSON.parse(stored) as SeniorCitizen[];
-      let modified = false;
-      const cleaned = parsed.map((s) => {
-        if (s.signatureData && s.signatureData.includes('...')) {
-          modified = true;
-          return {
-            ...s,
-            signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+
+  // If seed version is out of date (new records added to seniors.json), rebuild the dataset
+  if (storedVersion !== SEED_VERSION || !stored) {
+    // Build a map of any user-modified records from localStorage
+    const userEdits: Record<string, Partial<SeniorCitizen>> = {};
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored) as SeniorCitizen[];
+        parsed.forEach((s) => {
+          // Preserve user-editable fields that may have been changed in-app
+          userEdits[s.id] = {
+            status: s.status,
+            remarks: s.remarks,
+            pensionBeneficiary: s.pensionBeneficiary,
+            profilePhoto: s.profilePhoto,
+            thumbprintData: s.thumbprintData,
+            signatureData: s.signatureData,
           };
-        }
-        return s;
-      });
-      if (modified) {
-        localStorage.setItem('senior_system_seniors', JSON.stringify(cleaned));
-      }
-      return cleaned;
-    } catch {
-      return initialSeniors as SeniorCitizen[];
+        });
+      } catch { /* ignore parse errors */ }
     }
+
+    // Merge: seed data as base, overlay with user edits
+    const merged = (initialSeniors as SeniorCitizen[]).map((seed) => ({
+      ...seed,
+      ...(userEdits[seed.id] ?? {}),
+    }));
+
+    localStorage.setItem('senior_system_seniors', JSON.stringify(merged));
+    localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
+    return merged;
   }
-  localStorage.setItem('senior_system_seniors', JSON.stringify(initialSeniors));
-  return initialSeniors as SeniorCitizen[];
+
+  // Seed is current — load normally, just fix any broken signature stubs
+  try {
+    const parsed = JSON.parse(stored) as SeniorCitizen[];
+    let modified = false;
+    const cleaned = parsed.map((s) => {
+      if (s.signatureData && s.signatureData.includes('...')) {
+        modified = true;
+        return {
+          ...s,
+          signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+        };
+      }
+      return s;
+    });
+    if (modified) {
+      localStorage.setItem('senior_system_seniors', JSON.stringify(cleaned));
+    }
+    return cleaned;
+  } catch {
+    return initialSeniors as SeniorCitizen[];
+  }
 };
 
 const getStoredSmsLogs = (): SMSLog[] => {

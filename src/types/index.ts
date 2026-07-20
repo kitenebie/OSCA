@@ -46,6 +46,10 @@ export interface SeniorCitizen {
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   validIdPhoto?: string;
+  inRiskArea?: "yes" | "no";
+  riskType?: string;
+  riskDetails?: string;
+  riskSeverity?: "low" | "medium" | "high" | "critical";
 }
 
 export interface Barangay {

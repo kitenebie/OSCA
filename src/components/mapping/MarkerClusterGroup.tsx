@@ -44,6 +44,13 @@ const createSeniorIcon = (senior: SeniorCitizen) => {
   if (senior.status === 'Pending') color = '#eab308'; // Yellow
   if (senior.status === 'Rejected') color = '#ef4444'; // Red
   if (senior.pensionBeneficiary) color = '#10b981'; // Green
+
+  if (senior.inRiskArea === 'yes') {
+    if (senior.riskSeverity === 'critical') color = '#ef4444'; // Red (very critical)
+    else if (senior.riskSeverity === 'high') color = '#f97316'; // Orange
+    else if (senior.riskSeverity === 'medium') color = '#eab308'; // Yellow
+    else if (senior.riskSeverity === 'low') color = '#3b82f6'; // Blue
+  }
   
   const svgHtml = `
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -97,6 +104,19 @@ export default function MarkerClusterGroup({
             <div><span class="text-slate-400">Barangay:</span> <strong class="text-slate-700">${senior.barangay}</strong></div>
             <div><span class="text-slate-400">Beneficiary:</span> <strong class="text-slate-700">${senior.pensionBeneficiary ? 'Yes' : 'No'}</strong></div>
             <div><span class="text-slate-400">Status:</span> <strong class="${senior.status === 'Approved' ? 'text-teal-600' : 'text-amber-500'}">${senior.status}</strong></div>
+            ${senior.inRiskArea === 'yes' ? `
+              <div>
+                <span class="text-slate-400">Panganib:</span>
+                <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider
+                  ${senior.riskSeverity === 'critical' ? 'bg-red-50 text-red-600 border border-red-100' : ''}
+                  ${senior.riskSeverity === 'high' ? 'bg-orange-50 text-orange-600 border border-orange-100' : ''}
+                  ${senior.riskSeverity === 'medium' ? 'bg-amber-50 text-amber-600 border border-amber-100' : ''}
+                  ${senior.riskSeverity === 'low' ? 'bg-blue-50 text-blue-600 border border-blue-100' : ''}
+                ">
+                  ${senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}
+                </span>
+              </div>
+            ` : ''}
           </div>
           <button id="btn-popup-${senior.id}" class="mt-3 w-full py-1.5 bg-[#128f82] text-white text-[9px] font-bold rounded-lg hover:bg-teal-700 transition-colors cursor-pointer text-center">
             Tingnan ang Profile

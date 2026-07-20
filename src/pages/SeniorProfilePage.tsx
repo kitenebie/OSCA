@@ -8,20 +8,41 @@ import L from 'leaflet';
 import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X } from 'lucide-react';
 
 // Custom Map pin icon matching our AddressMapPicker style
-const profileMarkerIcon = L.divIcon({
-  className: 'custom-div-icon',
-  html: `
-    <div class="flex flex-col items-center select-none transform -translate-y-8 -translate-x-1/2">
-      <div class="w-8 h-8 rounded-full bg-teal-600 border-2 border-white flex items-center justify-center shadow-lg relative">
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-        <span class="absolute -bottom-1 w-2 h-2 bg-teal-600 rotate-45"></span>
+// Custom Map pin icon matching our AddressMapPicker style, colored by risk severity if at risk
+const getProfileMarkerIcon = (inRiskArea?: string, riskSeverity?: string) => {
+  let color = 'bg-teal-600';
+  let badgeColor = 'bg-teal-600';
+  if (inRiskArea === 'yes') {
+    if (riskSeverity === 'critical') {
+      color = 'bg-red-600';
+      badgeColor = 'bg-red-600';
+    } else if (riskSeverity === 'high') {
+      color = 'bg-orange-500';
+      badgeColor = 'bg-orange-500';
+    } else if (riskSeverity === 'medium') {
+      color = 'bg-amber-500';
+      badgeColor = 'bg-amber-500';
+    } else if (riskSeverity === 'low') {
+      color = 'bg-blue-500';
+      badgeColor = 'bg-blue-500';
+    }
+  }
+
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `
+      <div class="flex flex-col items-center select-none transform -translate-y-8 -translate-x-1/2">
+        <div class="w-8 h-8 rounded-full ${color} border-2 border-white flex items-center justify-center shadow-lg relative animate-bounce">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-white"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span class="absolute -bottom-1 w-2 h-2 ${badgeColor} rotate-45"></span>
+        </div>
+        <div class="w-2.5 h-1 bg-slate-900/30 blur-[1px] rounded-full mt-0.5"></div>
       </div>
-      <div class="w-2.5 h-1 bg-slate-900/30 blur-[1px] rounded-full mt-0.5"></div>
-    </div>
-  `,
-  iconSize: [32, 42],
-  iconAnchor: [0, 0]
-});
+    `,
+    iconSize: [32, 42],
+    iconAnchor: [0, 0]
+  });
+};
 
 export default function SeniorProfilePage() {
   const { seniors, approveSenior, rejectSenior } = useSeniorsStore();
@@ -63,13 +84,13 @@ export default function SeniorProfilePage() {
   const isPending = senior.status === 'Pending' || senior.status === 'For Verification';
 
   return (
-    <div className="space-y-6 animate-fadeIn font-sans">
+    <div className="space-y-6 animate-fadeIn font-sans w-full max-w-full overflow-hidden">
       
       {/* Back controls row */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <button
           onClick={() => setCurrentPage('SeniorsList')}
-          className="flex items-center gap-1.5 px-3 py-2 border border-slate-200 hover:border-slate-400 text-xs font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95"
+          className="flex items-center justify-center gap-1.5 px-3 py-2 border border-slate-200 hover:border-slate-400 text-xs font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95 w-full sm:w-auto"
         >
           <ChevronLeft size={14} />
           <span>Bumalik sa Listahan</span>
@@ -77,34 +98,34 @@ export default function SeniorProfilePage() {
 
         {/* Verification quick bar for Officers */}
         {isPending && canApprove && (
-          <div className="flex items-center gap-2.5">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide font-mono mr-2">MSWDO Action Desk:</span>
+          <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide font-mono mr-2 hidden min-[400px]:inline">MSWDO Action Desk:</span>
             <button
               onClick={handleReject}
-              className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+              className="flex-1 sm:flex-none px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
             >
               <X size={13} className="stroke-[3]" />
-              <span>Tanggihan (Reject)</span>
+              <span>Tanggihan</span>
             </button>
             <button
               onClick={handleApprove}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-600/10 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center gap-1.5"
+              className="flex-1 sm:flex-none px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white shadow-lg shadow-teal-600/10 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
             >
               <Check size={13} className="stroke-[3]" />
-              <span>Aprubahan (Approve)</span>
+              <span>Aprubahan</span>
             </button>
           </div>
         )}
       </div>
 
       {/* Main Grid: Info Sheets */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full max-w-full overflow-hidden">
         
         {/* LEFT COLUMN: Personal Card & Geotag Map */}
         <div className="lg:col-span-1 space-y-6">
           
           {/* Visual card summary */}
-          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col items-center text-center relative overflow-hidden">
+          <div className="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col items-center text-center relative overflow-hidden w-full max-w-full">
             {/* Status Floating Badge */}
             <span className={`absolute top-4 right-4 text-[9px] font-bold font-mono px-2 py-0.5 rounded uppercase border
               ${senior.status === 'Approved' ? 'bg-teal-50 border-teal-200 text-teal-600' : ''}
@@ -156,10 +177,33 @@ export default function SeniorProfilePage() {
                 </span>
               </div>
             </div>
+
+            {/* Disaster Risk Warning Banner */}
+            {senior.inRiskArea === 'yes' && (
+              <div className={`mt-4 w-full p-3 rounded-2xl border flex items-start gap-2.5 text-left text-[10px] leading-relaxed animate-fadeIn
+                ${senior.riskSeverity === 'critical' ? 'bg-red-50 border-red-200 text-red-800' : ''}
+                ${senior.riskSeverity === 'high' ? 'bg-orange-50 border-orange-200 text-orange-800' : ''}
+                ${senior.riskSeverity === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-800' : ''}
+                ${senior.riskSeverity === 'low' ? 'bg-blue-50 border-blue-200 text-blue-800' : ''}
+              `}>
+                <ShieldAlert className={`mt-0.5 shrink-0
+                  ${senior.riskSeverity === 'critical' ? 'text-red-500' : ''}
+                  ${senior.riskSeverity === 'high' ? 'text-orange-500' : ''}
+                  ${senior.riskSeverity === 'medium' ? 'text-amber-500' : ''}
+                  ${senior.riskSeverity === 'low' ? 'text-blue-500' : ''}
+                `} size={15} />
+                <div>
+                  <p className="font-extrabold uppercase tracking-wide">Panganib sa Lugar (Disaster Risk)</p>
+                  <p className="mt-0.5 font-semibold">
+                    Ang residenteng ito ay naninirahan sa isang <span className="font-bold uppercase tracking-wider">{senior.riskSeverity} risk area</span> na madalas maapektuhan ng <span className="font-bold uppercase">{senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}</span>.
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Map Residence geotag summary */}
-          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col h-72">
+          <div className="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col h-72 w-full max-w-full overflow-hidden">
             <div className="flex items-center gap-2 pb-3 border-b border-slate-150 mb-3 text-slate-700 font-sans">
               <MapPin size={15} className="text-teal-600" />
               <span className="font-bold text-xs uppercase tracking-wide">Residence Geotag Point</span>
@@ -179,7 +223,7 @@ export default function SeniorProfilePage() {
                 />
                 <Marker 
                   position={[senior.coordinates.lat, senior.coordinates.lng]} 
-                  icon={profileMarkerIcon}
+                  icon={getProfileMarkerIcon(senior.inRiskArea, senior.riskSeverity)}
                 >
                   <Popup>
                     <div className="text-[10px] font-sans text-slate-800">
@@ -201,7 +245,7 @@ export default function SeniorProfilePage() {
           <IDCardPreview senior={senior} />
 
           {/* Extended demographic details block */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm">
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full max-w-full overflow-hidden">
             <div className="border-b border-slate-100 pb-3 mb-4">
               <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">Pagsusuri ng Census Sheet</h4>
             </div>
@@ -221,6 +265,12 @@ export default function SeniorProfilePage() {
                   <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Lugar ng Kapanganakan</span>
                   <p className="text-slate-800 font-bold uppercase">{senior.remarks || 'Juban, Sorsogon'}</p>
                 </div>
+                <div>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Nasa Risk Area Ba?</span>
+                  <p className={`font-bold uppercase ${senior.inRiskArea === 'yes' ? 'text-red-600 font-mono' : 'text-slate-800'}`}>
+                    {senior.inRiskArea === 'yes' ? 'Oo (Yes)' : 'Hindi (No)'}
+                  </p>
+                </div>
               </div>
 
               <div className="space-y-3.5">
@@ -234,8 +284,16 @@ export default function SeniorProfilePage() {
                 </div>
                 <div>
                   <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Biometrics Enrolled Template ID</span>
-                  <p className="text-slate-800 font-bold font-mono text-[10px] truncate max-w-xs">{senior.thumbprintData || 'WALANG MATALANG BIOMETRICS'}</p>
+                  <p className="text-slate-800 font-bold font-mono text-[10px] truncate max-w-full">{senior.thumbprintData || 'WALANG MATALANG BIOMETRICS'}</p>
                 </div>
+                {senior.inRiskArea === 'yes' && (
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Uri ng Panganib at Severity</span>
+                    <p className="text-slate-800 font-bold uppercase">
+                      {senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType} ({senior.riskSeverity})
+                    </p>
+                  </div>
+                )}
               </div>
 
             </div>

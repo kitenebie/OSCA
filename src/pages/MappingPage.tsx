@@ -3,7 +3,7 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useUIStore } from '../store/uiStore';
-import { MapPin, Users, Heart, Building2, Search, Map as MapIcon, ChevronRight } from 'lucide-react';
+import { MapPin, Users, Heart, Building2, Search, Map as MapIcon, ChevronRight, AlertTriangle } from 'lucide-react';
 import { SeniorCitizen } from '../types';
 import MapViewUpdater from '../components/mapping/MapViewUpdater';
 import MarkerClusterGroup from '../components/mapping/MarkerClusterGroup';
@@ -214,8 +214,8 @@ export default function MappingPage() {
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         
         {/* Leaflet Map Card */}
-        <div className="xl:col-span-8 bg-white border border-slate-200 rounded-3xl p-4 shadow-sm relative">
-          <div className="h-[300px] sm:h-[400px] md:h-[480px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
+        <div className="xl:col-span-8 bg-white border border-slate-200 rounded-3xl p-4 shadow-sm relative xl:h-[568px]">
+          <div className="h-[300px] sm:h-[400px] md:h-[480px] xl:h-[536px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
             <MapContainer
               center={JUBAN_CENTER}
               zoom={13}
@@ -241,41 +241,41 @@ export default function MappingPage() {
             </MapContainer>
           </div>
           
-          {/* Map Overlay Badge */}
-          <div className="absolute top-8 left-8 z-[1000] bg-slate-900/90 border border-slate-800 shadow-xl backdrop-blur-md px-3.5 py-2 rounded-2xl flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span className="text-[9px] font-bold font-mono text-slate-300 uppercase tracking-widest">
-              Live GIS Node Active (Leaflet Mapping)
-            </span>
-          </div>
+           {/* Map Overlay Badge */}
+           <div className="absolute bottom-4 right-4 z-[1000] bg-white/90 border border-slate-200/60 shadow-lg backdrop-blur-md px-3 py-1.5 rounded-xl flex items-center gap-2">
+             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+             <span className="text-[9px] font-bold font-mono text-slate-600 uppercase tracking-widest">
+               Live GIS Node Active (Leaflet Mapping)
+             </span>
+           </div>
         </div>
 
         {/* Sidebar Leaders & Barangay Explorer */}
-        <div className="xl:col-span-4 space-y-6">
+        <div className="xl:col-span-4 space-y-6 xl:space-y-0 xl:h-[568px] xl:flex xl:flex-col xl:gap-4">
           
-          {/* Leaderboard Card */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
-            <div className="space-y-1">
-              <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight">Barangay Density Rankings</h3>
-              <p className="text-[10px] text-slate-400 uppercase font-mono">Senior count per community sector</p>
-            </div>
-
-            {/* Search filter input */}
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                <Search size={13} />
-              </span>
-              <input
-                type="text"
-                value={brgySearch}
-                onChange={(e) => setBrgySearch(e.target.value)}
-                placeholder="Maghanap ng Barangay..."
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-xl text-xs font-semibold focus:outline-none transition-all"
-              />
-            </div>
+           {/* Leaderboard Card */}
+           <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm flex-1 min-h-0 flex flex-col gap-4 w-full min-w-0 overflow-hidden">
+             <div className="space-y-1 flex-none">
+               <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight">Barangay Density Rankings</h3>
+               <p className="text-[10px] text-slate-400 uppercase font-mono">Senior count per community sector</p>
+             </div>
+ 
+             {/* Search filter input */}
+             <div className="relative w-full min-w-0 flex-none">
+               <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
+                 <Search size={13} />
+               </span>
+               <input
+                 type="text"
+                 value={brgySearch}
+                 onChange={(e) => setBrgySearch(e.target.value)}
+                 placeholder="Maghanap ng Barangay..."
+                 className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-xl text-xs font-semibold focus:outline-none transition-all min-w-0"
+               />
+             </div>
 
             {/* Leaders list */}
-            <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-2 flex-1 min-h-0 overflow-y-auto pr-1">
               {filteredMappingData.length > 0 ? (
                 filteredMappingData.map((item) => {
                   const isSelected = selectedBrgyName === item.name;
@@ -316,7 +316,7 @@ export default function MappingPage() {
 
           {/* Details explorer card */}
           {selectedBrgyInfo && (
-            <div className="bg-white border border-[#128f82]/30 rounded-3xl p-5 md:p-6 shadow-sm space-y-4 animate-fadeIn">
+            <div className="bg-white border border-[#128f82]/30 rounded-3xl p-5 md:p-6 shadow-sm space-y-4 animate-fadeIn flex-none">
               <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                 <div>
                   <span className="text-[8px] font-extrabold text-[#128f82] uppercase tracking-widest font-mono">
@@ -346,6 +346,19 @@ export default function MappingPage() {
                 </div>
               </div>
 
+              {/* Disaster Risk Alert Banner for Barangay */}
+              {selectedBrgyInfo.seniors.some(s => s.inRiskArea === 'yes') && (
+                <div className="bg-red-50 border border-red-200/60 rounded-2xl p-3 flex items-start gap-2.5 text-red-900 text-[10px] leading-relaxed animate-fadeIn">
+                  <AlertTriangle className="text-red-500 mt-0.5 shrink-0" size={14} />
+                  <div>
+                    <p className="font-bold uppercase tracking-wider text-[9px] text-red-700">Disaster Risk Area Alert</p>
+                    <p className="text-red-600 mt-0.5 font-medium">
+                      May mga senior citizen sa barangay na ito na naninirahan sa mga lugar na may panganib (flood/landslide). Sila ay may kulay na badge sa listahan.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {/* Seniors list for this barangay */}
               <div className="space-y-2">
                 <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -358,13 +371,25 @@ export default function MappingPage() {
                       key={senior.id}
                       className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-150 hover:bg-teal-50/30 hover:border-teal-100 transition-colors text-[11px]"
                     >
-                      <div className="truncate pr-2">
-                        <p className="font-bold text-slate-700 truncate">{senior.firstName} {senior.lastName}</p>
+                      <div className="truncate pr-2 flex-1 min-w-0">
+                        <p className="font-bold text-slate-700 truncate flex items-center gap-1.5">
+                          <span>{senior.firstName} {senior.lastName}</span>
+                          {senior.inRiskArea === 'yes' && (
+                            <span className={`px-1.5 py-0.5 rounded-[4px] text-[7.5px] font-black uppercase tracking-wider shrink-0
+                              ${senior.riskSeverity === 'critical' ? 'bg-red-500 text-white shadow-sm shadow-red-500/10' : ''}
+                              ${senior.riskSeverity === 'high' ? 'bg-orange-500 text-white shadow-sm shadow-orange-500/10' : ''}
+                              ${senior.riskSeverity === 'medium' ? 'bg-yellow-400 text-slate-900 shadow-sm shadow-yellow-500/10' : ''}
+                              ${senior.riskSeverity === 'low' ? 'bg-blue-500 text-white shadow-sm shadow-blue-500/10' : ''}
+                            `}>
+                              {senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}
+                            </span>
+                          )}
+                        </p>
                         <p className="text-[9px] text-slate-400 font-mono">{senior.oscaNumber}</p>
                       </div>
                       <button
                         onClick={() => setCurrentPage('SeniorProfile', senior.id)}
-                        className="px-2 py-1 bg-slate-100 text-slate-600 hover:bg-[#128f82] hover:text-white text-[9px] font-bold rounded-lg transition-colors cursor-pointer"
+                        className="px-2 py-1 bg-slate-100 text-slate-600 hover:bg-[#128f82] hover:text-white text-[9px] font-bold rounded-lg transition-colors cursor-pointer shrink-0"
                       >
                         Profile
                       </button>

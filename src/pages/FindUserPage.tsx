@@ -436,7 +436,7 @@ export default function FindUserPage() {
                 <div className="py-4 bg-slate-50/50 w-full rounded-2xl border border-slate-100 flex items-center justify-center min-h-[250px] overflow-hidden">
                   
                   {/* Perspective Stage */}
-                  <div className="[perspective:1000px] select-none scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform" id="flippable-id-card-stage">
+                  <div className="[perspective:1000px] select-none scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform w-[272px] min-[370px]:w-[306px] min-[420px]:w-[340px] h-[171.2px] min-[370px]:h-[192.6px] min-[420px]:h-[214px] flex items-center justify-center" id="flippable-id-card-stage">
                     
                     {/* Inner Rotator Card */}
                     <div 

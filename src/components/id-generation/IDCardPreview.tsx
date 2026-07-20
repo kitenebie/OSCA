@@ -196,14 +196,14 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
       </div>
 
       {/* Double Sided ID Display Wrapper */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center justify-center py-4 bg-slate-50/50 p-6 rounded-2xl border border-slate-100">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center justify-center py-4 bg-slate-50/50 p-4 sm:p-6 rounded-2xl border border-slate-100 w-full max-w-full overflow-hidden">
         
         {/* ═══════════════════════════════════════════════════════════════
             FRONT OF THE ID CARD — CR80 ratio 3.375" x 2.125" → 340 x 214px
            ═══════════════════════════════════════════════════════════════ */}
         <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Front Preview (Harap)</span>
-          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0">
+          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0 w-[272px] min-[370px]:w-[306px] min-[420px]:w-[340px] h-[171.2px] min-[370px]:h-[192.6px] min-[420px]:h-[214px] flex items-center justify-center">
             <div 
               id={`id-card-front-${senior.id}`}
             style={{
@@ -698,7 +698,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
            ═══════════════════════════════════════════════════════════════ */}
         <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Back Preview (Likod)</span>
-          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0">
+          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0 w-[272px] min-[370px]:w-[306px] min-[420px]:w-[340px] h-[171.2px] min-[370px]:h-[192.6px] min-[420px]:h-[214px] flex items-center justify-center">
             <div 
               id={`id-card-back-${senior.id}`}
             style={{

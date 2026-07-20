@@ -8,7 +8,7 @@ import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
 import SignaturePad from '../components/profiling/SignaturePad';
 import barangaysData from '../Dummy/data/barangays.json';
-import { Check, ArrowLeft, ArrowRight, User, MapPin, Camera, FileText, Fingerprint, LucideIcon, Trash, RotateCcw, Upload, FileUp, Eye } from 'lucide-react';
+import { Check, ArrowLeft, ArrowRight, User, MapPin, Camera, FileText, Fingerprint, LucideIcon, Trash, RotateCcw, Upload, FileUp, Eye, ShieldAlert } from 'lucide-react';
 
 interface Step {
   id: number;
@@ -18,13 +18,14 @@ interface Step {
 
 const STEPS: Step[] = [
   { id: 1, label: 'Location & Address', icon: MapPin },
-  { id: 2, label: 'Personal Details', icon: User },
-  { id: 3, label: 'IDs & Status', icon: FileText },
-  { id: 4, label: 'Address Pin', icon: MapPin },
-  { id: 5, label: 'Biometrics Photo', icon: Camera },
-  { id: 6, label: 'Signature Pad', icon: FileText },
-  { id: 7, label: 'Fingerprint Scan', icon: Fingerprint },
-  { id: 8, label: 'Review & Submit', icon: Check }
+  { id: 2, label: 'Disaster Risk Info', icon: ShieldAlert },
+  { id: 3, label: 'Personal Details', icon: User },
+  { id: 4, label: 'IDs & Status', icon: FileText },
+  { id: 5, label: 'Address Pin', icon: MapPin },
+  { id: 6, label: 'Biometrics Photo', icon: Camera },
+  { id: 7, label: 'Signature Pad', icon: FileText },
+  { id: 8, label: 'Fingerprint Scan', icon: Fingerprint },
+  { id: 9, label: 'Review & Submit', icon: Check }
 ];
 
 const REGIONS = [
@@ -214,6 +215,22 @@ export default function SeniorRegistrationPage() {
       }
     }
     if (stepNum === 2) {
+      if (form.inRiskArea === 'yes') {
+        if (!form.riskType) {
+          showToast('Kailangan piliin ang Uri ng Panganib (Risk Type).', 'warning');
+          return false;
+        }
+        if (!form.riskSeverity) {
+          showToast('Kailangan piliin ang Critical Level (Severity).', 'warning');
+          return false;
+        }
+        if (form.riskType === 'Others' && (!form.riskDetails || !form.riskDetails.trim())) {
+          showToast('Kailangan tukuyin ang Iba pang Panganib (Details).', 'warning');
+          return false;
+        }
+      }
+    }
+    if (stepNum === 3) {
       const requiredFields = [
         { key: 'firstName', label: 'First Name' },
         { key: 'lastName', label: 'Last Name' },
@@ -235,7 +252,7 @@ export default function SeniorRegistrationPage() {
         }
       }
     }
-    if (stepNum === 3) {
+    if (stepNum === 4) {
       const requiredFields = [
         { key: 'employmentStatus', label: 'Employment Status' },
         { key: 'classification', label: 'Classification' },
@@ -252,23 +269,23 @@ export default function SeniorRegistrationPage() {
         }
       }
     }
-    if (stepNum === 4) {
+    if (stepNum === 5) {
       // Address Geotag check (defaults exist, always valid)
       return true;
     }
-    if (stepNum === 5) {
+    if (stepNum === 6) {
       if (!form.profilePhoto) {
         showToast('Kailangan kumuha ng biometric profile photo bago magpatuloy.', 'warning');
         return false;
       }
     }
-    if (stepNum === 6) {
+    if (stepNum === 7) {
       if (!form.signatureData) {
         showToast('Kailangan lumagda sa digital signature pad.', 'warning');
         return false;
       }
     }
-    if (stepNum === 7) {
+    if (stepNum === 8) {
       if (!form.fingerprintTemplate) {
         showToast('Mangyaring i-scan ang fingerprint muna sa biometric device.', 'warning');
         return false;
@@ -290,7 +307,7 @@ export default function SeniorRegistrationPage() {
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(7)) return;
+    if (!validateStep(8)) return;
 
     setIsSubmitting(true);
     showToast('Ipinapadala ang rehistro sa LGU database...', 'info');
@@ -356,17 +373,24 @@ export default function SeniorRegistrationPage() {
     <div className="space-y-6 animate-fadeIn font-sans">
       
       {/* Page Title */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm lg:block hidden">
         <h4 className="font-bold text-slate-800 text-sm md:text-base">Bagong Rehistro ng Senior Citizen</h4>
         <p className="text-[11px] text-slate-400">Step-by-step biometric and geographic registration form wizard</p>
       </div>
 
       {/* Stepper Progress bar (Horizontal on LG+, Simplified on Mobile/Tablet) */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:block hidden">
         {/* Desktop View: Full horizontal steps */}
-        <div className="hidden lg:flex flex-row justify-between items-center gap-3">
+        <div className="relative flex flex-row justify-between items-center w-full">
+          {/* Background Connector Line */}
+          <div className="absolute left-[5.5%] right-[5.5%] top-[14px] h-[2px] bg-slate-100 z-0">
+            <div 
+              className="h-full bg-emerald-500 transition-all duration-300"
+              style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+            />
+          </div>
+
           {STEPS.map((step) => {
-            const Icon = step.icon;
             const isCompleted = currentStep > step.id;
             const isActive = currentStep === step.id;
 
@@ -379,84 +403,87 @@ export default function SeniorRegistrationPage() {
                     setCurrentStep(step.id);
                   }
                 }}
-                className={`flex-1 flex items-center gap-3 p-3 rounded-xl border transition-all duration-150 cursor-pointer
+                className={`relative z-10 flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-150 flex-1
                   ${isActive 
-                    ? 'border-teal-500 bg-teal-500/5 text-teal-700 font-bold' 
+                    ? 'text-teal-700 font-bold scale-[1.03]' 
                     : isCompleted 
-                      ? 'border-slate-200 bg-emerald-50/30 text-emerald-600' 
-                      : 'border-slate-100 text-slate-400 cursor-not-allowed'}`}
+                      ? 'text-emerald-600 hover:text-emerald-700' 
+                      : 'text-slate-400 cursor-not-allowed'}`}
               >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold font-mono
+                {/* Circle step number/icon */}
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold font-mono transition-colors shadow-sm
                   ${isActive 
-                    ? 'bg-teal-600 text-white' 
+                    ? 'bg-teal-600 text-white ring-4 ring-teal-500/10' 
                     : isCompleted 
                       ? 'bg-emerald-500 text-white' 
-                      : 'bg-slate-100 text-slate-400'}`}
+                      : 'bg-slate-100 border border-slate-200 text-slate-400'}`}
                 >
-                  {isCompleted ? <Check size={14} className="stroke-[3]" /> : step.id}
+                  {isCompleted ? <Check size={12} className="stroke-[3]" /> : step.id}
                 </div>
-                <div className="min-w-0">
-                  <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block font-sans">Step {step.id}</span>
-                  <span className="text-[11.5px] truncate block leading-tight">{step.label}</span>
-                </div>
+                {/* Label text */}
+                <span className={`text-[9.5px] text-center font-bold tracking-tight max-w-[85px] leading-tight block truncate
+                  ${isActive ? 'text-teal-800' : isCompleted ? 'text-emerald-700' : 'text-slate-400'}`}
+                >
+                  {step.label}
+                </span>
               </div>
             );
           })}
         </div>
-
-        {/* Mobile/Tablet View: Compact Active Step Header with progress indicator */}
-        <div className="lg:hidden flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold font-mono">
-                {currentStep}
-              </div>
-              <div>
-                <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block">
-                  Hakbang {currentStep} ng {STEPS.length}
-                </span>
-                <h5 className="text-xs font-extrabold text-slate-800 uppercase tracking-tight">
-                  {STEPS[currentStep - 1].label}
-                </h5>
-              </div>
-            </div>
-            
-            {currentStep > 1 && (
-              <button
-                type="button"
-                onClick={() => setCurrentStep(prev => prev - 1)}
-                className="text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer"
-              >
-                ← Bumalik
-              </button>
-            )}
-          </div>
-
-          {/* Progress Line */}
-          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-teal-600 transition-all duration-300"
-              style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
-            />
-          </div>
-        </div>
       </div>
 
       {/* Active Form step container */}
-      <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm min-h-[400px] flex flex-col justify-between">
+      <div className="bg-white p-5 sm:p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm min-h-[400px] flex flex-col justify-between">
         
         <div>
-          {/* STEP 1: PERSONAL INFORMATION */}
+          {/* Mobile View: Unified Stepper Header inside the Form Card */}
+          <div className="lg:hidden flex flex-col gap-3 pb-4 border-b border-slate-100 mb-6 animate-fadeIn">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold font-mono shadow-sm">
+                  {currentStep}
+                </div>
+                <div>
+                  <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block font-sans leading-none">
+                    Hakbang {currentStep} ng {STEPS.length}
+                  </span>
+                  <h5 className="text-xs font-extrabold text-slate-800 uppercase tracking-tight mt-1 leading-none">
+                    {STEPS[currentStep - 1].label}
+                  </h5>
+                </div>
+              </div>
+              
+              {currentStep > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(prev => prev - 1)}
+                  className="text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer"
+                >
+                  ← Bumalik
+                </button>
+              )}
+            </div>
+
+            {/* Mobile Progress Line */}
+            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-teal-600 transition-all duration-300"
+                style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* STEP 1: LOCATION & ADDRESS */}
           {currentStep === 1 && (
-            <div className="space-y-8 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pangunahing Impormasyon (Personal Details)</h5>
-                  <p className="text-[10.5px] text-slate-400">Punan ang mga kinakailangang field (*) upang magpatuloy sa biometrics at geotagging.</p>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokasyon at Residensya (Location & Address)</h5>
+                  <p className="text-[10.5px] text-slate-400">Punan ang rehiyonal at barangay address details ng Senior Citizen.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
-                    Official Registration Form
+                    Step 1 of 9
                   </span>
                 </div>
               </div>
@@ -547,6 +574,170 @@ export default function SeniorRegistrationPage() {
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
                     />
                   </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STEP 2: DISASTER RISK PROFILING */}
+          {currentStep === 2 && (
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri ng Panganib sa Lugar (Disaster Risk Profiling)</h5>
+                  <p className="text-[10.5px] text-slate-400">Tukuyin kung ang tirahan ay nasa loob ng mga disaster-prone sectors sa LGU Juban.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 2 of 9
+                  </span>
+                </div>
+              </div>
+
+              {/* SECTION A.2: DISASTER RISK PROFILING */}
+              <div className="space-y-3 pt-4">
+                <h6 className="text-[11px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
+                  Disaster Risk Profiling (Pagsusuri ng Panganib sa Lugar)
+                </h6>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* In Risk Area Select */}
+                  <div className="space-y-1.5">
+                    <label htmlFor="in-risk-area" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Nasa Risk Area Ba? *</label>
+                    <select
+                      id="in-risk-area"
+                      value={form.inRiskArea}
+                      onChange={(e) => setForm({ ...form, inRiskArea: e.target.value as 'yes' | 'no' })}
+                      required
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                    >
+                      <option value="no">Hindi (No)</option>
+                      <option value="yes">Oo (Yes)</option>
+                    </select>
+                  </div>
+
+                  {/* Type of Risk (Shown only if inRiskArea is yes) */}
+                  {form.inRiskArea === 'yes' && (
+                    <div className="space-y-1.5 animate-fadeIn">
+                      <label htmlFor="risk-type" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Uri ng Panganib (Risk Type) *</label>
+                      <select
+                        id="risk-type"
+                        value={form.riskType}
+                        onChange={(e) => setForm({ ...form, riskType: e.target.value })}
+                        required
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                      >
+                        <option value="">--Select Risk Type--</option>
+                        <option value="Flooding">Flooding (Pagbaha)</option>
+                        <option value="Landslide">Landslide (Pagguho ng Lupa)</option>
+                        <option value="Volcanic Eruption">Volcanic Hazard (Bulkan)</option>
+                        <option value="Storm Surge">Storm Surge (Daluyong-Bagyo)</option>
+                        <option value="Others">Iba pa (Others)</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Severity Level (Shown only if inRiskArea is yes) */}
+                {form.inRiskArea === 'yes' && (
+                  <div className="space-y-2 animate-fadeIn pt-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide block">Critical Level (Severity) *</label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                      {/* LOW CARD */}
+                      <div 
+                        onClick={() => setForm({ ...form, riskSeverity: 'low' })}
+                        className={`p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer flex flex-col justify-between h-[84px]
+                          ${form.riskSeverity === 'low'
+                            ? 'bg-emerald-500/10 border-emerald-500 text-emerald-800 ring-2 ring-emerald-500/20 shadow-sm'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold">Mababa (Low)</span>
+                          <span className={`w-3.5 h-3.5 rounded-full bg-emerald-500`}></span>
+                        </div>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Ligtas o maliit na banta ng panganib sa lugar.</span>
+                      </div>
+
+                      {/* MEDIUM CARD */}
+                      <div 
+                        onClick={() => setForm({ ...form, riskSeverity: 'medium' })}
+                        className={`p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer flex flex-col justify-between h-[84px]
+                          ${form.riskSeverity === 'medium'
+                            ? 'bg-amber-500/10 border-amber-500 text-amber-800 ring-2 ring-amber-500/20 shadow-sm'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold">Katamtaman (Medium)</span>
+                          <span className={`w-3.5 h-3.5 rounded-full bg-amber-500`}></span>
+                        </div>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">May pana-panahong pagbaha o katamtamang panganib.</span>
+                      </div>
+
+                      {/* HIGH CARD */}
+                      <div 
+                        onClick={() => setForm({ ...form, riskSeverity: 'high' })}
+                        className={`p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer flex flex-col justify-between h-[84px]
+                          ${form.riskSeverity === 'high'
+                            ? 'bg-orange-500/10 border-orange-500 text-orange-800 ring-2 ring-orange-500/20 shadow-sm'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold">Mataas (High)</span>
+                          <span className={`w-3.5 h-3.5 rounded-full bg-orange-500`}></span>
+                        </div>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Madalas bahain o malapit sa landslide/hazard zones.</span>
+                      </div>
+
+                      {/* CRITICAL CARD */}
+                      <div 
+                        onClick={() => setForm({ ...form, riskSeverity: 'critical' })}
+                        className={`p-3.5 rounded-2xl border transition-all duration-150 cursor-pointer flex flex-col justify-between h-[84px]
+                          ${form.riskSeverity === 'critical'
+                            ? 'bg-red-500/10 border-red-500 text-red-800 ring-2 ring-red-500/20 shadow-sm'
+                            : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-bold">Kritikal (Critical)</span>
+                          <span className={`w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse`}></span>
+                        </div>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Lubhang mapanganib at kailangang ilikas agad tuwing may banta.</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Others custom input (Shown only if inRiskArea is yes and riskType is Others) */}
+                {form.inRiskArea === 'yes' && form.riskType === 'Others' && (
+                  <div className="space-y-1.5 animate-fadeIn max-w-md">
+                    <label htmlFor="risk-details" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Iba pang Panganib (Specify Risk details) *</label>
+                    <input
+                      id="risk-details"
+                      type="text"
+                      required
+                      value={form.riskDetails}
+                      onChange={(e) => setForm({ ...form, riskDetails: e.target.value })}
+                      placeholder="Specify the type of risk (e.g. Earthquake, Fire)"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* STEP 3: PERSONAL DETAILS */}
+          {currentStep === 3 && (
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Personal na Impormasyon (Personal Details)</h5>
+                  <p className="text-[10.5px] text-slate-400">Paki-sulat ang opisyal na personal at contact details ng Senior Citizen.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 3 of 9
+                  </span>
                 </div>
               </div>
 
@@ -754,6 +945,23 @@ export default function SeniorRegistrationPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* STEP 4: GOV'T IDs & STATUS */}
+          {currentStep === 4 && (
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Mga ID, Trabaho at Katayuan (Government IDs & Status)</h5>
+                  <p className="text-[10.5px] text-slate-400">Punan ang mga ID card numbers, pension status, at emergency contact details.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 4 of 9
+                  </span>
+                </div>
+              </div>
 
               {/* SECTION D: GOVERNMENT ID NUMBERS */}
               <div className="space-y-4">
@@ -923,12 +1131,19 @@ export default function SeniorRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 2: ADDRESS GEOTAGGING PIN */}
-          {currentStep === 2 && (
+          {/* STEP 5: ADDRESS GEOTAGGING PIN */}
+          {currentStep === 5 && (
             <div className="space-y-6 max-w-4xl animate-fadeIn">
-              <div className="border-b border-slate-100 pb-3">
-                <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokalidad at Geotag Pinning (Address Details)</h5>
-                <p className="text-[10.5px] text-slate-400">Isulat ang exact address, at i-double-click o i-drag ang pin sa map upang makuha ang GPS coordinates.</p>
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokalidad at Geotag Pinning (Address Details)</h5>
+                  <p className="text-[10.5px] text-slate-400">Isulat ang exact address, at i-double-click o i-drag ang pin sa map upang makuha ang GPS coordinates.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 5 of 9
+                  </span>
+                </div>
               </div>
 
               <div className="space-y-1.5">
@@ -955,12 +1170,19 @@ export default function SeniorRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 3: FACE CAPTURE BIOMETRICS */}
-          {currentStep === 3 && (
+          {/* STEP 6: FACE CAPTURE BIOMETRICS */}
+          {currentStep === 6 && (
             <div className="space-y-6 max-w-4xl animate-fadeIn">
-              <div className="border-b border-slate-100 pb-3">
-                <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h5>
-                <p className="text-[10.5px] text-slate-400">Kailangan ng malinaw na biometric profile shot laban sa maliwanag na background para sa ID Card rendering.</p>
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h5>
+                  <p className="text-[10.5px] text-slate-400">Kailangan ng malinaw na biometric profile shot laban sa maliwanag na background para sa ID Card rendering.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 6 of 9
+                  </span>
+                </div>
               </div>
 
               <InlineFaceCapture
@@ -970,12 +1192,19 @@ export default function SeniorRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 4: DIGITAL SIGNATURE PAD */}
-          {currentStep === 4 && (
+          {/* STEP 7: DIGITAL SIGNATURE PAD */}
+          {currentStep === 7 && (
             <div className="space-y-6 max-w-2xl animate-fadeIn">
-              <div className="border-b border-slate-100 pb-3">
-                <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">E-Lagda Digital Signature Pad</h5>
-                <p className="text-[10.5px] text-slate-400">Gawing digital ang lagda ng senior sa pamamagitan ng pagguhit gamit ang mouse o touch-pen sa tablet.</p>
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">E-Lagda Digital Signature Pad</h5>
+                  <p className="text-[10.5px] text-slate-400">Gawing digital ang lagda ng senior sa pamamagitan ng pagguhit gamit ang mouse o touch-pen sa tablet.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 7 of 9
+                  </span>
+                </div>
               </div>
 
               <SignaturePad
@@ -985,12 +1214,19 @@ export default function SeniorRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 5: FINGERPRINT SCAN BIOMETRICS */}
-          {currentStep === 5 && (
+          {/* STEP 8: FINGERPRINT SCAN BIOMETRICS */}
+          {currentStep === 8 && (
             <div className="space-y-6 max-w-2xl animate-fadeIn">
-              <div className="border-b border-slate-100 pb-3">
-                <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h5>
-                <p className="text-[10.5px] text-slate-400">I-scan ang hinlalaki ng senior sa connected USB biometric device upang ma-enroll ang fingerprint template.</p>
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h5>
+                  <p className="text-[10.5px] text-slate-400">I-scan ang hinlalaki ng senior sa connected USB biometric device upang ma-enroll ang fingerprint template.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 8 of 9
+                  </span>
+                </div>
               </div>
 
               <ThumbprintCapture
@@ -1000,12 +1236,19 @@ export default function SeniorRegistrationPage() {
             </div>
           )}
 
-          {/* STEP 6: MASTER REVIEW PANEL */}
-          {currentStep === 6 && (
+          {/* STEP 9: MASTER REVIEW PANEL */}
+          {currentStep === 9 && (
             <div className="space-y-6 max-w-4xl animate-fadeIn">
-              <div className="border-b border-slate-100 pb-3">
-                <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri bago I-submit (Review Registration Details)</h5>
-                <p className="text-[10.5px] text-slate-400">Suriing mabuti ang lahat ng detalye sa ibaba. Ang records na ito ay isasailalim sa review bago maaprubahan.</p>
+              <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri bago I-submit (Review Registration Details)</h5>
+                  <p className="text-[10.5px] text-slate-400">Suriing mabuti ang lahat ng detalye sa ibaba. Ang records na ito ay isasailalim sa review bago maaprubahan.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
+                    Step 9 of 9
+                  </span>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -1070,6 +1313,20 @@ export default function SeniorRegistrationPage() {
                       <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Address</span>
                       <strong className="text-slate-800 uppercase block truncate">{form.streetAddress}</strong>
                     </div>
+                    <div>
+                      <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Nasa Risk Area Ba?</span>
+                      <strong className={`uppercase ${form.inRiskArea === 'yes' ? 'text-red-600 font-bold' : 'text-slate-800'}`}>
+                        {form.inRiskArea === 'yes' ? 'Oo (Yes)' : 'Hindi (No)'}
+                      </strong>
+                    </div>
+                    {form.inRiskArea === 'yes' && (
+                      <div>
+                        <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Uri at Critical Level</span>
+                        <strong className="text-slate-800 uppercase">
+                          {form.riskType === 'Others' ? form.riskDetails || 'Others' : form.riskType} ({form.riskSeverity})
+                        </strong>
+                      </div>
+                    )}
                     <div>
                       <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Mobile No.</span>
                       <strong className="text-slate-800 font-mono">{form.contactNumber || 'N/A'}</strong>

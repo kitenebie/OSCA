@@ -4,13 +4,13 @@ import { ApexOptions } from 'apexcharts';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import barangaysData from '../../Dummy/data/barangays.json';
-import { BarChart, PieChart, TrendingUp, Heart } from 'lucide-react';
+import { BarChart, PieChart, TrendingUp, Heart, Users } from 'lucide-react';
 
 export default function BarangayChart() {
   const seniors = useSeniorsStore((state) => state.seniors);
   const setSelectedBarangay = useSeniorsStore((state) => state.setSelectedBarangay);
   const { setCurrentPage } = useUIStore();
-  const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'trends'>('barangay');
+  const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>('barangay');
 
   // --- Dynamic Computations ---
 
@@ -66,7 +66,30 @@ export default function BarangayChart() {
     }
   });
 
-  // 4. Registration Trends (Last 12 Months)
+  // 4. Gender Distribution
+  const maleSeniors = seniors.filter((s) => s.sex === 'Male').length;
+  const femaleSeniors = seniors.filter((s) => s.sex === 'Female').length;
+
+  // 5. Gender per Barangay (grouped bar)
+  const genderBarangayCounts: Record<string, { Male: number; Female: number }> = {};
+  barangaysData.forEach((b) => {
+    genderBarangayCounts[b.name] = { Male: 0, Female: 0 };
+  });
+  seniors.forEach((s) => {
+    if (!genderBarangayCounts[s.barangay]) {
+      genderBarangayCounts[s.barangay] = { Male: 0, Female: 0 };
+    }
+    if (s.sex === 'Male') genderBarangayCounts[s.barangay].Male++;
+    else if (s.sex === 'Female') genderBarangayCounts[s.barangay].Female++;
+  });
+  // Sort by total (Male + Female) descending
+  const sortedGenderBarangays = Object.entries(genderBarangayCounts)
+    .sort((a, b) => (b[1].Male + b[1].Female) - (a[1].Male + a[1].Female));
+  const genderBarangayNames = sortedGenderBarangays.map(([name]) => name);
+  const maleSeries = sortedGenderBarangays.map(([, v]) => v.Male);
+  const femaleSeries = sortedGenderBarangays.map(([, v]) => v.Female);
+
+  // 6. Registration Trends (Last 12 Months)
   // Let's group by month
   const monthlyCounts: Record<string, number> = {};
   seniors.forEach(s => {
@@ -257,6 +280,77 @@ export default function BarangayChart() {
     data: actualTrendValues
   }];
 
+  // Gender Donut Chart
+  const genderDonutOptions: ApexOptions = {
+    chart: { type: 'donut' },
+    labels: ['Lalaki (Male)', 'Babae (Female)'],
+    colors: ['#3B82F6', '#EC4899'],
+    legend: {
+      position: 'bottom',
+      fontSize: '12px',
+      fontFamily: 'Inter',
+      labels: { colors: '#475569' }
+    },
+    dataLabels: {
+      enabled: true,
+      style: { fontSize: '11px', fontWeight: 600 }
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: '65%',
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: 'Kabuuan',
+              formatter: () => String(seniors.length),
+              fontSize: '14px',
+              fontWeight: 700,
+              color: '#475569'
+            }
+          }
+        }
+      }
+    },
+    tooltip: {
+      y: { formatter: (val) => `${val} Senior Citizens` }
+    }
+  };
+  const genderDonutSeries = [maleSeniors, femaleSeniors];
+
+  // Gender per Barangay Grouped Bar
+  const genderGroupedBarOptions: ApexOptions = {
+    chart: { type: 'bar', toolbar: { show: false }, stacked: false },
+    plotOptions: {
+      bar: { borderRadius: 4, horizontal: true, barHeight: '60%' }
+    },
+    colors: ['#3B82F6', '#EC4899'],
+    xaxis: {
+      categories: genderBarangayNames,
+      labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'Inter' } }
+    },
+    yaxis: {
+      labels: { style: { colors: '#475569', fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
+    },
+    legend: {
+      position: 'top',
+      fontSize: '11px',
+      fontFamily: 'Inter',
+      labels: { colors: '#475569' }
+    },
+    grid: { borderColor: '#f1f5f9' },
+    dataLabels: { enabled: true, style: { fontSize: '9px', colors: ['#fff'] } },
+    tooltip: {
+      theme: 'light',
+      y: { formatter: (val) => `${val} Senior Citizens` }
+    }
+  };
+  const genderGroupedBarSeries = [
+    { name: 'Lalaki (Male)', data: maleSeries },
+    { name: 'Babae (Female)', data: femaleSeries }
+  ];
+
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col h-full">
       {/* Chart Headers */}
@@ -287,6 +381,16 @@ export default function BarangayChart() {
           >
             <PieChart size={13} />
             <span>Edad at Katayuan</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('gender')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
+              ${activeTab === 'gender' 
+                ? 'bg-white text-[#128f82] shadow-sm' 
+                : 'text-slate-500 hover:text-slate-800'}`}
+          >
+            <Users size={13} />
+            <span>Kasarian</span>
           </button>
           <button
             onClick={() => setActiveTab('trends')}
@@ -339,6 +443,58 @@ export default function BarangayChart() {
                   series={statusChartSeries} 
                   type="pie" 
                   height={280} 
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'gender' && (
+          <div className="flex flex-col gap-8">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-blue-50 border border-blue-100">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                  <span className="text-lg">♂</span>
+                </div>
+                <span className="text-2xl font-black text-blue-600">{maleSeniors}</span>
+                <span className="text-xs font-semibold text-blue-500 mt-0.5">Lalaki (Male)</span>
+                <span className="text-[10px] text-slate-400 mt-1">
+                  {Math.round((maleSeniors / (seniors.length || 1)) * 100)}% ng kabuuan
+                </span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-pink-50 border border-pink-100">
+                <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
+                  <span className="text-lg">♀</span>
+                </div>
+                <span className="text-2xl font-black text-pink-500">{femaleSeniors}</span>
+                <span className="text-xs font-semibold text-pink-400 mt-0.5">Babae (Female)</span>
+                <span className="text-[10px] text-slate-400 mt-1">
+                  {Math.round((femaleSeniors / (seniors.length || 1)) * 100)}% ng kabuuan
+                </span>
+              </div>
+            </div>
+
+            {/* Donut + Grouped Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+              <div className="flex flex-col items-center">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Kabuuang Kasarian</span>
+                <div className="w-full max-w-[240px]">
+                  <ReactApexChart
+                    options={genderDonutOptions}
+                    series={genderDonutSeries}
+                    type="donut"
+                    height={260}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4 text-center">Kasarian kada Barangay</span>
+                <ReactApexChart
+                  options={genderGroupedBarOptions}
+                  series={genderGroupedBarSeries}
+                  type="bar"
+                  height={380}
                 />
               </div>
             </div>
