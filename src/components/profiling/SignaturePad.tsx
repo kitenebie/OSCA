@@ -50,36 +50,24 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
 
   // --- DRAWING EVENT HANDLERS ---
 
-  // Capture coordinates
-  const getCoordinates = (e: React.MouseEvent | React.TouchEvent): { x: number; y: number } | null => {
+  // Capture coordinates via PointerEvent
+  const getCoordinates = (e: React.PointerEvent<HTMLCanvasElement>): { x: number; y: number } | null => {
     const canvas = canvasRef.current;
     if (!canvas) return null;
 
     const rect = canvas.getBoundingClientRect();
-    let clientX, clientY;
-
-    if ('touches' in e) {
-      // Mobile touch event
-      if (e.touches.length === 0) return null;
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      // Mouse event
-      clientX = e.clientX;
-      clientY = e.clientY;
-    }
-
+    
     // Calculate scale ratios to map client coords to actual canvas pixel grid
     const scaleX = canvas.width / (rect.width || 1);
     const scaleY = canvas.height / (rect.height || 1);
 
     return {
-      x: (clientX - rect.left) * scaleX,
-      y: (clientY - rect.top) * scaleY
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
     };
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (e: React.PointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -97,7 +85,6 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
       if (ctx) {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.lineWidth = 2.5;
         ctx.strokeStyle = '#020617';
         
         // Restore existing content if we had drawn before
@@ -123,10 +110,15 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
       ctx.beginPath();
       ctx.moveTo(coords.x, coords.y);
       setIsDrawing(true);
+
+      // Re-apply styling defaults
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#020617';
     }
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     e.preventDefault();
 
@@ -136,6 +128,15 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
 
     const ctx = canvas.getContext('2d');
     if (ctx) {
+      // XP-Pen tablet pen pressure support
+      // e.pressure is a float between 0.0 and 1.0. For normal mouse it is 0.5 or 0.
+      // If we have a pen stylus, we scale the line width between 1.5px and 5.0px.
+      let strokeWidth = 2.5;
+      if (e.pointerType === 'pen' && e.pressure > 0) {
+        strokeWidth = 1.5 + e.pressure * 3.5;
+      }
+      ctx.lineWidth = strokeWidth;
+
       ctx.lineTo(coords.x, coords.y);
       ctx.stroke();
       setHasDrawn(true);
@@ -232,13 +233,11 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
         
         <canvas
           ref={canvasRef}
-          onMouseDown={startDrawing}
-          onMouseMove={draw}
-          onMouseUp={stopDrawing}
-          onMouseLeave={stopDrawing}
-          onTouchStart={startDrawing}
-          onTouchMove={draw}
-          onTouchEnd={stopDrawing}
+          onPointerDown={startDrawing}
+          onPointerMove={draw}
+          onPointerUp={stopDrawing}
+          onPointerLeave={stopDrawing}
+          onPointerCancel={stopDrawing}
           className="w-full h-40 rounded-xl cursor-crosshair touch-none"
           style={{ width: '100%', height: '160px' }}
         />

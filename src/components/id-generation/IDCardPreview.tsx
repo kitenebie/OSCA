@@ -225,6 +225,8 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
               overflow: 'hidden',
               position: 'relative',
               fontFamily: "'Segoe UI', 'Inter', 'Poppins', system-ui, sans-serif",
+              WebkitTextSizeAdjust: 'none',
+              textSizeAdjust: 'none',
             }}>
             {/* ── TOP-LEFT CONCENTRIC CURVED ACCENT BLOCK ── */}
             {/* Blue accent (outermost) */}
@@ -724,6 +726,8 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
               overflow: 'hidden',
               position: 'relative',
               fontFamily: "'Segoe UI', 'Inter', 'Poppins', system-ui, sans-serif",
+              WebkitTextSizeAdjust: 'none',
+              textSizeAdjust: 'none',
             }}>
             {/* ── CONCENTRIC CURVED ACCENTS (inverted, layered) ── */}
             {/* Top-right blue overlay (outermost) */}
