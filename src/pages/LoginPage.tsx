@@ -74,7 +74,7 @@ export default function LoginPage() {
       <div className="absolute top-0 left-0 right-0 h-1.5 z-10" style={{ background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }}></div>
 
       {/* Persistent Navigation Bar (Landing Page Style) */}
-      <header className="w-full max-w-7xl mx-auto flex items-center justify-between py-4 border-b border-slate-200/60 relative z-10" id="portal-navigation-header">
+      <header className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between py-4 gap-4 border-b border-slate-200/60 relative z-10" id="portal-navigation-header">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 bg-white border border-slate-150 rounded-full flex items-center justify-center p-1 shadow-sm">
             <img 
@@ -101,7 +101,8 @@ export default function LoginPage() {
               id="goto-login-btn"
             >
               <Lock size={12} className="text-[#FDFE00]" />
-              <span>Mag-login bilang Opisyal</span>
+              <span className="hidden min-[480px]:inline">Mag-login bilang Opisyal</span>
+              <span className="min-[480px]:hidden inline">Portal Login</span>
             </button>
           ) : (
             <button 
@@ -110,7 +111,8 @@ export default function LoginPage() {
               id="goto-landing-btn"
             >
               <ArrowLeft size={12} className="text-emerald-700" />
-              <span>Bumalik sa Landing Page</span>
+              <span className="hidden min-[480px]:inline">Bumalik sa Landing Page</span>
+              <span className="min-[480px]:hidden inline">Bumalik</span>
             </button>
           )}
         </div>
@@ -157,17 +159,17 @@ export default function LoginPage() {
               </div>
 
               {/* Action buttons on Landing Page */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <button 
                   onClick={() => setViewMode('login')}
-                  className="px-6 py-3.5 bg-[#02A952] hover:bg-[#018c43] text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 cursor-pointer group active:scale-95"
+                  className="px-6 py-3.5 bg-[#02A952] hover:bg-[#018c43] text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer group active:scale-95 w-full sm:w-auto"
                 >
                   <span>Magsimula sa System (Portal Login)</span>
                   <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform text-[#FDFE00]" />
                 </button>
                 <a 
                   href="#announcements-section" 
-                  className="px-6 py-3.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center gap-2"
+                  className="px-6 py-3.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-center font-sans"
                 >
                   <span>Alamin ang Benepisyo</span>
                 </a>

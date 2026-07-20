@@ -55,7 +55,7 @@ export default function Topbar() {
             <Menu size={20} />
           </button>
           <div>
-            <h1 className="font-black text-slate-800 text-sm md:text-base tracking-tight uppercase">
+            <h1 className="font-black text-slate-800 text-xs sm:text-sm md:text-base tracking-tight uppercase truncate max-w-[170px] xs:max-w-[250px] sm:max-w-[400px] md:max-w-none">
               {PAGE_TITLES[currentPage]}
             </h1>
             <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider md:flex items-center gap-1.5 hidden">

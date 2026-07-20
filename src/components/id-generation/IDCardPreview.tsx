@@ -201,10 +201,11 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
         {/* ═══════════════════════════════════════════════════════════════
             FRONT OF THE ID CARD — CR80 ratio 3.375" x 2.125" → 340 x 214px
            ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Front Preview (Harap)</span>
-          <div 
-            id={`id-card-front-${senior.id}`}
+          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0">
+            <div 
+              id={`id-card-front-${senior.id}`}
             style={{
               width: 340,
               height: 214,
@@ -690,14 +691,16 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
             </div>
           </div>
         </div>
+      </div>
 
         {/* ═══════════════════════════════════════════════════════════════
             BACK OF THE ID CARD — Dominant green background
            ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex flex-col items-center gap-2">
+        <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Back Preview (Likod)</span>
-          <div 
-            id={`id-card-back-${senior.id}`}
+          <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0">
+            <div 
+              id={`id-card-back-${senior.id}`}
             style={{
               width: 340,
               height: 214,
@@ -1140,6 +1143,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
             </div>
           </div>
         </div>
+      </div>
 
       </div>
 

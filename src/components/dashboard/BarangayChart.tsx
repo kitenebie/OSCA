@@ -151,7 +151,7 @@ export default function BarangayChart() {
       labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'Inter' } }
     },
     yaxis: {
-      labels: { style: { colors: '#475569', fontSize: '11px', fontFamily: 'Inter', fontWeight: 600 } }
+      labels: { style: { colors: '#475569', fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
     },
     grid: { borderColor: '#f1f5f9' },
     tooltip: {
@@ -267,10 +267,10 @@ export default function BarangayChart() {
         </div>
         
         {/* Navigation Tabs */}
-        <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0">
+        <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0 overflow-x-auto max-w-full whitespace-nowrap scrollbar-none">
           <button
             onClick={() => setActiveTab('barangay')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'barangay' 
                 ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
@@ -280,7 +280,7 @@ export default function BarangayChart() {
           </button>
           <button
             onClick={() => setActiveTab('demographic')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'demographic' 
                 ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
@@ -290,7 +290,7 @@ export default function BarangayChart() {
           </button>
           <button
             onClick={() => setActiveTab('trends')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'trends' 
                 ? 'bg-white text-[#128f82] shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
@@ -321,7 +321,7 @@ export default function BarangayChart() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="flex flex-col items-center">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Edad Distribution (Age Brackets)</span>
-              <div className="w-full max-w-[260px]">
+              <div className="w-full max-w-[240px] min-[380px]:max-w-[260px]">
                 <ReactApexChart 
                   options={donutChartOptions} 
                   series={donutChartSeries} 
@@ -333,7 +333,7 @@ export default function BarangayChart() {
             
             <div className="flex flex-col items-center border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0">
               <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Katayuan ng Aplikasyon (Status)</span>
-              <div className="w-full max-w-[260px]">
+              <div className="w-full max-w-[240px] min-[380px]:max-w-[260px]">
                 <ReactApexChart 
                   options={statusChartOptions} 
                   series={statusChartSeries} 

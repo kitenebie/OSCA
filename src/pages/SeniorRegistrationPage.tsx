@@ -17,12 +17,14 @@ interface Step {
 }
 
 const STEPS: Step[] = [
-  { id: 1, label: 'Personal Info', icon: User },
-  { id: 2, label: 'Address Pin', icon: MapPin },
-  { id: 3, label: 'Biometrics Photo', icon: Camera },
-  { id: 4, label: 'Signature Pad', icon: FileText },
-  { id: 5, label: 'Fingerprint Scan', icon: Fingerprint },
-  { id: 6, label: 'Review & Submit', icon: Check }
+  { id: 1, label: 'Location & Address', icon: MapPin },
+  { id: 2, label: 'Personal Details', icon: User },
+  { id: 3, label: 'IDs & Status', icon: FileText },
+  { id: 4, label: 'Address Pin', icon: MapPin },
+  { id: 5, label: 'Biometrics Photo', icon: Camera },
+  { id: 6, label: 'Signature Pad', icon: FileText },
+  { id: 7, label: 'Fingerprint Scan', icon: Fingerprint },
+  { id: 8, label: 'Review & Submit', icon: Check }
 ];
 
 const REGIONS = [
@@ -199,23 +201,8 @@ export default function SeniorRegistrationPage() {
         { key: 'region', label: 'Region' },
         { key: 'province', label: 'Province' },
         { key: 'cityTown', label: 'City/Town' },
-        { key: 'firstName', label: 'First Name' },
-        { key: 'lastName', label: 'Last Name' },
-        { key: 'streetAddress', label: 'Address' },
-        { key: 'contactNumber', label: 'Mobile No.' },
-        { key: 'birthdate', label: 'Birthdate' },
-        { key: 'birthplace', label: 'Place of Birth' },
-        { key: 'sex', label: 'Sex' },
-        { key: 'civilStatus', label: 'Civil Status' },
-        { key: 'bloodType', label: 'Blood Type' },
-        { key: 'religion', label: 'Religion' },
-        { key: 'highestEducationalAttainment', label: 'Highest Educational Attainment' },
-        { key: 'employmentStatus', label: 'Employment Status' },
-        { key: 'classification', label: 'Classification' },
-        { key: 'monthlyPension', label: 'Monthly Pension' },
-        { key: 'emergencyContactName', label: 'In case of Emergency' },
-        { key: 'emergencyContactPhone', label: 'Contact' },
         { key: 'barangay', label: 'Barangay' },
+        { key: 'streetAddress', label: 'Address' },
       ];
 
       for (const field of requiredFields) {
@@ -227,24 +214,61 @@ export default function SeniorRegistrationPage() {
       }
     }
     if (stepNum === 2) {
-      if (!form.streetAddress.trim()) {
-        showToast('Mangyaring isulat ang saktong street address.', 'warning');
-        return false;
+      const requiredFields = [
+        { key: 'firstName', label: 'First Name' },
+        { key: 'lastName', label: 'Last Name' },
+        { key: 'contactNumber', label: 'Mobile No.' },
+        { key: 'birthdate', label: 'Birthdate' },
+        { key: 'birthplace', label: 'Place of Birth' },
+        { key: 'sex', label: 'Sex' },
+        { key: 'civilStatus', label: 'Civil Status' },
+        { key: 'bloodType', label: 'Blood Type' },
+        { key: 'religion', label: 'Religion' },
+        { key: 'highestEducationalAttainment', label: 'Highest Educational Attainment' },
+      ];
+
+      for (const field of requiredFields) {
+        const val = (form as any)[field.key];
+        if (!val || (typeof val === 'string' && !val.trim())) {
+          showToast(`Pakisuyong punan ang kinakailangang field: ${field.label} *`, 'warning');
+          return false;
+        }
       }
     }
     if (stepNum === 3) {
+      const requiredFields = [
+        { key: 'employmentStatus', label: 'Employment Status' },
+        { key: 'classification', label: 'Classification' },
+        { key: 'monthlyPension', label: 'Monthly Pension' },
+        { key: 'emergencyContactName', label: 'In case of Emergency' },
+        { key: 'emergencyContactPhone', label: 'Contact' },
+      ];
+
+      for (const field of requiredFields) {
+        const val = (form as any)[field.key];
+        if (!val || (typeof val === 'string' && !val.trim())) {
+          showToast(`Pakisuyong punan ang kinakailangang field: ${field.label} *`, 'warning');
+          return false;
+        }
+      }
+    }
+    if (stepNum === 4) {
+      // Address Geotag check (defaults exist, always valid)
+      return true;
+    }
+    if (stepNum === 5) {
       if (!form.profilePhoto) {
         showToast('Kailangan kumuha ng biometric profile photo bago magpatuloy.', 'warning');
         return false;
       }
     }
-    if (stepNum === 4) {
+    if (stepNum === 6) {
       if (!form.signatureData) {
         showToast('Kailangan lumagda sa digital signature pad.', 'warning');
         return false;
       }
     }
-    if (stepNum === 5) {
+    if (stepNum === 7) {
       if (!form.fingerprintTemplate) {
         showToast('Mangyaring i-scan ang fingerprint muna sa biometric device.', 'warning');
         return false;
@@ -266,7 +290,7 @@ export default function SeniorRegistrationPage() {
   // Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(5)) return;
+    if (!validateStep(7)) return;
 
     setIsSubmitting(true);
     showToast('Ipinapadala ang rehistro sa LGU database...', 'info');
@@ -337,9 +361,10 @@ export default function SeniorRegistrationPage() {
         <p className="text-[11px] text-slate-400">Step-by-step biometric and geographic registration form wizard</p>
       </div>
 
-      {/* Stepper Progress bar (Horizontal on MD+, Vertical on mobile) */}
+      {/* Stepper Progress bar (Horizontal on LG+, Simplified on Mobile/Tablet) */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-        <div className="flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4">
+        {/* Desktop View: Full horizontal steps */}
+        <div className="hidden lg:flex flex-row justify-between items-center gap-3">
           {STEPS.map((step) => {
             const Icon = step.icon;
             const isCompleted = currentStep > step.id;
@@ -371,12 +396,49 @@ export default function SeniorRegistrationPage() {
                   {isCompleted ? <Check size={14} className="stroke-[3]" /> : step.id}
                 </div>
                 <div className="min-w-0">
-                  <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block">Step {step.id}</span>
+                  <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block font-sans">Step {step.id}</span>
                   <span className="text-[11.5px] truncate block leading-tight">{step.label}</span>
                 </div>
               </div>
             );
           })}
+        </div>
+
+        {/* Mobile/Tablet View: Compact Active Step Header with progress indicator */}
+        <div className="lg:hidden flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-xs font-bold font-mono">
+                {currentStep}
+              </div>
+              <div>
+                <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block">
+                  Hakbang {currentStep} ng {STEPS.length}
+                </span>
+                <h5 className="text-xs font-extrabold text-slate-800 uppercase tracking-tight">
+                  {STEPS[currentStep - 1].label}
+                </h5>
+              </div>
+            </div>
+            
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={() => setCurrentStep(prev => prev - 1)}
+                className="text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer"
+              >
+                ← Bumalik
+              </button>
+            )}
+          </div>
+
+          {/* Progress Line */}
+          <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-teal-600 transition-all duration-300"
+              style={{ width: `${(currentStep / STEPS.length) * 100}%` }}
+            />
+          </div>
         </div>
       </div>
 
@@ -405,7 +467,7 @@ export default function SeniorRegistrationPage() {
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
                   Lokasyon at Residensya (Regional & Address details)
                 </h6>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="region-select" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Region *</label>
                     <select
@@ -455,7 +517,7 @@ export default function SeniorRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="barangay-select" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Barangay (Residency) *</label>
                     <select
@@ -494,7 +556,7 @@ export default function SeniorRegistrationPage() {
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
                   Personal na Impormasyon (Personal details)
                 </h6>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="first-name" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">FirstName *</label>
                     <input
@@ -534,7 +596,7 @@ export default function SeniorRegistrationPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="birthdate" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Birthdate *</label>
                     <input
@@ -619,7 +681,7 @@ export default function SeniorRegistrationPage() {
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
                   Pakikipag-ugnayan at Edukasyon (Contact & Demographics)
                 </h6>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="contact-mobile" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Mobile No. *</label>
                     <input
@@ -756,7 +818,7 @@ export default function SeniorRegistrationPage() {
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
                   Trabaho at Klasipikasyon (Employment & Classification details)
                 </h6>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
                     <label htmlFor="employment-status" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Employment Status *</label>
                     <select

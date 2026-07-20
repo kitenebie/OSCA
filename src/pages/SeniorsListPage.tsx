@@ -66,7 +66,7 @@ export default function SeniorsListPage() {
     <div className="space-y-6 animate-fadeIn font-sans">
       
       {/* Controls / Filter Panel Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div>
           <h4 className="font-bold text-slate-800 text-sm md:text-base">Rehistro ng mga Senior Citizens</h4>
           <p className="text-[11px] text-slate-400">Manage, review, filter and search Master List records</p>
@@ -75,7 +75,7 @@ export default function SeniorsListPage() {
         {canRegister && (
           <button
             onClick={() => setCurrentPage('Register')}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white rounded-xl shadow-md shadow-teal-600/10 transition-all duration-150 active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white rounded-xl shadow-md shadow-teal-600/10 transition-all duration-150 active:scale-95 cursor-pointer w-full sm:w-auto text-center justify-center"
           >
             <Plus size={14} />
             <span>Bagong Rehistro</span>
@@ -84,7 +84,7 @@ export default function SeniorsListPage() {
       </div>
 
       {/* Filter Row Panel */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         
         {/* Search Input */}
         <div className="space-y-1.5">
@@ -172,10 +172,10 @@ export default function SeniorsListPage() {
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
                   <th className="py-4 px-5">Senior Citizen Info</th>
-                  <th className="py-4 px-5">OSCA Number</th>
-                  <th className="py-4 px-5">Barangay Hall</th>
+                  <th className="py-4 px-5 hidden sm:table-cell">OSCA Number</th>
+                  <th className="py-4 px-5 hidden md:table-cell">Barangay Hall</th>
                   <th className="py-4 px-5 text-center">Edad (Age)</th>
-                  <th className="py-4 px-5 text-center">Pension Enrollee</th>
+                  <th className="py-4 px-5 text-center hidden sm:table-cell">Pension Enrollee</th>
                   <th className="py-4 px-5 text-center">Status</th>
                   <th className="py-4 px-5 text-right">Actions</th>
                 </tr>
@@ -212,12 +212,12 @@ export default function SeniorsListPage() {
                     </td>
 
                     {/* OSCA Num */}
-                    <td className="py-3.5 px-5 font-mono font-bold text-slate-600">
+                    <td className="py-3.5 px-5 font-mono font-bold text-slate-600 hidden sm:table-cell">
                       {senior.oscaNumber}
                     </td>
 
                     {/* Barangay */}
-                    <td className="py-3.5 px-5">
+                    <td className="py-3.5 px-5 hidden md:table-cell">
                       <div className="flex items-center gap-1.5 text-slate-600">
                         <MapPin size={12} className="text-teal-500 shrink-0" />
                         <span className="font-semibold text-[11.5px]">{senior.barangay}</span>
@@ -230,7 +230,7 @@ export default function SeniorsListPage() {
                     </td>
 
                     {/* Pension */}
-                    <td className="py-3.5 px-5 text-center">
+                    <td className="py-3.5 px-5 text-center hidden sm:table-cell">
                       <span className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full font-mono uppercase
                         ${senior.pensionBeneficiary 
                           ? 'bg-teal-50 text-teal-700 border border-teal-100' 

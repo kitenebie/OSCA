@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
 import { useUIStore } from '../../store/uiStore';
@@ -8,7 +8,22 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { sidebarOpen } = useUIStore();
+  const { sidebarOpen, setSidebarOpen } = useUIStore();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    handleResize(); // run on initial mount
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [setSidebarOpen]);
 
   return (
     <div className="min-h-screen bg-slate-50 flex">

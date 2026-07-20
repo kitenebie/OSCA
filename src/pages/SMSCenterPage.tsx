@@ -53,27 +53,27 @@ export default function SMSCenterPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/20 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
-                  <th className="py-3 px-5">Timestamp</th>
+                  <th className="py-3 px-5 hidden sm:table-cell">Timestamp</th>
                   <th className="py-3 px-5">Senior Citizen Recipient</th>
-                  <th className="py-3 px-5">Barangay</th>
-                  <th className="py-3 px-5">Mobile Phone</th>
+                  <th className="py-3 px-5 hidden md:table-cell">Barangay</th>
+                  <th className="py-3 px-5 hidden sm:table-cell">Mobile Phone</th>
                   <th className="py-3 px-5">Message Body (Nai-send)</th>
-                  <th className="py-3 px-5">Personnel Sender</th>
-                  <th className="py-3 px-5 text-center">Gateway Code</th>
+                  <th className="py-3 px-5 hidden lg:table-cell">Personnel Sender</th>
+                  <th className="py-3 px-5 text-center hidden sm:table-cell">Gateway Code</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 font-medium">
                 {smsLogs.slice().reverse().map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3 px-5 text-slate-500 font-mono">{log.timestamp}</td>
+                    <td className="py-3 px-5 text-slate-500 font-mono hidden sm:table-cell">{log.timestamp}</td>
                     <td className="py-3 px-5 text-slate-900 font-bold uppercase">{log.recipientName}</td>
-                    <td className="py-3 px-5 text-slate-600">{log.barangay}</td>
-                    <td className="py-3 px-5 text-slate-700 font-mono font-semibold">{log.recipientPhone}</td>
+                    <td className="py-3 px-5 text-slate-600 hidden md:table-cell">{log.barangay}</td>
+                    <td className="py-3 px-5 text-slate-700 font-mono font-semibold hidden sm:table-cell">{log.recipientPhone}</td>
                     <td className="py-3 px-5 text-slate-500 font-sans italic max-w-xs truncate" title={log.message}>
                       "{log.message}"
                     </td>
-                    <td className="py-3 px-5 text-teal-700 font-bold uppercase">{log.sentBy}</td>
-                    <td className="py-3 px-5 text-center">
+                    <td className="py-3 px-5 text-teal-700 font-bold uppercase hidden lg:table-cell">{log.sentBy}</td>
+                    <td className="py-3 px-5 text-center hidden sm:table-cell">
                       <span className="inline-block text-[9px] font-bold px-1.5 py-0.2 rounded font-mono bg-emerald-50 text-emerald-600 border border-emerald-100">
                         SUCCESS (200)
                       </span>

@@ -215,7 +215,7 @@ export default function MappingPage() {
         
         {/* Leaflet Map Card */}
         <div className="xl:col-span-8 bg-white border border-slate-200 rounded-3xl p-4 shadow-sm relative">
-          <div className="h-[480px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
+          <div className="h-[300px] sm:h-[400px] md:h-[480px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
             <MapContainer
               center={JUBAN_CENTER}
               zoom={13}
