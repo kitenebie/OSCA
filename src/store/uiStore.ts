@@ -33,15 +33,30 @@ interface UIState {
   setNfcEnabled: (enabled: boolean) => void;
 }
 
+const getStoredPage = (): AppPages => {
+  const page = localStorage.getItem('senior_system_current_page');
+  return (page as AppPages) || 'Dashboard';
+};
+
+const getStoredSeniorId = (): string | null => {
+  return localStorage.getItem('senior_system_selected_senior_id');
+};
+
 export const useUIStore = create<UIState>((set, get) => ({
-  currentPage: 'Dashboard',
-  selectedSeniorId: null,
+  currentPage: getStoredPage(),
+  selectedSeniorId: getStoredSeniorId(),
   sidebarOpen: true,
   toasts: [],
   nfcEnabled: false,
 
   setCurrentPage: (page, seniorId = null) => {
     set({ currentPage: page, selectedSeniorId: seniorId });
+    localStorage.setItem('senior_system_current_page', page);
+    if (seniorId) {
+      localStorage.setItem('senior_system_selected_senior_id', seniorId);
+    } else {
+      localStorage.removeItem('senior_system_selected_senior_id');
+    }
     // Auto-scroll to top when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });
   },
