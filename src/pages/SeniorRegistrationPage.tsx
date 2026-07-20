@@ -1461,7 +1461,7 @@ export default function SeniorRegistrationPage() {
           )}
 
           {/* Next / Submit button */}
-          {currentStep < 6 ? (
+          {currentStep < 9 ? (
             <button
               type="button"
               onClick={handleNext}
