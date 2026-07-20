@@ -274,6 +274,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
 
             {/* Blended PH Logo background watermark (centered, large and visible) */}
             <img 
+              crossOrigin="anonymous"
               src={phLogo} 
               alt="PH Logo Seal"
               style={{
@@ -364,6 +365,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
 
             {/* Biometric Fingerprint Security Seal (bottom-right on green curve) */}
             <img 
+              crossOrigin="anonymous"
               src={fingerprintImg} 
               alt="Biometric Fingerprint"
               style={{
@@ -415,6 +417,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
               }}>
                 <img 
+                  crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                   src="https://kitenebie.github.io/OSCA/juban-logo.png" 
                   alt="Juban Logo" 
@@ -489,6 +492,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
             }}>
               {senior.profilePhoto ? (
                 <img 
+                  crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                   src={senior.profilePhoto} 
                   alt={senior.firstName} 
@@ -806,6 +810,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
 
             {/* Blended PH Logo background watermark on back side (centered, large and visible) */}
             <img 
+              crossOrigin="anonymous"
               src={phLogo} 
               alt="PH Logo Seal"
               style={{
@@ -867,6 +872,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
                 boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
               }}>
                 <img 
+                  crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
                   src="https://kitenebie.github.io/OSCA/juban-logo.png" 
                   alt="Juban Logo" 
@@ -1023,6 +1029,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
                   justifyContent: 'center',
                 }}>
                   <img 
+                    crossOrigin="anonymous"
                     referrerPolicy="no-referrer"
                     src={qrCodeUrl} 
                     alt="OSCA QR Verification" 
