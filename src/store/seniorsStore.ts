@@ -30,7 +30,7 @@ interface SeniorsState {
 
 // Version key based on the count of seed records — bumps automatically when seniors.json grows
 const SEED_VERSION_KEY = 'senior_system_seed_version';
-const SEED_VERSION = String((initialSeniors as SeniorCitizen[]).length);
+const SEED_VERSION = '325_v2_local_assets';
 
 const getStoredSeniors = (): SeniorCitizen[] => {
   const storedVersion = localStorage.getItem(SEED_VERSION_KEY);
@@ -44,14 +44,12 @@ const getStoredSeniors = (): SeniorCitizen[] => {
       try {
         const parsed = JSON.parse(stored) as SeniorCitizen[];
         parsed.forEach((s) => {
-          // Preserve user-editable fields that may have been changed in-app
+          // Preserve user-editable fields — but NOT profilePhoto/signatureData (seed has corrected versions)
           userEdits[s.id] = {
             status: s.status,
             remarks: s.remarks,
             pensionBeneficiary: s.pensionBeneficiary,
-            profilePhoto: s.profilePhoto,
             thumbprintData: s.thumbprintData,
-            signatureData: s.signatureData,
           };
         });
       } catch { /* ignore parse errors */ }

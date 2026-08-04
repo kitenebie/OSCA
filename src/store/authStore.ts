@@ -28,16 +28,24 @@ const getStoredUser = (): User | null => {
   return null;
 };
 
+const USERS_SEED_VERSION_KEY = 'senior_system_users_seed_version';
+const USERS_SEED_VERSION = 'v2_local_assets';
+
 const getStoredUsers = (): User[] => {
-  const stored = localStorage.getItem('senior_system_users');
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return initialUsers as User[];
+  const storedVersion = localStorage.getItem(USERS_SEED_VERSION_KEY);
+  if (storedVersion === USERS_SEED_VERSION) {
+    const stored = localStorage.getItem('senior_system_users');
+    if (stored) {
+      try {
+        return JSON.parse(stored);
+      } catch {
+        // fall through to re-seed
+      }
     }
   }
+  // Re-seed from JSON
   localStorage.setItem('senior_system_users', JSON.stringify(initialUsers));
+  localStorage.setItem(USERS_SEED_VERSION_KEY, USERS_SEED_VERSION);
   return initialUsers as User[];
 };
 
