@@ -127,9 +127,18 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
       clearInterval(interval);
       setSimulating(false);
       
-      // Select a nice mock avatar face
-      const randomId = Math.floor(Math.random() * 70) + 1;
-      const mockPhoto = 'https://i.pravatar.cc/300?img=' + randomId;
+      // Generate a local canvas placeholder (avoids CORS issues with external avatar services)
+      const canvas = document.createElement('canvas');
+      canvas.width = 300;
+      canvas.height = 300;
+      const ctx = canvas.getContext('2d')!;
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(0, 0, 300, 300);
+      ctx.fillStyle = '#64748b';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('SIM', 150, 165);
+      const mockPhoto = canvas.toDataURL('image/jpeg');
       setTempPhoto(mockPhoto);
       setDetectionStatus('Simulated photo captured successfully! Paki-confirm upang i-save.');
     }, 2200);
