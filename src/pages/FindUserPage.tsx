@@ -4,9 +4,9 @@ import { SeniorCitizen } from '../types';
 import { useUIStore } from '../store/uiStore';
 import { renderBarcodeBits } from '../utils/idGenerator';
 // @ts-ignore
-const phLogo = 'https://www.oscajuban.online/ph_logo.png';
+const phLogo = '/ph_logo.png';
 // @ts-ignore
-const fingerprintImg = 'https://www.oscajuban.online/fingerprint.png';
+const fingerprintImg = '/fingerprint.png';
 import { 
   Scan, 
   Search, 
@@ -646,7 +646,7 @@ export default function FindUserPage() {
                           }}>
                             <img 
                               referrerPolicy="no-referrer"
-                              src="https://www.oscajuban.online/juban-logo.png" 
+                              src="/juban-logo.png" 
                               alt="Juban Logo" 
                               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />
@@ -1079,7 +1079,7 @@ export default function FindUserPage() {
                           }}>
                             <img 
                               referrerPolicy="no-referrer"
-                              src="https://www.oscajuban.online/juban-logo.png" 
+                              src="/juban-logo.png" 
                               alt="Juban Logo" 
                               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />

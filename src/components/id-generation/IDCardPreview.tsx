@@ -5,8 +5,8 @@ import { useUIStore } from '../../store/uiStore';
 import { FileDown, Radio, ShieldCheck, Printer } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
-const phLogo = 'https://www.oscajuban.online/ph_logo.png';
-const fingerprintImg = 'https://www.oscajuban.online/fingerprint.png';
+const phLogo = '/ph_logo.png';
+const fingerprintImg = '/fingerprint.png';
 
 interface IDCardPreviewProps {
   senior: SeniorCitizen;
@@ -421,7 +421,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
                 <img 
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
-                  src="https://www.oscajuban.online/juban-logo.png" 
+                  src="/juban-logo.png" 
                   alt="Juban Logo" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
@@ -878,7 +878,7 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
                 <img 
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
-                  src="https://www.oscajuban.online/juban-logo.png" 
+                  src="/juban-logo.png" 
                   alt="Juban Logo" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />

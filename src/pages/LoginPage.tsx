@@ -79,7 +79,7 @@ export default function LoginPage() {
           <div className="w-11 h-11 bg-white border border-slate-150 rounded-full flex items-center justify-center p-1 shadow-sm">
             <img 
               referrerPolicy="no-referrer"
-              src="https://www.oscajuban.online/juban-logo.png" 
+              src="/juban-logo.png" 
               alt="Juban Logo" 
               className="w-full h-full object-contain"
             />
@@ -315,7 +315,7 @@ export default function LoginPage() {
                     <div className="absolute inset-1 rounded-full border border-dashed border-emerald-300"></div>
                     <img 
                       referrerPolicy="no-referrer"
-                      src="https://www.oscajuban.online/juban-logo.png" 
+                      src="/juban-logo.png" 
                       alt="Juban LGU Logo" 
                       className="w-full h-full object-contain"
                       id="login-lgu-logo"
