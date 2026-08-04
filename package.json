@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "deploy": "npm run build"
   },
   "dependencies": {
     "@getyoti/react-face-capture": "^2.9.2",
@@ -32,7 +33,6 @@
     "react-hook-form": "^7.82.0",
     "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.18.1",
-    "vite": "^6.2.3",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
