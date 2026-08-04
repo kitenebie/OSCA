@@ -5,56 +5,102 @@ import {
   ShieldCheck, 
   LogIn, 
   Lock, 
-  Sparkles, 
   Building, 
   UserCheck, 
-  HelpCircle, 
   Phone, 
   Calendar, 
   ArrowRight, 
   Award, 
   Heart, 
-  ChevronDown, 
   CheckCircle, 
   AlertTriangle,
   ArrowLeft,
   Users,
   FileText,
-  MapPin
+  MapPin,
+  User,
+  Eye,
+  EyeOff,
+  AlertCircle
 } from 'lucide-react';
 
+const MAX_LOGIN_ATTEMPTS = 3;
+const LOCKOUT_DURATION = 60; // seconds
+
 export default function LoginPage() {
-  const { login, isLoading, users } = useAuthStore();
+  const { login, isLoading } = useAuthStore();
   const showToast = useUIStore((state) => state.showToast);
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [viewMode, setViewMode] = useState<'landing' | 'login'>('landing');
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockoutTimer, setLockoutTimer] = useState(0);
+
+  // Start lockout countdown
+  const startLockout = () => {
+    setIsLocked(true);
+    setLockoutTimer(LOCKOUT_DURATION);
+    
+    const interval = setInterval(() => {
+      setLockoutTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          setIsLocked(false);
+          setLoginAttempts(0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (isLocked) {
+      showToast(`Naka-lock ang account. Subukan muli pagkatapos ng ${lockoutTimer} segundo.`, 'error');
+      return;
+    }
+
     if (!username.trim()) {
       showToast('Mangyaring isulat ang inyong username.', 'error');
       return;
     }
 
-    const success = await login(username);
+    if (!password.trim()) {
+      showToast('Mangyaring isulat ang inyong password.', 'error');
+      return;
+    }
+
+    if (username.length > 255) {
+      showToast('Ang username ay hindi dapat lumampas sa 255 characters.', 'error');
+      return;
+    }
+
+    if (password.length > 255) {
+      showToast('Ang password ay hindi dapat lumampas sa 255 characters.', 'error');
+      return;
+    }
+
+    const success = await login(username, password);
     if (success) {
+      setLoginAttempts(0);
       showToast('Matagumpay na nakapasok sa LGU Portal!', 'success');
     } else {
-      showToast('Error: Hindi nakita ang username o inactive ang user account.', 'error');
+      const newAttempts = loginAttempts + 1;
+      setLoginAttempts(newAttempts);
+      
+      if (newAttempts >= MAX_LOGIN_ATTEMPTS) {
+        startLockout();
+        showToast(`Tatlong beses nang mali ang pagka-login. Naka-lock ang account sa loob ng ${LOCKOUT_DURATION} segundo.`, 'error');
+      } else {
+        const remaining = MAX_LOGIN_ATTEMPTS - newAttempts;
+        showToast(`Hindi tugma ang username o password. ${remaining} na pagkakataon na lang.`, 'error');
+      }
     }
   };
-
-  const handleQuickLogin = async (usrname: string) => {
-    setUsername(usrname);
-    const success = await login(usrname);
-    if (success) {
-      showToast('Matagumpay na nakapasok sa LGU Portal!', 'success');
-    } else {
-      showToast('Error: Hindi nakita ang username.', 'error');
-    }
-  };
-
-  const activeUsers = users.filter((u) => u.status === 'Active');
 
   return (
     <div 
@@ -63,18 +109,13 @@ export default function LoginPage() {
       style={{ backgroundImage: "url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsJws2mCL8NSWT4kUePgLCL-0anWf-xOIPB3gv_GRAmg&s=10')" }}
     >
       
-      {/* Light Frosted Glass Overlay (Ensuring absolute professional contrast & readability, removing raw background pixelation) */}
       <div className="absolute inset-0 bg-slate-50/93 backdrop-blur-[14px] pointer-events-none z-0"></div>
-      
-      {/* Vibrant decorative radial light glows */}
       <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-teal-500/8 rounded-full blur-[140px] pointer-events-none z-0"></div>
       <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-emerald-500/8 rounded-full blur-[140px] pointer-events-none z-0"></div>
-      
-      {/* Republic colors header stripe (Tri-color security ribbon) */}
       <div className="absolute top-0 left-0 right-0 h-1.5 z-10" style={{ background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }}></div>
 
-      {/* Persistent Navigation Bar (Landing Page Style) */}
-      <header className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between py-4 gap-4 border-b border-slate-200/60 relative z-10" id="portal-navigation-header">
+      {/* Navigation Header */}
+      <header className="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between py-4 gap-4 border-b border-slate-200/60 relative z-10">
         <div className="flex items-center gap-3">
           <div className="w-11 h-11 bg-white border border-slate-150 rounded-full flex items-center justify-center p-1 shadow-sm">
             <img 
@@ -98,7 +139,6 @@ export default function LoginPage() {
             <button 
               onClick={() => setViewMode('login')}
               className="px-4 py-2 bg-[#02A952] hover:bg-[#018c43] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
-              id="goto-login-btn"
             >
               <Lock size={12} className="text-[#FDFE00]" />
               <span className="hidden min-[480px]:inline">Mag-login bilang Opisyal</span>
@@ -108,7 +148,6 @@ export default function LoginPage() {
             <button 
               onClick={() => setViewMode('landing')}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all flex items-center gap-2 cursor-pointer"
-              id="goto-landing-btn"
             >
               <ArrowLeft size={12} className="text-emerald-700" />
               <span className="hidden min-[480px]:inline">Bumalik sa Landing Page</span>
@@ -118,23 +157,20 @@ export default function LoginPage() {
         </div>
       </header>
 
-      {/* Main Content Sections switcher with transition */}
+      {/* Main Content */}
       <main className="flex-1 w-full max-w-7xl mx-auto flex items-center justify-center relative z-10 py-6 md:py-10">
-        
         {viewMode === 'landing' ? (
-          /* ==================== VIEW 1: GORGEOUS PUBLIC LANDING PAGE ==================== */
-          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fadeIn" id="landing-view-container">
-            
-            {/* Left Side: Welcoming Hero Section */}
-            <div className="lg:col-span-6 space-y-6">
+          /* ==================== LANDING VIEW ==================== */
+          <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 items-start animate-fadeIn">
+            <div className="lg:col-span-7 space-y-6">
               <div className="space-y-3.5">
                 <div className="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-800 px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                  <Award size={13} className="text-emerald-600 animate-pulse" />
+                  <ShieldCheck size={13} className="text-emerald-600 animate-pulse" />
                   Sentralisadong Impormasyon para sa Nakatatanda
                 </div>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight leading-[1.1] uppercase">
-                  Maagap na Serbisyo, <br />
-                  <span className="text-[#02A952]">Dekalidad na Alaga</span> <br />
+                  Maagap na Serbisyo, <br/>
+                  <span className="text-[#02A952]">Dekalidad na Alaga</span> <br/>
                   sa Bayan ng Juban
                 </h1>
                 <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-xl">
@@ -142,11 +178,10 @@ export default function LoginPage() {
                 </p>
               </div>
 
-              {/* Quick statistics badge row */}
               <div className="grid grid-cols-3 gap-3 max-w-lg bg-white/70 border border-slate-200/50 p-3 rounded-2xl shadow-sm">
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
                   <span className="block font-black text-lg md:text-xl text-[#0000FD]">25</span>
-                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Barangay Hall Nodes</span>
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Barangay Nodes</span>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
                   <span className="block font-black text-lg md:text-xl text-[#02A952]">100%</span>
@@ -158,7 +193,6 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              {/* Action buttons on Landing Page */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <button 
                   onClick={() => setViewMode('login')}
@@ -167,266 +201,154 @@ export default function LoginPage() {
                   <span>Magsimula sa System (Portal Login)</span>
                   <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform text-[#FDFE00]" />
                 </button>
-                <a 
-                  href="#announcements-section" 
-                  className="px-6 py-3.5 bg-white border border-slate-200 hover:border-slate-300 text-slate-700 font-bold text-xs rounded-2xl shadow-sm transition-all flex items-center justify-center gap-2 w-full sm:w-auto text-center font-sans"
-                >
-                  <span>Alamin ang Benepisyo</span>
-                </a>
               </div>
             </div>
 
-            {/* Right Side: Important Notice & Guides (Smooth Scroll Area) */}
-            <div className="lg:col-span-6 space-y-4" id="announcements-section">
-              
-              {/* VERY IMPORTANT INFORMATION: NFC ID REGISTRATION NOTICE (Highlighted) */}
+            <div className="lg:col-span-5 space-y-4">
               <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/30 rounded-full blur-2xl pointer-events-none"></div>
-                
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-amber-500/10 text-amber-700 rounded-xl shrink-0 mt-0.5">
                     <AlertTriangle size={18} className="animate-bounce" />
                   </div>
                   <div className="space-y-1">
-                    <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-widest block font-mono">
-                      MAHALAGANG BALITA O ANUNSYO (IMPORTANT NOTICE)
-                    </span>
-                    <h4 className="font-extrabold text-slate-800 text-sm md:text-base leading-snug">
-                      Libreng Pagpapatala at Pamamahagi ng Bagong Digital NFC OSCA ID Cards
-                    </h4>
+                    <span className="text-[9px] font-extrabold text-amber-800 uppercase tracking-widest block font-mono">MAHALAGANG ANUNSYO</span>
+                    <h4 className="font-extrabold text-slate-800 text-sm md:text-base leading-snug">Libreng Pagpapatala at Pamamahagi ng Bagong Digital NFC OSCA ID Cards</h4>
                     <p className="text-xs text-slate-600 leading-relaxed">
-                      Ipinapaalam sa lahat ng senior citizens ng Juban na ang OSCA ay kasalukuyang namamahagi ng bagong **Digital NFC OSCA ID Card** upang mas mabilis at moderno ang pag-verify sa inyong mga benepisyo at pension. Dalhin ang mga sumusunod na kinakailangang dokumento.
+                      Ipinapaalam sa lahat ng senior citizens ng Juban na ang OSCA ay kasalukuyang namamahagi ng bagong Digital NFC OSCA ID Card upang mas mabilis at moderno ang pag-verify sa inyong mga benepisyo at pension.
                     </p>
                   </div>
                 </div>
-
-                {/* Requirements Inside */}
-                <div className="bg-white/90 border border-amber-200/40 rounded-2xl p-4 space-y-3">
-                  <h5 className="text-[10px] font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-                    <CheckCircle size={13} className="text-teal-600" />
-                    Mga Requirements na Kailangang Isumite sa OSCA Office:
-                  </h5>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-600">
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
-                      <span>Barangay Certificate of Residency</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
-                      <span>Birth Certificate / Valid ID</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
-                      <span>Dalawang pirasong 1x1 Larawan</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-teal-500 shrink-0"></span>
-                      <span>Marriage Contract (kung may asawa)</span>
-                    </div>
-                  </div>
-                </div>
               </div>
-
-              {/* Informative Cards Section */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {/* Privileges */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-teal-200/80 hover:shadow-md transition-all space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-teal-50 rounded-xl text-teal-600 flex items-center justify-center">
-                      <Award size={18} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wide">RA 9994 Act Privileges</h4>
-                      <span className="text-[9px] text-slate-400 block font-mono">Discounts & Exemptions</span>
-                    </div>
-                  </div>
-                  <ul className="space-y-1.5 text-[11px] text-slate-500 leading-normal">
-                    <li className="flex items-start gap-1">
-                      <span className="text-teal-600 font-bold">•</span>
-                      <span><strong>20% discount & VAT exempt</strong> sa mga gamot at medical supplies.</span>
-                    </li>
-                    <li className="flex items-start gap-1">
-                      <span className="text-teal-600 font-bold">•</span>
-                      <span>Discounts sa pamasahe, restaurant bills, at hospital fees.</span>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* Pension Payout Info */}
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:border-teal-200/80 hover:shadow-md transition-all space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 bg-emerald-50 rounded-xl text-emerald-600 flex items-center justify-center">
-                      <Calendar size={18} />
-                    </div>
-                    <div>
-                      <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wide">Social Pension Schedule</h4>
-                      <span className="text-[9px] text-slate-400 block font-mono">Distribution Schedule</span>
-                    </div>
-                  </div>
-                  <ul className="space-y-1.5 text-[11px] text-slate-500 leading-normal">
-                    <li className="flex items-start gap-1">
-                      <span className="text-emerald-600 font-bold">•</span>
-                      <span>Ipinapamahagi ang ₱1,000 monthly pension kada quarter sa inyong barangay hall.</span>
-                    </li>
-                    <li className="flex items-start gap-1">
-                      <span className="text-emerald-600 font-bold">•</span>
-                      <span>Ang system ay awtomatikong magpapadala ng SMS sa inyong mobile phone.</span>
-                    </li>
-                  </ul>
-                </div>
-
-              </div>
-
-              {/* Emergency Info Bar */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center shrink-0">
-                    <Phone size={15} />
-                  </div>
-                  <div>
-                    <h5 className="font-bold text-xs text-slate-800 uppercase tracking-wide">OSCA Help Desk Hotline</h5>
-                    <p className="text-[10px] text-slate-400 leading-tight">Tumawag para sa anumang katanungan o reklamo:</p>
-                  </div>
-                </div>
-                <div className="text-[10px] font-mono text-slate-700 bg-white px-3 py-1.5 rounded-xl border border-slate-200 shrink-0 font-bold">
-                  HOTLINE: 0917-888-OSCA (6722)
-                </div>
-              </div>
-
             </div>
-
           </div>
         ) : (
-          /* ==================== VIEW 2: DEDICATED SECURE LOGIN FORM ==================== */
-          <div className="w-full max-w-md mx-auto animate-fadeIn" id="login-view-container">
-            {/* Gradient border wrapper for official login card (40% red, 20% yellow, 40% blue) */}
-            <div style={{
-              borderRadius: 24,
-              padding: 2.5,
-              background: 'linear-gradient(to right, #FD0000 0%, #FD0000 40%, #FDFE00 40%, #FDFE00 60%, #0000FD 60%, #0000FD 100%)',
-              boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1)',
-            }}>
-              <div className="w-full bg-white rounded-[21.5px] overflow-hidden p-6 md:p-8 flex flex-col" id="login-main-card">
-                
-                {/* Seal Header */}
-                <div className="text-center space-y-3 mb-8" id="login-header-section">
-                  <div className="mx-auto w-20 h-20 bg-emerald-50/50 border border-emerald-100 flex items-center justify-center p-2 rounded-full shadow-sm relative">
-                    <div className="absolute inset-1 rounded-full border border-dashed border-emerald-300"></div>
-                    <img 
-                      referrerPolicy="no-referrer"
-                      src="/juban-logo.png" 
-                      alt="Juban LGU Logo" 
-                      className="w-full h-full object-contain"
-                      id="login-lgu-logo"
+          /* ==================== LOGIN VIEW ==================== */
+          <div className="w-full max-w-md mx-auto animate-fadeIn">
+            <div className="bg-white/95 backdrop-blur-md border border-slate-200/80 rounded-3xl shadow-xl overflow-hidden">
+              {/* Republic tri-color border stripe */}
+              <div className="h-1.5 w-full" style={{ background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }}></div>
+              <div className="p-8 space-y-6">
+              
+              {/* Header */}
+              <div className="text-center space-y-2">
+                <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
+                  <ShieldCheck size={28} className="text-[#02A952]" />
+                </div>
+                <h2 className="font-black text-xl text-slate-800 uppercase tracking-tight">Portal Login</h2>
+                <p className="text-xs text-slate-400">Mag-login gamit ang inyong credentials na ibinigay ng OSCA Admin.</p>
+              </div>
+
+              {/* Lockout Warning */}
+              {isLocked && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2">
+                  <AlertCircle size={16} className="text-red-500 shrink-0" />
+                  <div>
+                    <p className="text-xs font-bold text-red-700">Account Temporarily Locked</p>
+                    <p className="text-[10px] text-red-500">Subukan muli pagkatapos ng {lockoutTimer} segundo.</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Login Attempts Warning */}
+              {loginAttempts > 0 && loginAttempts < MAX_LOGIN_ATTEMPTS && !isLocked && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center gap-2">
+                  <AlertTriangle size={16} className="text-amber-500 shrink-0" />
+                  <p className="text-[10px] text-amber-700 font-medium">
+                    {MAX_LOGIN_ATTEMPTS - loginAttempts} na pagkakataon na lang bago ma-lock ang account.
+                  </p>
+                </div>
+              )}
+
+              {/* Login Form */}
+              <form onSubmit={handleLogin} className="space-y-4">
+                {/* Username */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Username</label>
+                  <div className="relative">
+                    <User size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value.slice(0, 255))}
+                      placeholder="I-type ang inyong username"
+                      maxLength={255}
+                      disabled={isLocked || isLoading}
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#02A952]/30 focus:border-[#02A952] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      autoComplete="username"
                     />
                   </div>
-                  
-                  <div className="space-y-1.5">
-                    <span className="inline-block text-[9px] font-bold text-emerald-800 font-mono tracking-widest uppercase bg-emerald-50 px-3 py-0.5 rounded-full border border-emerald-100">
-                      OFFICIAL LOGIN PORTAL
-                    </span>
-                    <h2 className="font-extrabold text-lg text-slate-800 uppercase tracking-tight">
-                      Mag-login sa System
-                    </h2>
-                    <p className="text-[11px] text-slate-400 font-medium">
-                      Gamitin ang opisyal na account upang buksan ang e-Census database.
-                    </p>
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Password</label>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value.slice(0, 255))}
+                      placeholder="I-type ang inyong password"
+                      maxLength={255}
+                      disabled={isLocked || isLoading}
+                      className="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#02A952]/30 focus:border-[#02A952] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
                   </div>
                 </div>
 
-                {/* Official Login Credentials Form */}
-                <form onSubmit={handleLogin} className="space-y-5" id="login-form">
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <label htmlFor="login-username" className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                        Username ng Opisyal / Encoder
-                      </label>
-                      <span className="text-[9px] text-[#02A952] font-bold flex items-center gap-1 font-mono">
-                        <ShieldCheck size={11} className="text-[#02A952]" />
-                        SECURE
-                      </span>
-                    </div>
-                    <div className="relative">
-                      <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
-                        <Lock size={14} className="text-emerald-700" />
-                      </span>
-                      <input
-                        id="login-username"
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Isulat ang username (e.g. superadmin)"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-350 focus:border-[#02A952] focus:bg-white rounded-2xl text-xs text-slate-850 placeholder:text-slate-400 font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-500/10 font-mono transition-all"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    className="w-full py-3.5 bg-[#02A952] hover:bg-[#018c43] disabled:bg-slate-100 disabled:text-slate-400 text-xs font-bold text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-                    id="login-submit-btn"
-                  >
-                    <LogIn size={13} className={isLoading ? 'animate-spin text-[#FDFE00]' : 'text-[#FDFE00]'} />
-                    <span>{isLoading ? 'Sumusuri sa System...' : 'Magsimula (Login to Portal)'}</span>
-                  </button>
-                </form>
-
-                {/* Demo Accounts List panel inside Form */}
-                <div className="mt-6 border-t border-slate-100 pt-5" id="login-demo-panel">
-                  <div className="flex items-center gap-2 text-slate-400 mb-3 justify-center">
-                    <Sparkles size={11} className="text-[#FDFE00] fill-[#FDFE00] animate-pulse" />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Mabilis na Access (Demo Accounts)</span>
-                  </div>
-                  
-                  <div className="grid grid-cols-2 gap-2">
-                    {activeUsers.slice(0, 4).map((user) => (
-                      <button
-                        key={user.id}
-                        type="button"
-                        onClick={() => handleQuickLogin(user.username)}
-                        className="p-2.5 bg-slate-50 hover:bg-emerald-50/50 border border-slate-150 hover:border-[#02A952]/40 rounded-2xl flex items-center gap-2 text-left transition-all group active:scale-[0.98] cursor-pointer"
-                        id={`quick-login-${user.username}`}
-                      >
-                        <div className="w-7 h-7 rounded-full bg-white text-emerald-700 border border-slate-200 flex items-center justify-center shrink-0 font-bold text-[10px] font-mono shadow-sm">
-                          {user.fullName.split(' ').pop()?.charAt(0) || 'U'}
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <h5 className="font-bold text-[10px] text-slate-700 truncate group-hover:text-emerald-700 transition-colors">{user.fullName}</h5>
-                          <p className="text-[8px] font-mono text-slate-400 mt-0.5 uppercase truncate tracking-wider">{user.role}</p>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Return to home link */}
-                <button 
-                  onClick={() => setViewMode('landing')}
-                  className="mt-5 text-center text-xs text-slate-400 hover:text-emerald-700 font-bold transition-colors cursor-pointer"
+                {/* Submit Button */}
+                <button
+                  type="submit"
+                  disabled={isLoading || isLocked}
+                  className="w-full py-3.5 bg-[#02A952] hover:bg-[#018c43] disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:cursor-not-allowed"
                 >
-                  ← Bumalik sa Landing Page (Guest Mode)
+                  {isLoading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Nagve-verify...</span>
+                    </>
+                  ) : (
+                    <>
+                      <LogIn size={15} />
+                      <span>Mag-login</span>
+                    </>
+                  )}
                 </button>
+              </form>
 
+              {/* Security Notice */}
+              <div className="border-t border-slate-100 pt-4">
+                <div className="flex items-center gap-2 justify-center">
+                  <ShieldCheck size={12} className="text-emerald-500" />
+                  <span className="text-[9px] text-slate-400 font-medium">Secured with SHA-256 encryption • LGU Juban OSCA System</span>
+                </div>
+              </div>
               </div>
             </div>
           </div>
         )}
-
       </main>
 
-      {/* Professional Footer */}
-      <footer className="w-full max-w-7xl mx-auto border-t border-slate-200/60 py-5 flex flex-col md:flex-row items-center justify-between gap-3 relative z-10" id="login-footer">
-        <p className="text-[9px] font-bold text-slate-400 font-mono uppercase tracking-wider">
-          PORTAL VERSION 1.0.0 • BAYAN NG JUBAN, SORSOGON LGU
-        </p>
-        <p className="text-[8.5px] text-slate-400 leading-relaxed font-semibold max-w-md text-center md:text-right">
-          Ang system na ito ay sumusunod sa Data Privacy Act of 2012 ng Pilipinas. Lahat ng personal na impormasyon ay pinangangalagaan ng LGU.
-        </p>
+      {/* Footer */}
+      <footer className="w-full max-w-7xl mx-auto pt-4 border-t border-slate-200/40 relative z-10">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-[9px] text-slate-400 font-medium">
+          <span>© 2026 LGU Juban, Sorsogon • Office for Senior Citizens Affairs (OSCA)</span>
+          <span className="flex items-center gap-1">
+            <Heart size={9} className="text-red-400" />
+            Para sa mga Senior Citizen ng Bayan ng Juban
+          </span>
+        </div>
       </footer>
-
     </div>
   );
 }
-

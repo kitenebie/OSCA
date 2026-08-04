@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
-import barangaysData from '../../Dummy/data/barangays.json';
+import { useBarangays } from '../../hooks/useBarangays';
 import { Send, FileText, Users, MapPin, Sparkles, MessageSquare } from 'lucide-react';
 
 const SMS_TEMPLATES = [
@@ -25,6 +25,7 @@ const SMS_TEMPLATES = [
 ];
 
 export default function SMSComposer() {
+  const { barangays: barangaysData } = useBarangays();
   const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
   const { currentUser } = useAuthStore();
   const showToast = useUIStore((state) => state.showToast);

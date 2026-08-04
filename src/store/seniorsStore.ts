@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { SeniorCitizen, SMSLog, Benefit } from '../types';
-import initialSeniors from '../Dummy/data/seniors.json';
-import initialBenefits from '../Dummy/data/benefits.json';
-import initialSmsLogs from '../Dummy/data/sms-logs.json';
+import { seniorsService, smsLogsService, benefitsService } from '../services/supabaseService';
+import { uploadProfilePhoto, uploadSignature } from '../services/storageService';
 
 interface SeniorsState {
   seniors: SeniorCitizen[];
@@ -12,6 +11,10 @@ interface SeniorsState {
   selectedBarangay: string;
   selectedStatus: string;
   isLoading: boolean;
+  isInitialized: boolean;
+
+  // Init & realtime
+  initialize: () => Promise<void>;
 
   setSearchQuery: (query: string) => void;
   setSelectedBarangay: (brgy: string) => void;
@@ -28,88 +31,42 @@ interface SeniorsState {
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
 }
 
-// Version key based on the count of seed records — bumps automatically when seniors.json grows
-const SEED_VERSION_KEY = 'senior_system_seed_version';
-const SEED_VERSION = '325_v2_local_assets';
-
-const getStoredSeniors = (): SeniorCitizen[] => {
-  const storedVersion = localStorage.getItem(SEED_VERSION_KEY);
-  const stored = localStorage.getItem('senior_system_seniors');
-
-  // If seed version is out of date (new records added to seniors.json), rebuild the dataset
-  if (storedVersion !== SEED_VERSION || !stored) {
-    // Build a map of any user-modified records from localStorage
-    const userEdits: Record<string, Partial<SeniorCitizen>> = {};
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored) as SeniorCitizen[];
-        parsed.forEach((s) => {
-          // Preserve user-editable fields — but NOT profilePhoto/signatureData (seed has corrected versions)
-          userEdits[s.id] = {
-            status: s.status,
-            remarks: s.remarks,
-            pensionBeneficiary: s.pensionBeneficiary,
-            thumbprintData: s.thumbprintData,
-          };
-        });
-      } catch { /* ignore parse errors */ }
-    }
-
-    // Merge: seed data as base, overlay with user edits
-    const merged = (initialSeniors as SeniorCitizen[]).map((seed) => ({
-      ...seed,
-      ...(userEdits[seed.id] ?? {}),
-    }));
-
-    localStorage.setItem('senior_system_seniors', JSON.stringify(merged));
-    localStorage.setItem(SEED_VERSION_KEY, SEED_VERSION);
-    return merged;
-  }
-
-  // Seed is current — load normally, just fix any broken signature stubs
-  try {
-    const parsed = JSON.parse(stored) as SeniorCitizen[];
-    let modified = false;
-    const cleaned = parsed.map((s) => {
-      if (s.signatureData && s.signatureData.includes('...')) {
-        modified = true;
-        return {
-          ...s,
-          signatureData: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
-        };
-      }
-      return s;
-    });
-    if (modified) {
-      localStorage.setItem('senior_system_seniors', JSON.stringify(cleaned));
-    }
-    return cleaned;
-  } catch {
-    return initialSeniors as SeniorCitizen[];
-  }
-};
-
-const getStoredSmsLogs = (): SMSLog[] => {
-  const stored = localStorage.getItem('senior_system_sms_logs');
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      return initialSmsLogs as SMSLog[];
-    }
-  }
-  localStorage.setItem('senior_system_sms_logs', JSON.stringify(initialSmsLogs));
-  return initialSmsLogs as SMSLog[];
-};
-
 export const useSeniorsStore = create<SeniorsState>((set, get) => ({
-  seniors: getStoredSeniors(),
-  benefits: initialBenefits as Benefit[],
-  smsLogs: getStoredSmsLogs(),
+  seniors: [],
+  benefits: [],
+  smsLogs: [],
   searchQuery: '',
   selectedBarangay: 'All',
   selectedStatus: 'All',
   isLoading: false,
+  isInitialized: false,
+
+  initialize: async () => {
+    if (get().isInitialized) return;
+    set({ isLoading: true });
+
+    try {
+      const [seniors, benefits, smsLogs] = await Promise.all([
+        seniorsService.getAll(),
+        benefitsService.getAll(),
+        smsLogsService.getAll(),
+      ]);
+
+      set({ seniors, benefits, smsLogs, isInitialized: true, isLoading: false });
+
+      // Subscribe to realtime changes
+      seniorsService.subscribe((updatedSeniors) => {
+        set({ seniors: updatedSeniors });
+      });
+
+      smsLogsService.subscribe((updatedLogs) => {
+        set({ smsLogs: updatedLogs });
+      });
+    } catch (error) {
+      console.error('Failed to initialize seniors store:', error);
+      set({ isLoading: false });
+    }
+  },
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedBarangay: (brgy) => set({ selectedBarangay: brgy }),
@@ -117,160 +74,149 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
 
   addSenior: async (seniorData, encoderName) => {
     set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      // Generate a temp ID for file naming
+      const tempId = `sen-${Date.now()}`;
 
-    const id = `sen-${Date.now()}`;
-    const date = new Date();
-    const year = date.getFullYear();
-    const count = String(get().seniors.length + 1).padStart(4, '0');
-    const oscaNumber = `OSCA-JUB-${year}-${count}`;
-    const registeredDate = date.toISOString().split('T')[0];
+      // Upload profile photo to Storage bucket if it's base64
+      let processedData = { ...seniorData };
+      if (processedData.profilePhoto && processedData.profilePhoto.startsWith('data:')) {
+        const photoUrl = await uploadProfilePhoto(processedData.profilePhoto, tempId);
+        processedData.profilePhoto = photoUrl;
+      }
 
-    const newSenior: SeniorCitizen = {
-      ...seniorData,
-      id,
-      oscaNumber,
-      registeredDate,
-      registeredBy: encoderName
-    };
+      // Upload signature to Storage bucket if it's base64
+      if (processedData.signatureData && processedData.signatureData.startsWith('data:')) {
+        const sigUrl = await uploadSignature(processedData.signatureData, tempId);
+        processedData.signatureData = sigUrl;
+      }
 
-    const updated = [newSenior, ...get().seniors];
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
-    return oscaNumber;
+      const oscaNumber = await seniorsService.create(processedData, encoderName);
+      // Realtime subscription will auto-update the list
+      set({ isLoading: false });
+      return oscaNumber;
+    } catch (error) {
+      console.error('Failed to add senior:', error);
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   updateSenior: async (id, updatedFields) => {
     set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      let processedFields = { ...updatedFields };
 
-    const updated = get().seniors.map((s) => {
-      if (s.id === id) {
-        return { ...s, ...updatedFields };
+      // Upload new profile photo if it's base64
+      if (processedFields.profilePhoto && processedFields.profilePhoto.startsWith('data:')) {
+        const photoUrl = await uploadProfilePhoto(processedFields.profilePhoto, id);
+        processedFields.profilePhoto = photoUrl;
       }
-      return s;
-    });
 
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
+      // Upload new signature if it's base64
+      if (processedFields.signatureData && processedFields.signatureData.startsWith('data:')) {
+        const sigUrl = await uploadSignature(processedFields.signatureData, id);
+        processedFields.signatureData = sigUrl;
+      }
+
+      await seniorsService.update(id, processedFields);
+      // Optimistic update
+      const updated = get().seniors.map((s) => 
+        s.id === id ? { ...s, ...processedFields } : s
+      );
+      set({ seniors: updated, isLoading: false });
+    } catch (error) {
+      console.error('Failed to update senior:', error);
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   deleteSenior: async (id) => {
     set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 600));
-
-    const updated = get().seniors.filter((s) => s.id !== id);
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
+    try {
+      await seniorsService.delete(id);
+      const updated = get().seniors.filter((s) => s.id !== id);
+      set({ seniors: updated, isLoading: false });
+    } catch (error) {
+      console.error('Failed to delete senior:', error);
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   approveSenior: async (id, officerName) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const updated = get().seniors.map((s) => {
-      if (s.id === id) {
-        return { 
-          ...s, 
-          status: 'Approved' as const, 
-          remarks: `Approved by ${officerName} on ${new Date().toLocaleDateString()}.` 
-        };
-      }
-      return s;
+    await get().updateSenior(id, {
+      status: 'Approved',
+      remarks: `Approved by ${officerName} on ${new Date().toLocaleDateString()}.`,
     });
-
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
   },
 
   rejectSenior: async (id, reason, officerName) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const updated = get().seniors.map((s) => {
-      if (s.id === id) {
-        return { 
-          ...s, 
-          status: 'Rejected' as const, 
-          remarks: `Rejected by ${officerName} on ${new Date().toLocaleDateString()}. Reason: ${reason}` 
-        };
-      }
-      return s;
+    await get().updateSenior(id, {
+      status: 'Rejected',
+      remarks: `Rejected by ${officerName} on ${new Date().toLocaleDateString()}. Reason: ${reason}`,
     });
-
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
   },
 
   verifySenior: async (id, officerName) => {
-    set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
-    const updated = get().seniors.map((s) => {
-      if (s.id === id) {
-        return { 
-          ...s, 
-          status: 'For Verification' as const, 
-          remarks: `Set to verification review by ${officerName} on ${new Date().toLocaleDateString()}.` 
-        };
-      }
-      return s;
+    await get().updateSenior(id, {
+      status: 'For Verification',
+      remarks: `Set to verification review by ${officerName} on ${new Date().toLocaleDateString()}.`,
     });
-
-    localStorage.setItem('senior_system_seniors', JSON.stringify(updated));
-    set({ seniors: updated, isLoading: false });
   },
 
   sendSMS: async (recipientName, recipientPhone, barangay, message, sentBy) => {
     set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 700));
-
-    const id = `sms-${Date.now()}`;
-    const newLog: SMSLog = {
-      id,
-      recipientName,
-      recipientPhone,
-      barangay,
-      message,
-      status: 'Sent',
-      timestamp: new Date().toISOString(),
-      sentBy
-    };
-
-    const updated = [newLog, ...get().smsLogs];
-    localStorage.setItem('senior_system_sms_logs', JSON.stringify(updated));
-    set({ smsLogs: updated, isLoading: false });
-    return true;
+    try {
+      await smsLogsService.create({
+        recipientName,
+        recipientPhone,
+        barangay,
+        message,
+        status: 'Sent',
+        timestamp: new Date().toISOString(),
+        sentBy,
+      });
+      set({ isLoading: false });
+      return true;
+    } catch (error) {
+      console.error('Failed to send SMS:', error);
+      set({ isLoading: false });
+      return false;
+    }
   },
 
   sendBatchSMS: async (barangay, message, sentBy) => {
     set({ isLoading: true });
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    try {
+      const recipients = get().seniors.filter((s) =>
+        (barangay === 'All' || s.barangay === barangay) && s.contactNumber
+      );
 
-    const recipients = get().seniors.filter((s) => 
-      (barangay === 'All' || s.barangay === barangay) && s.contactNumber
-    );
+      if (recipients.length === 0) {
+        set({ isLoading: false });
+        return 0;
+      }
 
-    if (recipients.length === 0) {
+      const timestamp = new Date().toISOString();
+      const logs = recipients.map((r) => ({
+        recipientName: `${r.firstName} ${r.lastName}`,
+        recipientPhone: r.contactNumber,
+        barangay: r.barangay,
+        message: message.replace('[name]', r.firstName).replace('[barangay]', r.barangay),
+        status: 'Sent' as const,
+        timestamp,
+        sentBy,
+      }));
+
+      const count = await smsLogsService.createBatch(logs);
+      set({ isLoading: false });
+      return count;
+    } catch (error) {
+      console.error('Failed to send batch SMS:', error);
       set({ isLoading: false });
       return 0;
     }
-
-    const timestamp = new Date().toISOString();
-    const newLogs: SMSLog[] = recipients.map((r, idx) => ({
-      id: `sms-${Date.now()}-${idx}`,
-      recipientName: `${r.firstName} ${r.lastName}`,
-      recipientPhone: r.contactNumber,
-      barangay: r.barangay,
-      message: message.replace('[name]', r.firstName).replace('[barangay]', r.barangay),
-      status: 'Sent',
-      timestamp,
-      sentBy
-    }));
-
-    const updated = [...newLogs, ...get().smsLogs];
-    localStorage.setItem('senior_system_sms_logs', JSON.stringify(updated));
-    set({ smsLogs: updated, isLoading: false });
-    return recipients.length;
-  }
+  },
 }));

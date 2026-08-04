@@ -3,10 +3,11 @@ import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
-import barangaysData from '../../Dummy/data/barangays.json';
+import { useBarangays } from '../../hooks/useBarangays';
 import { BarChart, PieChart, TrendingUp, Heart, Users } from 'lucide-react';
 
 export default function BarangayChart() {
+  const { barangays: barangaysData } = useBarangays();
   const seniors = useSeniorsStore((state) => state.seniors);
   const setSelectedBarangay = useSeniorsStore((state) => state.setSelectedBarangay);
   const { setCurrentPage } = useUIStore();

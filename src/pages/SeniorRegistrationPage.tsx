@@ -7,7 +7,7 @@ import AddressMapPicker from '../components/profiling/AddressMapPicker';
 import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
 import SignaturePad from '../components/profiling/SignaturePad';
-import barangaysData from '../Dummy/data/barangays.json';
+import { useBarangays } from '../hooks/useBarangays';
 import { Check, ArrowLeft, ArrowRight, User, MapPin, Camera, FileText, Fingerprint, LucideIcon, Trash, RotateCcw, Upload, FileUp, Eye, ShieldAlert } from 'lucide-react';
 
 interface Step {
@@ -129,6 +129,7 @@ const PENSION_OPTIONS = [
 ];
 
 export default function SeniorRegistrationPage() {
+  const { barangays: barangaysData } = useBarangays();
   const addSenior = useSeniorsStore((state) => state.addSenior);
   const seniors = useSeniorsStore((state) => state.seniors);
   const showToast = useUIStore((state) => state.showToast);

@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
-import barangaysData from '../Dummy/data/barangays.json';
+import { useBarangays } from '../hooks/useBarangays';
 import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
 
 export default function SeniorsListPage() {
+  const { barangays: barangaysData } = useBarangays();
   const { seniors, selectedStatus, setSelectedStatus } = useSeniorsStore();
   const { currentUser, hasPermission } = useAuthStore();
   const { setCurrentPage } = useUIStore();

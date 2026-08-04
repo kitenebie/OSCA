@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
+import { useSeniorsStore } from './store/seniorsStore';
 import { useUIStore } from './store/uiStore';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/layout/DashboardLayout';
@@ -19,10 +20,17 @@ import { AnimatePresence, motion } from 'motion/react';
 export default function App() {
   const { currentUser } = useAuthStore();
   const { currentPage, toasts, removeToast } = useUIStore();
+  const initAuth = useAuthStore((s) => s.initialize);
+  const initSeniors = useSeniorsStore((s) => s.initialize);
 
-  // Handle auto-timeout or logging checks in development
+  // Initialize Supabase data on mount
   useEffect(() => {
-    console.log(`LGU System Node Initialized. Active Page: ${currentPage}`);
+    initAuth();
+    initSeniors();
+  }, []);
+
+  useEffect(() => {
+    console.log(`Active Page: ${currentPage}`);
   }, [currentPage]);
 
   // Render Page Router

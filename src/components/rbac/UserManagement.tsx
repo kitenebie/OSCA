@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { User } from '../../types';
-import barangaysData from '../../Dummy/data/barangays.json';
+import { useBarangays } from '../../hooks/useBarangays';
 import { useUIStore } from '../../store/uiStore';
 import { UserPlus, ToggleLeft, ToggleRight, Trash2, Mail, Phone, MapPin, KeyRound, ShieldAlert, Check } from 'lucide-react';
 
 export default function UserManagement() {
+  const { barangays: barangaysData } = useBarangays();
   const { users, addUser, updateUser, deleteUser, currentUser } = useAuthStore();
   const showToast = useUIStore((state) => state.showToast);
 

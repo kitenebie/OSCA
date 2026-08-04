@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { formatCurrency } from '../../utils/idGenerator';
 import { exportElementToPDF, generatePDFBlobUrl } from '../../utils/pdfExport';
 import { FileDown, Printer, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
-import barangaysData from '../../Dummy/data/barangays.json';
+import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
 
 const REPORT_TEMPLATES = [
@@ -52,6 +52,7 @@ const partitionSeniors = (items: SeniorCitizen[]) => {
 };
 
 export default function ReportGenerator() {
+  const { barangays: barangaysData } = useBarangays();
   const seniors         = useSeniorsStore((state) => state.seniors);
   const showToast       = useUIStore((state) => state.showToast);
   const { currentUser } = useAuthStore();
