@@ -65,7 +65,7 @@ export interface User {
   id: string;
   username: string;
   fullName: string;
-  role: "Super Admin" | "MSWDO Officer" | "Barangay Encoder" | "Viewer";
+  role: string;
   barangayAssigned?: string; // For Barangay Encoders
   contactNumber: string;
   email: string;
@@ -73,15 +73,41 @@ export interface User {
 }
 
 export interface RolePermission {
-  role: "Super Admin" | "MSWDO Officer" | "Barangay Encoder" | "Viewer";
+  role: string;
   permissions: {
+    // --- Records Management (Seniors) ---
     canViewSeniors: boolean;
     canCreateSenior: boolean;
     canEditSenior: boolean;
+    canDeleteSenior: boolean;
     canApproveReject: boolean;
+
+    // --- User Administration (Users) ---
+    canViewUsers: boolean;
+    canCreateUser: boolean;
+    canEditUser: boolean;
+    canDeleteUser: boolean;
     canManageUsers: boolean;
+
+    // --- Reports & Documents ---
     canGenerateReports: boolean;
+    canDeleteReports: boolean;
+
+    // --- Notifications & SMS ---
     canSendSMS: boolean;
+    canManageNotifications: boolean;
+
+    // --- Page Access Control ---
+    canAccessDashboard: boolean;
+    canAccessSeniorsList: boolean;
+    canAccessSeniorProfile: boolean;
+    canAccessRegister: boolean;
+    canAccessReports: boolean;
+    canAccessSMSCenter: boolean;
+    canAccessUserManagement: boolean;
+    canAccessFindUser: boolean;
+    canAccessConfiguration: boolean;
+    canAccessMapping: boolean;
   };
 }
 
@@ -99,11 +125,24 @@ export interface SMSLog {
   id: string;
   recipientName: string;
   recipientPhone: string;
-  barangay: string;
+  barangay?: string;
   message: string;
   status: "Sent" | "Failed" | "Pending";
-  timestamp: string;
   sentBy: string;
+  timestamp: string;
+}
+
+export interface AuditLogNotification {
+  id: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT' | 'LOGIN' | 'SMS';
+  entity: 'Senior' | 'User' | 'Role' | 'Report' | 'SMS' | 'System';
+  details: string;
+  actorName: string;
+  actorRole: string;
+  barangay?: string;
+  timestamp: string;
+  read: boolean;
+  severity: 'info' | 'success' | 'warning' | 'danger';
 }
 
 export interface ReportTemplate {

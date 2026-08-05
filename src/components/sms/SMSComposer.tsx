@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
+import { auditLogsService } from '../../services/supabaseService';
 import { useBarangays } from '../../hooks/useBarangays';
 import { Send, FileText, Users, MapPin, Sparkles, MessageSquare } from 'lucide-react';
 
@@ -100,6 +101,17 @@ export default function SMSComposer() {
 
         if (success) {
           showToast(`SMS matagumpay na naipadala kay ${targetSenior.firstName}!`, 'success');
+
+          // Notify all users
+          auditLogsService.log({
+            action: 'SMS',
+            entity: 'SMS',
+            details: `Nagpadala ng SMS kay ${targetSenior.firstName} ${targetSenior.lastName} (${targetSenior.barangay})`,
+            actorName: currentUser?.fullName || 'System',
+            actorRole: currentUser?.role || 'user',
+            barangay: targetSenior.barangay,
+            severity: 'info',
+          });
           setSelectedSeniorId('');
           setMessage('');
         }
@@ -110,6 +122,16 @@ export default function SMSComposer() {
         
         if (count > 0) {
           showToast(`Broadcast sent! Matagumpay na naikalat ang SMS sa ${count} na Senior Citizens.`, 'success');
+
+          // Notify all users
+          auditLogsService.log({
+            action: 'SMS',
+            entity: 'SMS',
+            details: `Nag-broadcast ng SMS sa ${count} Senior Citizens`,
+            actorName: currentUser?.fullName || 'System',
+            actorRole: currentUser?.role || 'user',
+            severity: 'info',
+          });
           setMessage('');
         } else {
           showToast('Walang nahanap na valid recipient na may contact number sa barangay na pinili.', 'warning');

@@ -127,7 +127,7 @@ export default function LoginPage() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-extrabold text-[#02A952] tracking-wider uppercase font-mono">LGU JUBAN</span>
+              <span className="text-[9px] font-extrabold text-teal-600 tracking-wider uppercase font-mono">LGU JUBAN</span>
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
             <h1 className="font-extrabold text-sm md:text-base text-slate-800 uppercase tracking-tight">Portal ng mga Senior Citizen</h1>
@@ -138,9 +138,9 @@ export default function LoginPage() {
           {viewMode === 'landing' ? (
             <button 
               onClick={() => setViewMode('login')}
-              className="px-4 py-2 bg-[#02A952] hover:bg-[#018c43] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2 bg-teal-600 hover:bg-[#018c43] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
             >
-              <Lock size={12} className="text-[#FDFE00]" />
+              <Lock size={12} className="text-teal-400" />
               <span className="hidden min-[480px]:inline">Mag-login bilang Opisyal</span>
               <span className="min-[480px]:hidden inline">Portal Login</span>
             </button>
@@ -170,7 +170,7 @@ export default function LoginPage() {
                 </div>
                 <h1 className="text-3xl md:text-4xl lg:text-5xl font-black text-slate-800 tracking-tight leading-[1.1] uppercase">
                   Maagap na Serbisyo, <br/>
-                  <span className="text-[#02A952]">Dekalidad na Alaga</span> <br/>
+                  <span className="text-teal-600">Dekalidad na Alaga</span> <br/>
                   sa Bayan ng Juban
                 </h1>
                 <p className="text-xs md:text-sm text-slate-500 leading-relaxed max-w-xl">
@@ -180,11 +180,11 @@ export default function LoginPage() {
 
               <div className="grid grid-cols-3 gap-3 max-w-lg bg-white/70 border border-slate-200/50 p-3 rounded-2xl shadow-sm">
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
-                  <span className="block font-black text-lg md:text-xl text-[#0000FD]">25</span>
+                  <span className="block font-black text-lg md:text-xl text-teal-700">25</span>
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Barangay Nodes</span>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
-                  <span className="block font-black text-lg md:text-xl text-[#02A952]">100%</span>
+                  <span className="block font-black text-lg md:text-xl text-teal-600">100%</span>
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Libreng Profiling</span>
                 </div>
                 <div className="text-center p-2.5 bg-slate-50 rounded-xl">
@@ -196,10 +196,10 @@ export default function LoginPage() {
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
                 <button 
                   onClick={() => setViewMode('login')}
-                  className="px-6 py-3.5 bg-[#02A952] hover:bg-[#018c43] text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer group active:scale-95 w-full sm:w-auto"
+                  className="px-6 py-3.5 bg-teal-600 hover:bg-[#018c43] text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer group active:scale-95 w-full sm:w-auto"
                 >
                   <span>Magsimula sa System (Portal Login)</span>
-                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform text-[#FDFE00]" />
+                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform text-teal-400" />
                 </button>
               </div>
             </div>
@@ -233,7 +233,7 @@ export default function LoginPage() {
               {/* Header */}
               <div className="text-center space-y-2">
                 <div className="w-16 h-16 mx-auto bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl flex items-center justify-center shadow-sm">
-                  <ShieldCheck size={28} className="text-[#02A952]" />
+                  <ShieldCheck size={28} className="text-teal-600" />
                 </div>
                 <h2 className="font-black text-xl text-slate-800 uppercase tracking-tight">Portal Login</h2>
                 <p className="text-xs text-slate-400">Mag-login gamit ang inyong credentials na ibinigay ng OSCA Admin.</p>
@@ -274,7 +274,7 @@ export default function LoginPage() {
                       placeholder="I-type ang inyong username"
                       maxLength={255}
                       disabled={isLocked || isLoading}
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#02A952]/30 focus:border-[#02A952] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       autoComplete="username"
                     />
                   </div>
@@ -292,7 +292,7 @@ export default function LoginPage() {
                       placeholder="I-type ang inyong password"
                       maxLength={255}
                       disabled={isLocked || isLoading}
-                      className="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-[#02A952]/30 focus:border-[#02A952] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="w-full pl-10 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-600/30 focus:border-teal-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       autoComplete="current-password"
                     />
                     <button
@@ -310,7 +310,7 @@ export default function LoginPage() {
                 <button
                   type="submit"
                   disabled={isLoading || isLocked}
-                  className="w-full py-3.5 bg-[#02A952] hover:bg-[#018c43] disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:cursor-not-allowed"
+                  className="w-full py-3.5 bg-teal-600 hover:bg-[#018c43] disabled:bg-slate-300 text-white font-extrabold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98] disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <>

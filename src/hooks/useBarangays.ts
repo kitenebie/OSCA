@@ -10,16 +10,25 @@ export function useBarangays() {
   const [isLoading, setIsLoading] = useState(!cachedBarangays);
 
   useEffect(() => {
-    if (cachedBarangays) return;
-    
-    barangaysService.getAll().then((data) => {
-      cachedBarangays = data;
-      setBarangays(data);
-      setIsLoading(false);
-    }).catch((err) => {
-      console.error('Failed to load barangays:', err);
-      setIsLoading(false);
+    // Initial fetch
+    if (!cachedBarangays) {
+      barangaysService.getAll().then((data) => {
+        cachedBarangays = data;
+        setBarangays(data);
+        setIsLoading(false);
+      }).catch((err) => {
+        console.error('Failed to load barangays:', err);
+        setIsLoading(false);
+      });
+    }
+
+    // Subscribe to realtime changes
+    const unsubscribe = barangaysService.subscribe((updated) => {
+      cachedBarangays = updated;
+      setBarangays(updated);
     });
+
+    return () => { unsubscribe(); };
   }, []);
 
   return { barangays, isLoading };

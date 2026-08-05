@@ -26,7 +26,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [setSidebarOpen]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen flex" style={{ backgroundColor: 'var(--osca-bg-tint, #f8fafc)' }}>
       {/* Sidebar navigation */}
       <Sidebar />
 

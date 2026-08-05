@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { SeniorCitizen, SMSLog, Benefit } from '../types';
-import { seniorsService, smsLogsService, benefitsService } from '../services/supabaseService';
+import { seniorsService, smsLogsService, benefitsService, auditLogsService } from '../services/supabaseService';
 import { uploadProfilePhoto, uploadSignature } from '../services/storageService';
 
 interface SeniorsState {
@@ -21,8 +21,8 @@ interface SeniorsState {
   setSelectedStatus: (status: string) => void;
 
   addSenior: (senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string) => Promise<string>;
-  updateSenior: (id: string, data: Partial<SeniorCitizen>) => Promise<void>;
-  deleteSenior: (id: string) => Promise<void>;
+  updateSenior: (id: string, data: Partial<SeniorCitizen>, actorName?: string) => Promise<void>;
+  deleteSenior: (id: string, actorName?: string) => Promise<void>;
   approveSenior: (id: string, officerName: string) => Promise<void>;
   rejectSenior: (id: string, reason: string, officerName: string) => Promise<void>;
   verifySenior: (id: string, officerName: string) => Promise<void>;
@@ -62,6 +62,10 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       smsLogsService.subscribe((updatedLogs) => {
         set({ smsLogs: updatedLogs });
       });
+
+      benefitsService.subscribe((updatedBenefits) => {
+        set({ benefits: updatedBenefits });
+      });
     } catch (error) {
       console.error('Failed to initialize seniors store:', error);
       set({ isLoading: false });
@@ -92,6 +96,18 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       }
 
       const oscaNumber = await seniorsService.create(processedData, encoderName);
+
+      // Trigger Realtime Audit Log
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Senior',
+        details: `Idinagdag si Senior: ${processedData.firstName} ${processedData.lastName} (${processedData.barangay})`,
+        actorName: encoderName || 'System Encoder',
+        actorRole: 'encoder',
+        barangay: processedData.barangay,
+        severity: 'success',
+      });
+
       // Realtime subscription will auto-update the list
       set({ isLoading: false });
       return oscaNumber;
@@ -102,7 +118,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     }
   },
 
-  updateSenior: async (id, updatedFields) => {
+  updateSenior: async (id, updatedFields, actorName = 'System User') => {
     set({ isLoading: true });
     try {
       let processedFields = { ...updatedFields };
@@ -120,6 +136,20 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       }
 
       await seniorsService.update(id, processedFields);
+
+      const target = get().seniors.find(s => s.id === id);
+      const name = target ? `${target.firstName} ${target.lastName}` : id;
+
+      auditLogsService.log({
+        action: 'UPDATE',
+        entity: 'Senior',
+        details: `In-update ang senior record ni: ${name}`,
+        actorName: actorName,
+        actorRole: 'user',
+        barangay: target?.barangay,
+        severity: 'info',
+      });
+
       // Optimistic update
       const updated = get().seniors.map((s) => 
         s.id === id ? { ...s, ...processedFields } : s
@@ -132,10 +162,24 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     }
   },
 
-  deleteSenior: async (id) => {
+  deleteSenior: async (id, actorName = 'System User') => {
     set({ isLoading: true });
     try {
+      const target = get().seniors.find(s => s.id === id);
+      const name = target ? `${target.firstName} ${target.lastName}` : id;
+
       await seniorsService.delete(id);
+
+      auditLogsService.log({
+        action: 'DELETE',
+        entity: 'Senior',
+        details: `In-archive / binura ang senior record ni: ${name}`,
+        actorName: actorName,
+        actorRole: 'admin',
+        barangay: target?.barangay,
+        severity: 'warning',
+      });
+
       const updated = get().seniors.filter((s) => s.id !== id);
       set({ seniors: updated, isLoading: false });
     } catch (error) {
@@ -146,16 +190,42 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
   },
 
   approveSenior: async (id, officerName) => {
+    const target = get().seniors.find(s => s.id === id);
+    const name = target ? `${target.firstName} ${target.lastName}` : id;
+
     await get().updateSenior(id, {
       status: 'Approved',
       remarks: `Approved by ${officerName} on ${new Date().toLocaleDateString()}.`,
+    }, officerName);
+
+    auditLogsService.log({
+      action: 'APPROVE',
+      entity: 'Senior',
+      details: `In-approve ni ${officerName} ang rehistro ni ${name}`,
+      actorName: officerName,
+      actorRole: 'approver',
+      barangay: target?.barangay,
+      severity: 'success',
     });
   },
 
   rejectSenior: async (id, reason, officerName) => {
+    const target = get().seniors.find(s => s.id === id);
+    const name = target ? `${target.firstName} ${target.lastName}` : id;
+
     await get().updateSenior(id, {
       status: 'Rejected',
       remarks: `Rejected by ${officerName} on ${new Date().toLocaleDateString()}. Reason: ${reason}`,
+    }, officerName);
+
+    auditLogsService.log({
+      action: 'REJECT',
+      entity: 'Senior',
+      details: `Tinanggihan ni ${officerName} ang rehistro ni ${name} (Dahilan: ${reason})`,
+      actorName: officerName,
+      actorRole: 'approver',
+      barangay: target?.barangay,
+      severity: 'danger',
     });
   },
 

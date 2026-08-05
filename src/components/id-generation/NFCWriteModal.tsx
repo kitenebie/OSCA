@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { SeniorCitizen } from '../../types';
 import { writeToNFCTag, isWebNFCSupported, NFCPayload } from '../../utils/nfcSimulator';
+import { auditLogsService } from '../../services/supabaseService';
+import { useAuthStore } from '../../store/authStore';
 import { X, Radio, Check, AlertCircle, Terminal, HelpCircle, AlertTriangle } from 'lucide-react';
 
 interface NFCWriteModalProps {
@@ -10,6 +12,7 @@ interface NFCWriteModalProps {
 }
 
 export default function NFCWriteModal({ senior, onClose, onSuccess }: NFCWriteModalProps) {
+  const { currentUser } = useAuthStore();
   const [isWriting, setIsWriting] = useState(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [writeError, setWriteError] = useState(false);
@@ -41,6 +44,17 @@ export default function NFCWriteModal({ senior, onClose, onSuccess }: NFCWriteMo
     setIsWriting(false);
     if (success) {
       setWriteCompleted(true);
+
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Senior',
+        details: `Nai-program / nai-write sa NFC Smart Card ang record ni Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
+        actorName: currentUser?.fullName || 'System User',
+        actorRole: currentUser?.role || 'user',
+        barangay: senior.barangay,
+        severity: 'success',
+      });
+
       setTimeout(() => {
         onSuccess();
       }, 1500);

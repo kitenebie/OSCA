@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
+import { auditLogsService } from '../services/supabaseService';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { formatOSCANumber } from '../utils/idGenerator';
@@ -131,15 +132,23 @@ const PENSION_OPTIONS = [
 export default function SeniorRegistrationPage() {
   const { barangays: barangaysData } = useBarangays();
   const addSenior = useSeniorsStore((state) => state.addSenior);
+  const updateSenior = useSeniorsStore((state) => state.updateSenior);
   const seniors = useSeniorsStore((state) => state.seniors);
   const showToast = useUIStore((state) => state.showToast);
   const { setCurrentPage } = useUIStore();
+  const selectedSeniorId = useUIStore((state) => state.selectedSeniorId);
   const { currentUser } = useAuthStore();
 
   const countSeniors = seniors.length;
   const previewYear = new Date().getFullYear();
   const previewCount = String(countSeniors + 1).padStart(4, '0');
   const previewOscaNumber = `OSCA-JUB-${previewYear}-${previewCount}`;
+
+  // Determine if we're in EDIT mode
+  const editingSenior = selectedSeniorId
+    ? seniors.find((s) => s.id === selectedSeniorId) || null
+    : null;
+  const isEditMode = !!editingSenior;
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -148,42 +157,49 @@ export default function SeniorRegistrationPage() {
 
   // --- REGISTRATION FORM STATE SCHEMA ---
   const [form, setForm] = useState({
-    region: 'Region V (Bicol Region)',
-    province: 'Sorsogon',
-    cityTown: 'Juban',
-    firstName: '',
-    middleName: '',
-    lastName: '',
-    streetAddress: '', // mapped to Address
-    telephone: '',
-    contactNumber: '', // mapped to Mobile No.
-    emailAddress: '',
-    birthdate: '',
-    birthplace: 'Juban, Sorsogon', // mapped to Place of Birth
-    sex: '' as 'Male' | 'Female' | '',
-    civilStatus: '' as 'Single' | 'Married' | 'Widowed' | 'Separated' | 'Divorced' | '',
-    bloodType: '',
-    religion: '',
-    highestEducationalAttainment: '',
-    gsis: '',
-    sss: '',
-    tin: '',
-    philHealth: '',
-    employmentStatus: '',
-    classification: '',
-    monthlyPension: '',
-    emergencyContactName: '', // mapped to In case of Emergency
-    emergencyContactPhone: '', // mapped to Contact
-    validIdPhoto: null as string | null,
+    region: editingSenior?.region || 'Region V (Bicol Region)',
+    province: editingSenior?.province || 'Sorsogon',
+    cityTown: editingSenior?.cityTown || 'Juban',
+    firstName: editingSenior?.firstName || '',
+    middleName: editingSenior?.middleName || '',
+    lastName: editingSenior?.lastName || '',
+    suffix: editingSenior?.suffix || '',
+    streetAddress: editingSenior?.address || '',
+    telephone: editingSenior?.telephone || '',
+    contactNumber: editingSenior?.contactNumber || '',
+    emailAddress: editingSenior?.emailAddress || '',
+    birthdate: editingSenior?.birthdate || '',
+    birthplace: editingSenior?.remarks || 'Juban, Sorsogon',
+    sex: (editingSenior?.sex || '') as 'Male' | 'Female' | '',
+    civilStatus: (editingSenior?.civilStatus || '') as 'Single' | 'Married' | 'Widowed' | 'Separated' | 'Divorced' | '',
+    bloodType: editingSenior?.bloodType || '',
+    religion: editingSenior?.religion || '',
+    highestEducationalAttainment: editingSenior?.highestEducationalAttainment || '',
+    gsis: editingSenior?.gsis || '',
+    sss: editingSenior?.sss || '',
+    tin: editingSenior?.tin || '',
+    philHealth: editingSenior?.philHealth || '',
+    employmentStatus: editingSenior?.employmentStatus || '',
+    classification: editingSenior?.classification || '',
+    monthlyPension: editingSenior?.monthlyPension || '',
+    emergencyContactName: editingSenior?.emergencyContactName || '',
+    emergencyContactPhone: editingSenior?.emergencyContactPhone || '',
+    validIdPhoto: (editingSenior?.validIdPhoto || null) as string | null,
 
     // Original system fields
-    barangay: currentUser?.role === 'Barangay Encoder' ? currentUser.barangayAssigned : '',
-    pensionBeneficiary: false,
-    coordinates: { lat: 12.8753, lng: 123.9878 }, // Default to Juban
+    barangay: editingSenior?.barangay || (currentUser?.role === 'Barangay Encoder' ? currentUser.barangayAssigned : '') || '',
+    pensionBeneficiary: editingSenior?.pensionBeneficiary || false,
+    coordinates: editingSenior?.coordinates || { lat: 12.8753, lng: 123.9878 },
     
-    profilePhoto: null as string | null,
-    signatureData: null as string | null,
-    fingerprintTemplate: null as string | null
+    profilePhoto: (editingSenior?.profilePhoto || null) as string | null,
+    signatureData: (editingSenior?.signatureData || null) as string | null,
+    fingerprintTemplate: (editingSenior?.thumbprintData || null) as string | null,
+
+    // Disaster risk fields
+    inRiskArea: (editingSenior?.inRiskArea || 'no') as 'yes' | 'no',
+    riskType: editingSenior?.riskType || '',
+    riskDetails: editingSenior?.riskDetails || '',
+    riskSeverity: (editingSenior?.riskSeverity || '') as 'low' | 'medium' | 'high' | 'critical' | '',
   });
 
   // Dynamic coordinates tracking on Barangay change
@@ -360,23 +376,53 @@ export default function SeniorRegistrationPage() {
       monthlyPension: form.monthlyPension,
       emergencyContactName: form.emergencyContactName,
       emergencyContactPhone: form.emergencyContactPhone,
-      validIdPhoto: form.validIdPhoto || ''
+      validIdPhoto: form.validIdPhoto || '',
+      suffix: form.suffix || '',
+      inRiskArea: form.inRiskArea || 'no',
+      riskType: form.riskType || '',
+      riskDetails: form.riskDetails || '',
+      riskSeverity: form.riskSeverity || undefined,
     };
 
-    await addSenior(mappedSenior, currentUser?.fullName || 'LGU Encoder');
-    
-    setIsSubmitting(false);
-    showToast('Matagumpay na nairehistro ang aplikasyon! Nag-broadcast na rin ng SMS Alert sa senior.', 'success');
-    setCurrentPage('SeniorsList');
+    if (isEditMode && editingSenior) {
+      // UPDATE existing senior
+      await updateSenior(editingSenior.id, mappedSenior);
+      setIsSubmitting(false);
+      showToast('Matagumpay na na-update ang record ng senior!', 'success');
+      setCurrentPage('SeniorsList');
+    } else {
+      // CREATE new senior
+      await addSenior(mappedSenior, currentUser?.fullName || 'LGU Encoder');
+      setIsSubmitting(false);
+      showToast('Matagumpay na nairehistro ang aplikasyon! Nag-broadcast na rin ng SMS Alert sa senior.', 'success');
+
+      // Notify all users
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Senior',
+        details: `Bagong Senior Citizen nairehistro: ${form.firstName} ${form.lastName} — Barangay ${form.barangay}`,
+        actorName: currentUser?.fullName || 'System',
+        actorRole: currentUser?.role || 'encoder',
+        barangay: form.barangay,
+        severity: 'success',
+      });
+
+      setCurrentPage('SeniorsList');
+    }
   };
+    
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
       
       {/* Page Title */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm lg:block hidden">
-        <h4 className="font-bold text-slate-800 text-sm md:text-base">Bagong Rehistro ng Senior Citizen</h4>
-        <p className="text-[11px] text-slate-400">Step-by-step biometric and geographic registration form wizard</p>
+        <h4 className="font-bold text-slate-800 text-sm md:text-base">
+          {isEditMode ? `I-edit ang Record: ${editingSenior?.firstName} ${editingSenior?.lastName}` : 'Bagong Rehistro ng Senior Citizen'}
+        </h4>
+        <p className="text-[11px] text-slate-400">
+          {isEditMode ? 'I-update ang mga impormasyon ng senior citizen' : 'Step-by-step biometric and geographic registration form wizard'}
+        </p>
       </div>
 
       {/* Stepper Progress bar (Horizontal on LG+, Simplified on Mobile/Tablet) */}
@@ -476,7 +522,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 1: LOCATION & ADDRESS */}
           {currentStep === 1 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokasyon at Residensya (Location & Address)</h5>
@@ -582,7 +628,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 2: DISASTER RISK PROFILING */}
           {currentStep === 2 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri ng Panganib sa Lugar (Disaster Risk Profiling)</h5>
@@ -729,7 +775,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 3: PERSONAL DETAILS */}
           {currentStep === 3 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Personal na Impormasyon (Personal Details)</h5>
@@ -951,7 +997,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 4: GOV'T IDs & STATUS */}
           {currentStep === 4 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Mga ID, Trabaho at Katayuan (Government IDs & Status)</h5>
@@ -1134,7 +1180,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 5: ADDRESS GEOTAGGING PIN */}
           {currentStep === 5 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokalidad at Geotag Pinning (Address Details)</h5>
@@ -1173,7 +1219,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 6: FACE CAPTURE BIOMETRICS */}
           {currentStep === 6 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h5>
@@ -1195,7 +1241,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 7: DIGITAL SIGNATURE PAD */}
           {currentStep === 7 && (
-            <div className="space-y-6 max-w-2xl animate-fadeIn">
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">E-Lagda Digital Signature Pad</h5>
@@ -1217,7 +1263,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 8: FINGERPRINT SCAN BIOMETRICS */}
           {currentStep === 8 && (
-            <div className="space-y-6 max-w-2xl animate-fadeIn">
+            <div className="space-y-6 max-w-4xl animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h5>
@@ -1239,7 +1285,7 @@ export default function SeniorRegistrationPage() {
 
           {/* STEP 9: MASTER REVIEW PANEL */}
           {currentStep === 9 && (
-            <div className="space-y-6 max-w-4xl animate-fadeIn">
+            <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri bago I-submit (Review Registration Details)</h5>
@@ -1479,7 +1525,7 @@ export default function SeniorRegistrationPage() {
               className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-xs font-bold text-white rounded-xl shadow-md shadow-emerald-600/10 transition-all duration-150 active:scale-95 cursor-pointer"
             >
               <Check size={13} />
-              <span>{isSubmitting ? 'Sumusumite (Submitting...)' : 'Isumite ang Aplikasyon (Submit)'}</span>
+              <span>{isSubmitting ? 'Sumusumite...' : isEditMode ? 'I-update ang Record' : 'Isumite ang Aplikasyon (Submit)'}</span>
             </button>
           )}
 

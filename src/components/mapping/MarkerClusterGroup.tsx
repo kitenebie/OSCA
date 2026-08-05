@@ -40,7 +40,7 @@ const getIndividualCoordinates = (
  * Creates custom status-colored SVG map pin marker icons.
  */
 const createSeniorIcon = (senior: SeniorCitizen) => {
-  let color = '#128f82'; // Default Teal
+  let color = 'var(--osca-primary-600, #128f82)'; // Default Teal
   if (senior.status === 'Pending') color = '#eab308'; // Yellow
   if (senior.status === 'Rejected') color = '#ef4444'; // Red
   if (senior.pensionBeneficiary) color = '#10b981'; // Green
@@ -118,7 +118,7 @@ export default function MarkerClusterGroup({
               </div>
             ` : ''}
           </div>
-          <button id="btn-popup-${senior.id}" class="mt-3 w-full py-1.5 bg-[#128f82] text-white text-[9px] font-bold rounded-lg hover:bg-teal-700 transition-colors cursor-pointer text-center">
+          <button id="btn-popup-${senior.id}" class="mt-3 w-full py-1.5 bg-teal-600 text-white text-[9px] font-bold rounded-lg hover:bg-teal-700 transition-colors cursor-pointer text-center">
             Tingnan ang Profile
           </button>
         </div>

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { userSettingsService } from './services/supabaseService';
 import { useAuthStore } from './store/authStore';
 import { useSeniorsStore } from './store/seniorsStore';
 import { useUIStore } from './store/uiStore';
@@ -17,6 +18,8 @@ import MappingPage from './pages/MappingPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
+import { applySystemTheme } from './utils/theme';
+
 export default function App() {
   const { currentUser } = useAuthStore();
   const { currentPage, toasts, removeToast } = useUIStore();
@@ -29,6 +32,19 @@ export default function App() {
     initSeniors();
   }, []);
 
+  // Load and apply user theme from Supabase after login
+  useEffect(() => {
+    if (!currentUser) return;
+    loadUserTheme(currentUser.id);
+  }, [currentUser]);
+
+  const loadUserTheme = async (userId: string) => {
+    try {
+      const t = await userSettingsService.get(userId);
+      if (!t) return;
+      applySystemTheme(t);
+    } catch { /* ignore */ }
+  };
   useEffect(() => {
     console.log(`Active Page: ${currentPage}`);
   }, [currentPage]);

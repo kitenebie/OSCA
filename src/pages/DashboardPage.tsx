@@ -37,13 +37,13 @@ export default function DashboardPage() {
     <div className="space-y-6 animate-fadeIn font-sans">
       
       {/* Greetings Header block */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-[#128f82] text-white rounded-3xl shadow-lg border border-[#128f82]/40 relative overflow-hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 bg-teal-600 text-white rounded-3xl shadow-lg border border-teal-600/40 relative overflow-hidden">
         {/* Philippine National Colors Tri-Color Security Accent Ribbon */}
         <div style={{ height: 3, background: 'linear-gradient(to right, #FD0000 40%, #FDFE00 40% 60%, #0000FD 60%)' }} className="absolute top-0 left-0 right-0" />
         
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-[#FDFE00] font-mono">Bayan ng Juban Portal</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-teal-400 font-mono">Bayan ng Juban Portal</span>
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></div>
           </div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
@@ -55,7 +55,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5 bg-slate-950/20 p-3 rounded-2xl border border-slate-950/10 shrink-0 font-bold text-white text-xs font-mono self-start sm:self-auto">
-          <Calendar size={13} className="text-[#FDFE00]" />
+          <Calendar size={13} className="text-teal-400" />
           <span>{formattedDate}</span>
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function DashboardPage() {
           changeType="increase"
           icon={Users}
           bgColor="bg-emerald-50"
-          iconColor="text-[#02A952]"
+          iconColor="text-teal-600"
         />
         <StatCard
           title="Social Pensioners (SocPen)"
@@ -80,7 +80,7 @@ export default function DashboardPage() {
           changeType="neutral"
           icon={CreditCard}
           bgColor="bg-blue-50"
-          iconColor="text-[#0000FD]"
+          iconColor="text-teal-700"
         />
         <StatCard
           title="Mga Hinihintay (Pending Approvals)"
@@ -100,7 +100,7 @@ export default function DashboardPage() {
           changeType="increase"
           icon={Landmark}
           bgColor="bg-emerald-50"
-          iconColor="text-[#02A952]"
+          iconColor="text-teal-600"
         />
       </div>
 

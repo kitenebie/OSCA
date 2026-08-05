@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { SeniorCitizen } from '../types';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
+import { auditLogsService } from '../services/supabaseService';
 import { renderBarcodeBits } from '../utils/idGenerator';
 // @ts-ignore
 const phLogo = '/ph_logo.png';
@@ -29,6 +31,7 @@ import {
 export default function FindUserPage() {
   const { seniors } = useSeniorsStore();
   const { showToast, nfcEnabled } = useUIStore();
+  const { currentUser } = useAuthStore();
   
   const [searchId, setSearchId] = useState('');
   
@@ -117,6 +120,16 @@ export default function FindUserPage() {
       setIsFlipped(false);
       addLog(`ID matched via search database query: ${found.oscaNumber} - ${found.firstName} ${found.lastName}`);
       showToast(`Nahanap ang profile ni ${found.firstName} ${found.lastName}!`, 'success');
+
+      auditLogsService.log({
+        action: 'LOGIN',
+        entity: 'Senior',
+        details: `Nai-scan ang OSCA ID Card ni Senior: ${found.firstName} ${found.lastName} (${found.oscaNumber})`,
+        actorName: currentUser?.fullName || 'System User',
+        actorRole: currentUser?.role || 'user',
+        barangay: found.barangay,
+        severity: 'info',
+      });
     } else {
       addLog(`Failed database lookup for query: "${searchId}"`);
       showToast('Walang nahanap na Senior Citizen sa ID o pangalang iyan.', 'error');
@@ -146,6 +159,16 @@ export default function FindUserPage() {
       setIsFlipped(false);
       addLog(`NFC ISO/IEC 14443-A Tag scanned successfully! ID: ${randomSenior.oscaNumber}`);
       showToast(formatNfcText(`NFC Verified: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.barangay})`), 'success');
+
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Senior',
+        details: `Nai-scan via Proximity Scanner ang ID Card ni Senior: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.oscaNumber})`,
+        actorName: currentUser?.fullName || 'System User',
+        actorRole: currentUser?.role || 'user',
+        barangay: randomSenior.barangay,
+        severity: 'info',
+      });
     }, 600);
   };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useUIStore, AppPages } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { 
@@ -6,14 +6,14 @@ import {
   Users, 
   UserPlus, 
   FileSpreadsheet, 
-  MessageSquare, 
-  Settings, 
-  ShieldAlert, 
+  MessageSquare,  
   LogOut, 
-  Menu,
   X,
   MapPin,
-  Scan
+  Scan,
+  UserRoundCog,
+  MonitorCog,
+  AlertTriangle
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -25,57 +25,59 @@ export default function Sidebar() {
       id: 'Dashboard' as AppPages, 
       label: 'Census Dashboard', 
       icon: LayoutDashboard, 
-      permission: 'canViewSeniors' as const 
+      permission: 'canAccessDashboard' as const 
     },
     { 
       id: 'SeniorsList' as AppPages, 
       label: 'Senior Profiles', 
       icon: Users, 
-      permission: 'canViewSeniors' as const 
+      permission: 'canAccessSeniorsList' as const 
     },
     { 
       id: 'Mapping' as AppPages, 
       label: 'Demographics Map', 
       icon: MapPin, 
-      permission: 'canViewSeniors' as const 
+      permission: 'canAccessMapping' as const 
     },
     { 
       id: 'FindUser' as AppPages, 
       label: nfcEnabled ? 'Find User / NFC' : 'Find User', 
       icon: Scan, 
-      permission: 'canViewSeniors' as const 
+      permission: 'canAccessFindUser' as const 
     },
     { 
       id: 'Register' as AppPages, 
       label: 'New Registration', 
       icon: UserPlus, 
-      permission: 'canCreateSenior' as const 
+      permission: 'canAccessRegister' as const 
     },
     { 
       id: 'Reports' as AppPages, 
       label: 'Reports & Forms', 
       icon: FileSpreadsheet, 
-      permission: 'canGenerateReports' as const 
+      permission: 'canAccessReports' as const 
     },
     { 
       id: 'SMSCenter' as AppPages, 
       label: 'SMS Center', 
       icon: MessageSquare, 
-      permission: 'canSendSMS' as const 
+      permission: 'canAccessSMSCenter' as const 
     },
     { 
       id: 'UserManagement' as AppPages, 
       label: 'User Management', 
-      icon: Settings, 
-      permission: 'canManageUsers' as const 
+      icon: UserRoundCog, 
+      permission: 'canAccessUserManagement' as const 
     },
     { 
       id: 'Configuration' as AppPages, 
       label: 'Configuration', 
-      icon: Settings, 
-      permission: 'canViewSeniors' as const 
+      icon: MonitorCog, 
+      permission: 'canAccessConfiguration' as const 
     },
   ];
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -87,15 +89,16 @@ export default function Sidebar() {
       {/* Mobile Backdrop */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-[#0f172a]/40 backdrop-blur-sm z-40 lg:hidden"
           onClick={toggleSidebar}
         />
       )}
 
       <aside 
-        className={`fixed inset-y-0 left-0 bg-[#128f82] text-slate-100 flex flex-col transition-all duration-300 z-50 shadow-2xl border-r border-[#128f82]/40
+        className={`fixed inset-y-0 left-0 text-[#f1f5f9] flex flex-col transition-all duration-300 z-50 shadow-2xl
           ${sidebarOpen ? 'w-64' : 'w-20'} 
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{ backgroundColor: 'var(--osca-sidebar-bg)' }}
       >
         {/* Header Branding */}
         <div className="h-16 flex items-center justify-between px-4 shrink-0">
@@ -111,13 +114,13 @@ export default function Sidebar() {
             {sidebarOpen && (
               <div className="flex flex-col">
                 <span className="font-extrabold text-sm tracking-wide leading-none text-white font-sans">JUBAN, SORSOGON</span>
-                <span className="text-[9px] font-bold text-[#FDFE00] uppercase tracking-widest mt-0.5">OSCA LGU Portal</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'var(--osca-sidebar-active)' }}>OSCA LGU Portal</span>
               </div>
             )}
           </div>
           <button 
             onClick={toggleSidebar} 
-            className="lg:hidden p-1 rounded-md text-slate-100 hover:text-white hover:bg-slate-950/20"
+            className="lg:hidden p-1 rounded-md text-[#f1f5f9] hover:text-white hover:bg-[#02061733]"
           >
             <X size={18} />
           </button>
@@ -128,16 +131,16 @@ export default function Sidebar() {
 
         {/* Logged User Info Badge */}
         {currentUser && sidebarOpen && (
-          <div className="mx-4 my-6 p-3 bg-slate-950/20 rounded-xl border border-slate-950/10 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-slate-950/15 border border-slate-950/25 flex items-center justify-center text-white shrink-0 font-extrabold">
+          <div className="mx-4 my-6 p-3 bg-[#02061733] rounded-xl border border-[#0206171a] flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#02061726] border border-[#02061740] flex items-center justify-center text-white shrink-0 font-extrabold">
               {currentUser.fullName.split(' ').pop()?.charAt(0) || 'U'}
             </div>
             <div className="overflow-hidden">
               <h4 className="font-bold text-xs truncate text-white">{currentUser.fullName}</h4>
-              <p className="text-[8px] font-mono text-[#FDFE00] font-semibold mt-0.5 truncate uppercase tracking-widest">{currentUser.role}</p>
+              <p className="text-[8px] font-mono font-semibold mt-0.5 truncate uppercase tracking-widest" style={{ color: 'var(--osca-sidebar-active)' }}>{currentUser.role}</p>
               {currentUser.barangayAssigned && (
-                <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-200">
-                  <MapPin size={8} className="text-slate-200" />
+                <div className="flex items-center gap-1 mt-1 text-[9px] text-[#e2e8f0]">
+                  <MapPin size={8} className="text-[#e2e8f0]" />
                   <span>Brgy: {currentUser.barangayAssigned}</span>
                 </div>
               )}
@@ -162,16 +165,17 @@ export default function Sidebar() {
                   // Auto close sidebar on mobile
                   if (window.innerWidth < 1024) toggleSidebar();
                 }}
+                style={{ borderLeftColor: isActive ? 'var(--osca-sidebar-active)' : undefined }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 relative group
                   ${isActive 
-                    ? 'bg-slate-950/20 text-white border-l-4 border-[#FDFE00] rounded-l-none' 
-                    : 'text-slate-100/80 hover:bg-slate-950/10 hover:text-white'}`}
+                    ? 'bg-[#02061733] text-white border-l-4 rounded-l-none' 
+                    : 'text-[#cbd5e1cc] hover:bg-[#0206171a] hover:text-white'}`}
               >
-                <Icon size={18} className={isActive ? 'text-[#FDFE00]' : 'text-slate-100/70 group-hover:text-white'} />
+                <Icon size={18} className={isActive ? '' : 'text-[#cbd5e1b3] group-hover:text-white'} style={isActive ? { color: 'var(--osca-sidebar-active)' } : undefined} />
                 {sidebarOpen ? (
                   <span className="truncate">{item.label}</span>
                 ) : (
-                  <div className="absolute left-full ml-2 px-2 py-1 bg-slate-950 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-md border border-slate-950/30 font-bold">
+                  <div className="absolute left-full ml-2 px-2 py-1 bg-[#020617] text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-md border border-[#0206174d] font-bold">
                     {item.label}
                   </div>
                 )}
@@ -181,9 +185,9 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer Actions */}
-        <div className="p-3 border-t border-slate-950/20 space-y-1">
+        <div className="p-3 border-t border-[#02061733] space-y-1">
           <button
-            onClick={handleLogout}
+            onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-200 hover:bg-red-950/20 transition-all duration-150 group"
           >
             <LogOut size={18} className="text-red-300 group-hover:translate-x-1 transition-transform" />
@@ -192,11 +196,55 @@ export default function Sidebar() {
           
           {sidebarOpen && (
             <div className="pt-2 text-center">
-              <span className="text-[8px] text-slate-100/40 font-mono uppercase tracking-widest">LGU-JUBAN v1.0.0</span>
+              <span className="text-[8px] text-[#f1f5f966] font-mono uppercase tracking-widest">LGU-JUBAN v1.0.0</span>
             </div>
           )}
         </div>
       </aside>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
+            onClick={() => setShowLogoutModal(false)}
+          ></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-[scaleIn_250ms_ease-out]">
+            <button 
+              onClick={() => setShowLogoutModal(false)}
+              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-14 h-14 mx-auto bg-red-50 border border-red-200 rounded-2xl flex items-center justify-center">
+              <AlertTriangle size={24} className="text-red-500" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="font-bold text-lg text-slate-800">Gusto mo bang mag-logout?</h3>
+              <p className="text-sm text-slate-500">
+                Mawawala ang iyong session at kailangan mong mag-login ulit.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
+              >
+                Kanselahin
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-2.5 px-4 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
+              >
+                Oo, Mag-logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

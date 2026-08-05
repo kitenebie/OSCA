@@ -4,6 +4,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { formatCurrency } from '../../utils/idGenerator';
 import { exportElementToPDF, generatePDFBlobUrl } from '../../utils/pdfExport';
+import { auditLogsService } from '../../services/supabaseService';
 import { FileDown, Printer, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
 import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
@@ -104,6 +105,18 @@ export default function ReportGenerator() {
     const success  = await exportElementToPDF(HIDDEN_SHEET_ID, filename, 'p', 'a4');
     setIsRendering(false);
     showToast(success ? 'Matagumpay na na-download ang report (PDF)!' : 'Nagka-error sa pag-download ng PDF.', success ? 'success' : 'error');
+
+    if (success) {
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Report',
+        details: `Na-download ang Report (PDF): ${selectedTemplate.toUpperCase()} (Barangay: ${filterBarangay})`,
+        actorName: currentUser?.fullName || 'System User',
+        actorRole: currentUser?.role || 'user',
+        barangay: filterBarangay !== 'All' ? filterBarangay : undefined,
+        severity: 'info',
+      });
+    }
   };
 
   const cell  = { padding: '5px 4px' } as React.CSSProperties;

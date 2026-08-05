@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { SeniorCitizen } from '../../types';
 import { exportSeniorIDCardPDF } from '../../utils/pdfExport';
 import { useUIStore } from '../../store/uiStore';
+import { useAuthStore } from '../../store/authStore';
+import { auditLogsService } from '../../services/supabaseService';
 import { FileDown, Radio, ShieldCheck, Printer } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
@@ -14,6 +16,7 @@ interface IDCardPreviewProps {
 
 export default function IDCardPreview({ senior }: IDCardPreviewProps) {
   const { showToast, nfcEnabled } = useUIStore();
+  const { currentUser } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
   const [isNFCOpen, setIsNFCOpen] = useState(false);
   const [nfcWritten, setNfcWritten] = useState(false);
@@ -49,6 +52,16 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
     setIsExporting(false);
     if (success) {
       showToast('Nai-download na ang inyong Senior Citizen ID (PDF)!', 'success');
+
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Senior',
+        details: `In-export / na-download ang ID Card PDF ni Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
+        actorName: currentUser?.fullName || 'System User',
+        actorRole: currentUser?.role || 'user',
+        barangay: senior.barangay,
+        severity: 'info',
+      });
     } else {
       showToast('Kakulangan sa pag-render ng ID card PDF.', 'error');
     }

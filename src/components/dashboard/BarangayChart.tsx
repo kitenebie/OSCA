@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
 import { useSeniorsStore } from '../../store/seniorsStore';
@@ -12,6 +12,23 @@ export default function BarangayChart() {
   const setSelectedBarangay = useSeniorsStore((state) => state.setSelectedBarangay);
   const { setCurrentPage } = useUIStore();
   const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>('barangay');
+  const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  // Re-render charts when dark mode changes
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  // Theme-aware chart colors (responds to dark mode)
+  const chartLabelColor = isDark ? '#cbd5e1' : (getComputedStyle(document.documentElement).getPropertyValue('--color-slate-600').trim() || '#64748b');
+  const chartLabelDark = isDark ? '#e2e8f0' : (getComputedStyle(document.documentElement).getPropertyValue('--color-slate-700').trim() || '#475569');
+  const chartGridColor = isDark ? '#334155' : (getComputedStyle(document.documentElement).getPropertyValue('--color-slate-200').trim() || '#f1f5f9');
+  const chartTooltipTheme = isDark ? 'dark' : 'light';
+
 
   // --- Dynamic Computations ---
 
@@ -172,14 +189,14 @@ export default function BarangayChart() {
     },
     xaxis: {
       categories: barangayNames,
-      labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'Inter' } }
+      labels: { style: { colors: chartLabelColor, fontSize: '10px', fontFamily: 'Inter' } }
     },
     yaxis: {
-      labels: { style: { colors: '#475569', fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
+      labels: { style: { colors: chartLabelDark, fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
     },
-    grid: { borderColor: '#f1f5f9' },
+    grid: { borderColor: chartGridColor },
     tooltip: {
-      theme: 'light',
+      theme: chartTooltipTheme,
       y: { formatter: (val) => `${val} Senior Citizens` }
     },
     legend: { show: false }
@@ -199,7 +216,7 @@ export default function BarangayChart() {
       position: 'bottom',
       fontSize: '11px',
       fontFamily: 'Inter',
-      labels: { colors: '#475569' }
+      labels: { colors: chartLabelDark }
     },
     dataLabels: { enabled: true, style: { fontSize: '10px' } },
     plotOptions: {
@@ -214,7 +231,7 @@ export default function BarangayChart() {
               formatter: () => String(seniors.length),
               fontSize: '12px',
               fontWeight: 600,
-              color: '#475569'
+              color: chartLabelDark
             }
           }
         }
@@ -233,7 +250,7 @@ export default function BarangayChart() {
       position: 'bottom',
       fontSize: '11px',
       fontFamily: 'Inter',
-      labels: { colors: '#475569' }
+      labels: { colors: chartLabelDark }
     },
     dataLabels: { enabled: true }
   };
@@ -263,14 +280,14 @@ export default function BarangayChart() {
     colors: trendColors,
     xaxis: {
       categories: trendLabels.length > 0 ? trendLabels : ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-      labels: { style: { colors: '#64748b', fontSize: '10px' } }
+      labels: { style: { colors: chartLabelColor, fontSize: '10px' } }
     },
     yaxis: {
-      labels: { style: { colors: '#64748b', fontSize: '10px' } }
+      labels: { style: { colors: chartLabelColor, fontSize: '10px' } }
     },
-    grid: { borderColor: '#f1f5f9' },
+    grid: { borderColor: chartGridColor },
     tooltip: { 
-      theme: 'light',
+      theme: chartTooltipTheme,
       y: { formatter: (val) => `${val} Senior Citizens` }
     },
     legend: { show: false }
@@ -290,7 +307,7 @@ export default function BarangayChart() {
       position: 'bottom',
       fontSize: '12px',
       fontFamily: 'Inter',
-      labels: { colors: '#475569' }
+      labels: { colors: chartLabelDark }
     },
     dataLabels: {
       enabled: true,
@@ -308,7 +325,7 @@ export default function BarangayChart() {
               formatter: () => String(seniors.length),
               fontSize: '14px',
               fontWeight: 700,
-              color: '#475569'
+              color: chartLabelDark
             }
           }
         }
@@ -329,21 +346,21 @@ export default function BarangayChart() {
     colors: ['#3B82F6', '#EC4899'],
     xaxis: {
       categories: genderBarangayNames,
-      labels: { style: { colors: '#64748b', fontSize: '10px', fontFamily: 'Inter' } }
+      labels: { style: { colors: chartLabelColor, fontSize: '10px', fontFamily: 'Inter' } }
     },
     yaxis: {
-      labels: { style: { colors: '#475569', fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
+      labels: { style: { colors: chartLabelDark, fontSize: '10px', fontFamily: 'Inter', fontWeight: 600 } }
     },
     legend: {
       position: 'top',
       fontSize: '11px',
       fontFamily: 'Inter',
-      labels: { colors: '#475569' }
+      labels: { colors: chartLabelDark }
     },
-    grid: { borderColor: '#f1f5f9' },
+    grid: { borderColor: chartGridColor },
     dataLabels: { enabled: true, style: { fontSize: '9px', colors: ['#fff'] } },
     tooltip: {
-      theme: 'light',
+      theme: chartTooltipTheme,
       y: { formatter: (val) => `${val} Senior Citizens` }
     }
   };
@@ -367,7 +384,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('barangay')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'barangay' 
-                ? 'bg-white text-[#128f82] shadow-sm' 
+                ? 'bg-white text-teal-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <BarChart size={13} />
@@ -377,7 +394,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('demographic')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'demographic' 
-                ? 'bg-white text-[#128f82] shadow-sm' 
+                ? 'bg-white text-teal-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <PieChart size={13} />
@@ -387,7 +404,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('gender')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'gender' 
-                ? 'bg-white text-[#128f82] shadow-sm' 
+                ? 'bg-white text-teal-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <Users size={13} />
@@ -397,7 +414,7 @@ export default function BarangayChart() {
             onClick={() => setActiveTab('trends')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
               ${activeTab === 'trends' 
-                ? 'bg-white text-[#128f82] shadow-sm' 
+                ? 'bg-white text-teal-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <TrendingUp size={13} />

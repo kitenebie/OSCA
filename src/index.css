@@ -2,6 +2,70 @@
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
 
+/* ============================================================
+   OSCA SYSTEM THEME VARIABLES
+   Default palette: OSCA Green + Teal (Light Mode)
+   ============================================================ */
+:root {
+  --osca-font-family: 'Inter', sans-serif;
+  --osca-font-size: 14px;
+
+  /* Semantic colors */
+  --osca-primary-color: #02A952;
+  --osca-secondary-color: #0F766E;
+  --osca-info-color: #0284C7;
+  --osca-danger-color: #DC2626;
+  --osca-warning-color: #D97706;
+
+  /* Sidebar & Navigation */
+  --osca-sidebar-bg: #128f82;
+  --osca-sidebar-active: #FDFE00;
+  --osca-bg-tint: #f8fafc;
+
+  /* Primary shade scale (drives teal-* / emerald-*) */
+  --osca-primary-50: #ecfdf5;
+  --osca-primary-100: #d1fae5;
+  --osca-primary-200: #a7f3d0;
+  --osca-primary-300: #6ee7b7;
+  --osca-primary-400: #34d399;
+  --osca-primary-500: #10b981;
+  --osca-primary-600: #02A952;
+  --osca-primary-700: #047857;
+  --osca-primary-800: #065f46;
+  --osca-primary-900: #064e3b;
+  --osca-primary-950: #022c22;
+
+  /* Tailwind teal-* override → primary palette */
+  --color-teal-50: var(--osca-primary-50);
+  --color-teal-100: var(--osca-primary-100);
+  --color-teal-200: var(--osca-primary-200);
+  --color-teal-300: var(--osca-primary-300);
+  --color-teal-400: var(--osca-primary-400);
+  --color-teal-500: var(--osca-primary-500);
+  --color-teal-600: var(--osca-primary-600);
+  --color-teal-700: var(--osca-primary-700);
+  --color-teal-800: var(--osca-primary-800);
+  --color-teal-900: var(--osca-primary-900);
+  --color-teal-950: var(--osca-primary-950);
+
+  /* Tailwind emerald-* override → primary palette */
+  --color-emerald-50: var(--osca-primary-50);
+  --color-emerald-100: var(--osca-primary-100);
+  --color-emerald-200: var(--osca-primary-200);
+  --color-emerald-300: var(--osca-primary-300);
+  --color-emerald-400: var(--osca-primary-400);
+  --color-emerald-500: var(--osca-primary-500);
+  --color-emerald-600: var(--osca-primary-600);
+  --color-emerald-700: var(--osca-primary-700);
+  --color-emerald-800: var(--osca-primary-800);
+  --color-emerald-900: var(--osca-primary-900);
+  --color-emerald-950: var(--osca-primary-950);
+}
+
+html {
+  font-family: var(--osca-font-family);
+  font-size: var(--osca-font-size);
+}
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -12,6 +76,227 @@
   body {
     @apply bg-slate-50 text-slate-900 antialiased font-sans;
   }
+}
+
+/* ============================================================
+   DARK MODE — Comprehensive Text & Section Visibility Rules
+   ============================================================ */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: var(--osca-bg-tint, #0b1329);
+  color: #f1f5f9;
+}
+
+/* Card & Surface Visibility */
+html.dark .bg-white {
+  background-color: #1e293b !important;
+  color: #f1f5f9;
+}
+
+html.dark [class*="bg-white/"] {
+  background-color: rgba(30, 41, 59, 0.85) !important;
+}
+
+/* Preserve deep dark backgrounds for terminal boxes, camera viewports, modals, and backdrops */
+html.dark .bg-slate-950,
+html.dark [class*="bg-slate-950"] {
+  background-color: #020617 !important;
+}
+
+html.dark .bg-slate-900,
+html.dark [class*="bg-slate-900"] {
+  background-color: #0f172a !important;
+}
+
+html.dark .bg-slate-800 {
+  background-color: #1e293b !important;
+}
+
+/* Section Header Backgrounds with Theme Accent Gradients */
+.bg-slate-50\/50,
+.bg-slate-50\/80,
+.bg-slate-50 {
+  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.05) 0%, rgba(248, 250, 252, 0.95) 100%) !important;
+  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.15) !important;
+}
+
+html.dark .bg-slate-50\/50,
+html.dark .bg-slate-50\/80,
+html.dark .bg-slate-50 {
+  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.18) 0%, #090d16 100%) !important;
+  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.3) !important;
+}
+
+html.dark .bg-slate-100 {
+  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.12) 0%, #0d1527 100%) !important;
+  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.25) !important;
+}
+
+html.dark .bg-slate-200 {
+  background-color: #1e293b !important;
+}
+
+html.dark header {
+  background-color: #0f172a !important;
+  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.25) !important;
+}
+
+/* Text Visibility & High Contrast in Dark Mode */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #f8fafc !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+
+html.dark .text-slate-600,
+html.dark .text-slate-500,
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+
+html.dark .text-slate-400,
+html.dark .text-gray-400 {
+  color: #cbd5e1 !important;
+}
+
+/* Vibrant Accent Text Colors in Dark Mode */
+html.dark .text-emerald-700,
+html.dark .text-emerald-800,
+html.dark .text-teal-700,
+html.dark .text-teal-800 {
+  color: #34d399 !important;
+}
+
+html.dark .text-emerald-600,
+html.dark .text-teal-600 {
+  color: #2dd4bf !important;
+}
+
+html.dark .text-blue-700,
+html.dark .text-blue-800 {
+  color: #60a5fa !important;
+}
+
+html.dark .text-amber-700,
+html.dark .text-amber-800 {
+  color: #fbbf24 !important;
+}
+
+/* Form Controls & Inputs in Dark Mode */
+html.dark input[type="text"],
+html.dark input[type="password"],
+html.dark input[type="email"],
+html.dark input[type="number"],
+html.dark input[type="tel"],
+html.dark input[type="search"],
+html.dark input[type="url"],
+html.dark input[type="date"],
+html.dark select,
+html.dark textarea {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+  border-color: #334155 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Crisp Section Borders and Dividers */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+
+html.dark .border-slate-300,
+html.dark .border-gray-300 {
+  border-color: #475569 !important;
+}
+
+html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155 !important;
+}
+
+/* Table Visibility in Dark Mode */
+html.dark table th {
+  background-color: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+
+html.dark table td {
+  border-color: #334155 !important;
+}
+
+html.dark table tr:hover td {
+  background-color: rgba(51, 65, 85, 0.4) !important;
+}
+
+/* Modal Backdrops & Overlays in Dark Mode */
+html.dark .bg-slate-950\/80,
+html.dark .bg-slate-950\/60,
+html.dark .bg-slate-950\/40,
+html.dark .bg-black\/50,
+html.dark .bg-slate-900\/50 {
+  background-color: rgba(2, 6, 23, 0.75) !important;
+}
+
+/* Leaflet Map Popups in Dark Mode */
+html.dark .leaflet-container {
+  background: #0f172a;
+}
+html.dark .leaflet-popup-content-wrapper,
+html.dark .leaflet-popup-tip {
+  background-color: #1e293b !important;
+  color: #f1f5f9 !important;
+  box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important;
+}
+html.dark .leaflet-popup-content {
+  color: #f1f5f9 !important;
+}
+
+html.dark .shadow-sm {
+  --tw-shadow-color: rgba(0,0,0,0.3);
+}
+
+html.dark .shadow-md {
+  --tw-shadow-color: rgba(0,0,0,0.4);
+}
+
+html.dark .shadow-lg,
+html.dark .shadow-xl,
+html.dark .shadow-2xl {
+  --tw-shadow-color: rgba(0,0,0,0.5);
+}
+
+/* Global input field height increase */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="tel"],
+input[type="search"],
+input[type="url"],
+input[type="date"],
+select,
+textarea {
+  min-height: 44px;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 /* Custom scrollbar */
@@ -48,3 +333,19 @@
   animation: laserSweep 3s infinite ease-in-out;
 }
 
+/* Modal animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { 
+    opacity: 0; 
+    transform: scale(0.9) translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: scale(1) translateY(0); 
+  }
+}

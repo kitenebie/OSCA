@@ -778,3 +778,272 @@ ALTER PUBLICATION supabase_realtime ADD TABLE benefits;
 
 
 
+
+
+-- ============================================================
+-- 8. AUDIT LOGS & REALTIME NOTIFICATIONS TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  action TEXT NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'LOGIN', 'SMS')),
+  entity TEXT NOT NULL CHECK (entity IN ('Senior', 'User', 'Role', 'Report', 'SMS', 'System')),
+  details TEXT NOT NULL,
+  actor_name TEXT NOT NULL,
+  actor_role TEXT NOT NULL,
+  barangay TEXT,
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  read BOOLEAN DEFAULT FALSE,
+  severity TEXT DEFAULT 'info' CHECK (severity IN ('info', 'success', 'warning', 'danger'))
+
+
+
+  NEW.updated_at = NOW();
+
+
+
+  RETURN NEW;
+
+
+
+END;
+
+
+
+$$ language 'plpgsql';
+
+
+
+
+
+
+
+CREATE TRIGGER update_seniors_updated_at BEFORE UPDATE ON seniors
+
+
+
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+
+
+
+
+
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
+
+
+
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+
+
+
+
+
+CREATE TRIGGER update_barangays_updated_at BEFORE UPDATE ON barangays
+
+
+
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+
+
+
+
+
+CREATE TRIGGER update_benefits_updated_at BEFORE UPDATE ON benefits
+
+
+
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+
+
+
+
+
+
+-- ============================================================
+
+
+
+-- ROW LEVEL SECURITY (RLS) - Enable but allow all for now
+
+
+
+-- ============================================================
+
+
+
+ALTER TABLE seniors ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE barangays ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE benefits ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE sms_logs ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+
+
+
+ALTER TABLE report_templates ENABLE ROW LEVEL SECURITY;
+
+
+
+
+
+
+
+-- Allow full access with anon key (adjust later for production auth)
+
+
+
+CREATE POLICY "Allow all access" ON seniors FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON users FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON barangays FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON benefits FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON sms_logs FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON roles FOR ALL USING (true) WITH CHECK (true);
+
+
+
+CREATE POLICY "Allow all access" ON report_templates FOR ALL USING (true) WITH CHECK (true);
+
+
+
+
+
+
+
+-- ============================================================
+
+
+
+-- ENABLE REALTIME for key tables
+
+
+
+-- ============================================================
+
+
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'seniors') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE seniors;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'users') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE users;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'sms_logs') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE sms_logs;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'benefits') THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE benefits;
+  END IF;
+END $$;
+
+
+
+
+
+-- ============================================================
+-- 8. AUDIT LOGS & REALTIME NOTIFICATIONS TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id TEXT PRIMARY KEY,
+  action TEXT NOT NULL CHECK (action IN ('CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'LOGIN', 'SMS')),
+  entity TEXT NOT NULL CHECK (entity IN ('Senior', 'User', 'Role', 'Report', 'SMS', 'System')),
+  details TEXT NOT NULL,
+  actor_name TEXT NOT NULL,
+  actor_role TEXT NOT NULL,
+  barangay TEXT,
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  read BOOLEAN DEFAULT FALSE,
+  severity TEXT DEFAULT 'info' CHECK (severity IN ('info', 'success', 'warning', 'danger'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_logs_read ON audit_logs(read);
+
+ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access" ON audit_logs FOR ALL USING (true) WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'audit_logs'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE audit_logs;
+  END IF;
+END $$;
+
+
+-- ============================================================
+-- 9. USER SETTINGS & THEME CONFIGURATION TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS user_settings (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL UNIQUE,
+  font_family TEXT DEFAULT 'Inter',
+  font_size TEXT DEFAULT '14px',
+  primary_color TEXT DEFAULT '#02A952',
+  secondary_color TEXT DEFAULT '#0F766E',
+  info_color TEXT DEFAULT '#0284C7',
+  danger_color TEXT DEFAULT '#DC2626',
+  warning_color TEXT DEFAULT '#D97706',
+  bg_tint TEXT DEFAULT '#f8fafc',
+  mode TEXT DEFAULT 'light' CHECK (mode IN ('light', 'dark')),
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id);
+
+CREATE TRIGGER update_user_settings_updated_at BEFORE UPDATE ON user_settings
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all access" ON user_settings FOR ALL USING (true) WITH CHECK (true);
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_publication_tables 
+    WHERE pubname = 'supabase_realtime' AND tablename = 'user_settings'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE user_settings;
+  END IF;
+END $$;

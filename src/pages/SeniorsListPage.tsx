@@ -3,13 +3,14 @@ import { useSeniorsStore } from '../store/seniorsStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useBarangays } from '../hooks/useBarangays';
-import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, UserCheck } from 'lucide-react';
+import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, UserCheck, Pencil, Archive, CreditCard, Eye, X, AlertTriangle, Camera, RefreshCw } from 'lucide-react';
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
-  const { seniors, selectedStatus, setSelectedStatus } = useSeniorsStore();
+  const { seniors, selectedStatus, setSelectedStatus, updateSenior, deleteSenior } = useSeniorsStore();
   const { currentUser, hasPermission } = useAuthStore();
   const { setCurrentPage } = useUIStore();
+  const showToast = useUIStore((state) => state.showToast);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBarangay, setFilterBarangay] = useState('All');
@@ -62,6 +63,92 @@ export default function SeniorsListPage() {
   const handleRowClick = (id: string) => {
     setCurrentPage('SeniorProfile', id);
   };
+
+  // Edit handler - opens wizard steps (Registration page in edit mode)
+  const handleEdit = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setCurrentPage('Register', id);
+  };
+
+  // Archive modal state
+  const [archiveModal, setArchiveModal] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: '', name: '' });
+
+  // Change Photo modal
+  const [photoModal, setPhotoModal] = useState<{ open: boolean; id: string; name: string }>({ open: false, id: '', name: '' });
+  const [newPhoto, setNewPhoto] = useState<string>('');
+
+  // Update Status modal
+  const [statusModal, setStatusModal] = useState<{ open: boolean; id: string; name: string; currentStatus: string }>({ open: false, id: '', name: '', currentStatus: '' });
+  const [newStatus, setNewStatus] = useState<string>('');
+
+  const handleArchiveClick = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    setArchiveModal({ open: true, id, name });
+  };
+
+  const handleArchiveConfirm = async () => {
+    try {
+      await updateSenior(archiveModal.id, { status: 'Deactivated' });
+      showToast(`Matagumpay na na-archive si ${archiveModal.name}.`, 'success');
+    } catch {
+      showToast('Hindi ma-archive ang record. Subukan muli.', 'error');
+    }
+    setArchiveModal({ open: false, id: '', name: '' });
+  };
+
+  // ID Card handler - navigate to FindUser page for ID card view
+  const handleViewID = (e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    setCurrentPage('SeniorProfile', id);
+  };
+  // Change Photo handler
+  const handleChangePhoto = (e: React.MouseEvent, id: string, name: string) => {
+    e.stopPropagation();
+    setPhotoModal({ open: true, id, name });
+    setNewPhoto('');
+  };
+
+  const handlePhotoFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setNewPhoto(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handlePhotoConfirm = async () => {
+    if (!newPhoto || !photoModal.id) return;
+    try {
+      await updateSenior(photoModal.id, { profilePhoto: newPhoto });
+      showToast(`Matagumpay na na-update ang photo ni ${photoModal.name}!`, 'success');
+    } catch {
+      showToast('Hindi ma-update ang photo. Subukan muli.', 'error');
+    }
+    setPhotoModal({ open: false, id: '', name: '' });
+    setNewPhoto('');
+  };
+
+  // Update Status handler
+  const handleUpdateStatus = (e: React.MouseEvent, id: string, name: string, currentStatus: string) => {
+    e.stopPropagation();
+    setStatusModal({ open: true, id, name, currentStatus });
+    setNewStatus(currentStatus);
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!statusModal.id || !newStatus) return;
+    try {
+      await updateSenior(statusModal.id, { status: newStatus });
+      showToast(`Status ni ${statusModal.name} na-update sa "${newStatus}"!`, 'success');
+    } catch {
+      showToast('Hindi ma-update ang status. Subukan muli.', 'error');
+    }
+    setStatusModal({ open: false, id: '', name: '', currentStatus: '' });
+  };
+
+
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
@@ -185,8 +272,7 @@ export default function SeniorsListPage() {
                 {paginatedSeniors.map((senior) => (
                   <tr
                     key={senior.id}
-                    onClick={() => handleRowClick(senior.id)}
-                    className="hover:bg-slate-50/50 cursor-pointer group transition-all duration-150"
+                    className="hover:bg-slate-50/50 group transition-all duration-150"
                   >
                     {/* Basic details */}
                     <td className="py-3.5 px-5">
@@ -255,12 +341,81 @@ export default function SeniorsListPage() {
 
                     {/* Actions link indicator */}
                     <td className="py-3.5 px-5 text-right">
-                      <button
-                        type="button"
-                        className="p-1 text-slate-400 group-hover:text-teal-600 group-hover:bg-teal-50 rounded-lg transition-all"
-                      >
-                        <ChevronRight size={16} />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {/* View Dossier */}
+                        <button
+                          type="button"
+                          onClick={() => handleRowClick(senior.id)}
+                          title="Tingnan ang Dossier (Profile)"
+                          className="p-2 text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <Eye size={18} />
+                        </button>
+                        {/* Edit with Hover Popup */}
+                        {hasPermission('canEditSenior') && (
+                          <div className="relative group/edit">
+                            <button
+                              type="button"
+                              onClick={(e) => handleEdit(e, senior.id)}
+                              title="I-edit ang record"
+                              className="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                            >
+                              <Pencil size={18} />
+                            </button>
+                            {/* Hover popup menu */}
+                            <div className="absolute right-0 top-full mt-1 opacity-0 invisible group-hover/edit:opacity-100 group-hover/edit:visible transition-all duration-150 z-50">
+                              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-1.5 min-w-[160px] space-y-0.5">
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleEdit(e, senior.id)}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer"
+                                >
+                                  <Pencil size={13} />
+                                  <span>I-edit ang Record</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleChangePhoto(e, senior.id, `${senior.firstName} ${senior.lastName}`)}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer"
+                                >
+                                  <Camera size={13} />
+                                  <span>Palitan ang Photo</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleUpdateStatus(e, senior.id, `${senior.firstName} ${senior.lastName}`, senior.status)}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
+                                >
+                                  <RefreshCw size={13} />
+                                  <span>Update Status</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {/* Archive */}
+                        {(hasPermission('canDeleteSenior') || hasPermission('canEditSenior')) && (
+                          <button
+                            type="button"
+                            onClick={(e) => handleArchiveClick(e, senior.id, `${senior.firstName} ${senior.lastName}`)}
+                            title="I-archive (deactivate)"
+                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                          >
+                            <Archive size={18} />
+                          </button>
+                        )}
+                        {/* ID Card */}
+                        {senior.status === 'Approved' && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleViewID(e, senior.id)}
+                          title="Tingnan/Generate ID Card"
+                          className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                        >
+                          <CreditCard size={18} />
+                        </button>
+                        )}
+                      </div>
                     </td>
 
                   </tr>
@@ -338,6 +493,178 @@ export default function SeniorsListPage() {
           </div>
         )}
       </div>
+
+      {/* ====== Archive Confirmation Modal (Animated) ====== */}
+    {archiveModal.open && (
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <div 
+          className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
+          onClick={() => setArchiveModal({ open: false, id: '', name: '' })}
+        ></div>
+        
+        {/* Modal Card */}
+        <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-[scaleIn_250ms_ease-out]">
+          {/* Close button */}
+          <button 
+            onClick={() => setArchiveModal({ open: false, id: '', name: '' })}
+            className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+
+          {/* Icon */}
+          <div className="w-14 h-14 mx-auto bg-amber-50 border border-amber-200 rounded-2xl flex items-center justify-center">
+            <AlertTriangle size={24} className="text-amber-500" />
+          </div>
+
+          {/* Content */}
+          <div className="text-center space-y-1.5">
+            <h3 className="font-bold text-lg text-slate-800">I-archive ang Record?</h3>
+            <p className="text-sm text-slate-500">
+              Ide-deactivate si <span className="font-semibold text-slate-700">{archiveModal.name}</span>. Hindi na siya lalabas sa active records list.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3 pt-2">
+            <button
+              onClick={() => setArchiveModal({ open: false, id: '', name: '' })}
+              className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
+            >
+              Kanselahin
+            </button>
+            <button
+              onClick={handleArchiveConfirm}
+              className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
+            >
+              I-archive
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+      {/* ====== Change Photo Modal ====== */}
+      {photoModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
+            onClick={() => setPhotoModal({ open: false, id: '', name: '' })}
+          ></div>
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-[scaleIn_250ms_ease-out]">
+            <button 
+              onClick={() => setPhotoModal({ open: false, id: '', name: '' })}
+              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-14 h-14 mx-auto bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl flex items-center justify-center">
+              <Camera size={24} className="text-teal-500" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Palitan ang Photo</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Pumili ng bagong profile photo para kay <span className="font-semibold text-slate-700 dark:text-slate-200">{photoModal.name}</span>
+              </p>
+            </div>
+
+            {newPhoto && (
+              <div className="flex justify-center">
+                <img src={newPhoto} alt="Preview" className="w-24 h-24 rounded-full object-cover border-4 border-teal-200" />
+              </div>
+            )}
+
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoFileChange}
+                className="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-teal-50 file:text-teal-700 file:font-bold file:cursor-pointer hover:file:bg-teal-100 cursor-pointer"
+              />
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setPhotoModal({ open: false, id: '', name: '' })}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
+              >
+                Kanselahin
+              </button>
+              <button
+                onClick={handlePhotoConfirm}
+                disabled={!newPhoto}
+                className="flex-1 py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                I-save ang Photo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ====== Update Status Modal ====== */}
+      {statusModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
+            onClick={() => setStatusModal({ open: false, id: '', name: '', currentStatus: '' })}
+          ></div>
+          <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 space-y-4 animate-[scaleIn_250ms_ease-out]">
+            <button 
+              onClick={() => setStatusModal({ open: false, id: '', name: '', currentStatus: '' })}
+              className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
+            >
+              <X size={16} />
+            </button>
+
+            <div className="w-14 h-14 mx-auto bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-2xl flex items-center justify-center">
+              <RefreshCw size={24} className="text-amber-500" />
+            </div>
+
+            <div className="text-center space-y-1.5">
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Update Status</h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Piliin ang bagong status para kay <span className="font-semibold text-slate-700 dark:text-slate-200">{statusModal.name}</span>
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              {['Approved', 'Pending', 'For Verification', 'Rejected', 'Deactivated'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setNewStatus(s)}
+                  className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold border-2 transition-all cursor-pointer ${
+                    newStatus === s
+                      ? 'border-teal-500 bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300'
+                      : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-slate-300'
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <button
+                onClick={() => setStatusModal({ open: false, id: '', name: '', currentStatus: '' })}
+                className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
+              >
+                Kanselahin
+              </button>
+              <button
+                onClick={handleStatusConfirm}
+                disabled={newStatus === statusModal.currentStatus}
+                className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                I-update Status
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );
