@@ -3,7 +3,7 @@ import { useAuthStore } from '../../store/authStore';
 import { User } from '../../types';
 import { useBarangays } from '../../hooks/useBarangays';
 import { useUIStore } from '../../store/uiStore';
-import { UserPlus, ToggleLeft, ToggleRight, Trash2, Mail, Phone, MapPin, KeyRound, ShieldAlert, Check, Pencil, X, Eye, EyeOff, Lock, Camera, Upload, Image } from 'lucide-react';
+import { UserPlus, ToggleLeft, ToggleRight, Trash2, Mail, Phone, MapPin, KeyRound, ShieldAlert, Check, Pencil, X, Eye, EyeOff, Lock, Camera, Upload } from 'lucide-react';
 import { uploadUserPhoto } from '../../services/storageService';
 
 // SHA-256 hash function (same as login page)
@@ -277,6 +277,14 @@ export default function UserManagement() {
 
     try {
       const updateData: Record<string, unknown> = { ...editForm };
+
+      // Upload photo if changed
+      if (editPhoto && editPhoto.startsWith('data:')) {
+        const photoUrl = await uploadUserPhoto(editPhoto, editModal.user!.id);
+        updateData.profilePhoto = photoUrl;
+      } else {
+        updateData.profilePhoto = editPhoto;
+      }
       if (editPassword) {
         updateData.password = await hashPassword(editPassword);
       }
@@ -332,7 +340,15 @@ export default function UserManagement() {
 
     try {
       const hashedPw = await hashPassword(createPassword);
-      await addUser({ ...formData, password: hashedPw });
+
+      // Upload photo if provided
+      let photoUrl = '';
+      if (createPhoto && createPhoto.startsWith('data:')) {
+        const tempId = `usr-${Date.now()}`;
+        photoUrl = await uploadUserPhoto(createPhoto, tempId);
+      }
+
+      await addUser({ ...formData, password: hashedPw, profilePhoto: photoUrl } as any);
       showToast(`Matagumpay na naidagdag si ${formData.fullName}!`, 'success');
       
       // Reset form
@@ -349,6 +365,7 @@ export default function UserManagement() {
       setCreateConfirmPassword('');
       setShowCreatePassword(false);
       setShowCreateConfirm(false);
+      setCreatePhoto('');
       setIsOpen(false);
     } catch {
       showToast('Hindi mairehistro ang user. Subukan muli.', 'error');
@@ -401,9 +418,13 @@ export default function UserManagement() {
               {/* User Bio Header */}
               <div>
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-teal-50 dark:bg-teal-950/40 border border-teal-100/50 dark:border-teal-800 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-sm shrink-0">
-                    {user.fullName.substring(0, 2).toUpperCase()}
-                  </div>
+                  {user.profilePhoto ? (
+                    <img src={user.profilePhoto} alt={user.fullName} className="w-11 h-11 rounded-full object-cover border border-teal-100/50 dark:border-teal-800 shrink-0" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-full bg-teal-50 dark:bg-teal-950/40 border border-teal-100/50 dark:border-teal-800 text-teal-600 dark:text-teal-400 flex items-center justify-center font-bold text-sm shrink-0">
+                      {user.fullName.substring(0, 2).toUpperCase()}
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <h5 className="font-bold text-sm text-slate-800 dark:text-slate-100 leading-tight truncate">{user.fullName}</h5>
                     <p className="text-[10px] text-slate-400 font-medium font-mono uppercase mt-0.5 tracking-wide">{user.role}</p>
@@ -497,6 +518,9 @@ export default function UserManagement() {
             {/* Modal Form */}
             <form onSubmit={handleFormSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               
+              {/* Profile Photo */}
+              <UserPhotoUpload value={createPhoto} onChange={setCreatePhoto} />
+
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Pangalan (Full Name)</label>
                 <input
@@ -703,6 +727,9 @@ export default function UserManagement() {
             {/* Edit Form */}
             <form onSubmit={handleEditSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
               
+              {/* Profile Photo */}
+              <UserPhotoUpload value={editPhoto} onChange={setEditPhoto} />
+
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Full Name</label>
                 <input

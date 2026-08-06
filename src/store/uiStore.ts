@@ -10,7 +10,9 @@ export type AppPages =
   | 'UserManagement'
   | 'FindUser'
   | 'Configuration'
-  | 'Mapping';
+  | 'Mapping'
+  | 'NCSCInterview'
+  | 'CentenarianHonoring';
 
 interface Toast {
   id: string;

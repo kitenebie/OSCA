@@ -3,7 +3,7 @@ import { useSeniorsStore } from '../store/seniorsStore';
 import { useAuthStore } from '../store/authStore';
 import { useUIStore } from '../store/uiStore';
 import { useBarangays } from '../hooks/useBarangays';
-import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, UserCheck, Pencil, Archive, CreditCard, Eye, X, AlertTriangle, Camera, RefreshCw } from 'lucide-react';
+import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, ShieldAlert, Sparkles, UserCheck, Pencil, Archive, CreditCard, Eye, X, AlertTriangle, Camera, RefreshCw, ClipboardList, Trophy } from 'lucide-react';
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
@@ -389,6 +389,30 @@ export default function SeniorsListPage() {
                                   <RefreshCw size={13} />
                                   <span>Update Status</span>
                                 </button>
+                                {/* Divider */}
+                                <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
+                                {/* NCSC Interview */}
+                                {senior.status === 'Approved' && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setCurrentPage('NCSCInterview', senior.id); }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all cursor-pointer"
+                                >
+                                  <ClipboardList size={13} />
+                                  <span>NCSC Data Form</span>
+                                </button>
+                                )}
+                                {/* Centenarian Honoring */}
+                                {senior.status === 'Approved' && senior.age >= 80 && (
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setCurrentPage('CentenarianHonoring', senior.id); }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-amber-50 dark:hover:bg-amber-950/40 hover:text-amber-600 dark:hover:text-amber-400 transition-all cursor-pointer"
+                                >
+                                  <Trophy size={13} />
+                                  <span>Centenarian Honoring</span>
+                                </button>
+                                )}
                               </div>
                             </div>
                           </div>

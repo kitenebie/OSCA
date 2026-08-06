@@ -1,5 +1,5 @@
 import { supabase } from '../../utils/supabase';
-import { SeniorCitizen, User, Benefit, SMSLog, Barangay, RolePermission, ReportTemplate, AuditLogNotification } from '../types';
+import { SeniorCitizen, User, Benefit, SMSLog, Barangay, RolePermission, ReportTemplate, AuditLogNotification, NCSCDataForm, CentenarianApplication } from '../types';
 
 // ============================================================
 // TYPE MAPPERS (DB snake_case → App camelCase)
@@ -51,6 +51,10 @@ function mapSeniorFromDB(row: any): SeniorCitizen {
     riskType: row.risk_type,
     riskDetails: row.risk_details,
     riskSeverity: row.risk_severity,
+    // Deceased / Vital Status
+    isDeceased: row.is_deceased || false,
+    dateOfDeath: row.date_of_death || '',
+    causeOfDeath: row.cause_of_death || '',
   };
 }
 
@@ -103,6 +107,9 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.riskType !== undefined) mapped.risk_type = senior.riskType;
   if (senior.riskDetails !== undefined) mapped.risk_details = senior.riskDetails;
   if (senior.riskSeverity !== undefined) mapped.risk_severity = senior.riskSeverity;
+  if (senior.isDeceased !== undefined) mapped.is_deceased = senior.isDeceased;
+  if (senior.dateOfDeath !== undefined) mapped.date_of_death = senior.dateOfDeath;
+  if (senior.causeOfDeath !== undefined) mapped.cause_of_death = senior.causeOfDeath;
   return mapped;
 }
 
@@ -793,5 +800,226 @@ export const signatoriesService = {
       });
     channel.subscribe();
     return () => { supabase.removeChannel(channel); };
+  },
+};
+
+// ============================================================
+// NCSC DATA FORM SERVICE
+// ============================================================
+
+function mapNCSCFromDB(row: any): NCSCDataForm {
+  return {
+    id: row.id,
+    seniorId: row.senior_id,
+    referenceCode: row.reference_code,
+    interviewDate: row.interview_date,
+    interviewedBy: row.interviewed_by,
+    incomeSource: row.income_source,
+    estimatedMonthlyIncome: row.estimated_monthly_income,
+    receivingPension: row.receiving_pension || false,
+    pensionType: row.pension_type,
+    pensionAmount: row.pension_amount,
+    receivingSocialPension: row.receiving_social_pension || false,
+    isIndigent: row.is_indigent || false,
+    ownsProperty: row.owns_property || false,
+    propertyType: row.property_type,
+    healthCondition: row.health_condition,
+    existingIllnesses: row.existing_illnesses || [],
+    medications: row.medications || [],
+    mobility: row.mobility,
+    mentalHealthStatus: row.mental_health_status,
+    hasPhilHealth: row.has_phil_health || false,
+    philHealthCategory: row.phil_health_category,
+    lastCheckupDate: row.last_checkup_date,
+    hospitalPreference: row.hospital_preference,
+    livingArrangement: row.living_arrangement,
+    householdSize: row.household_size,
+    caregiverName: row.caregiver_name,
+    caregiverRelationship: row.caregiver_relationship,
+    caregiverContact: row.caregiver_contact,
+    housingType: row.housing_type,
+    hasAccessToWater: row.has_access_to_water ?? true,
+    hasAccessToElectricity: row.has_access_to_electricity ?? true,
+    hasAccessToSanitation: row.has_access_to_sanitation ?? true,
+    memberOfSeniorOrg: row.member_of_senior_org || false,
+    seniorOrgName: row.senior_org_name,
+    participatesInActivities: row.participates_in_activities || false,
+    activitiesJoined: row.activities_joined || [],
+    primaryNeeds: row.primary_needs || [],
+    suggestedPrograms: row.suggested_programs || [],
+    status: row.status,
+    completedDate: row.completed_date,
+  };
+}
+
+export const ncscDataFormService = {
+  async getAll(): Promise<NCSCDataForm[]> {
+    const { data, error } = await supabase
+      .from('ncsc_data_forms')
+      .select('*')
+      .order('interview_date', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapNCSCFromDB);
+  },
+
+  async getBySeniorId(seniorId: string): Promise<NCSCDataForm | null> {
+    const { data, error } = await supabase
+      .from('ncsc_data_forms')
+      .select('*')
+      .eq('senior_id', seniorId)
+      .single();
+    if (error) return null;
+    return mapNCSCFromDB(data);
+  },
+
+  async create(form: Omit<NCSCDataForm, 'id'>): Promise<string> {
+    const id = `ncsc-${Date.now()}`;
+    const { error } = await supabase.from('ncsc_data_forms').insert({
+      id,
+      senior_id: form.seniorId,
+      reference_code: form.referenceCode,
+      interview_date: form.interviewDate,
+      interviewed_by: form.interviewedBy,
+      income_source: form.incomeSource,
+      estimated_monthly_income: form.estimatedMonthlyIncome,
+      receiving_pension: form.receivingPension,
+      pension_type: form.pensionType,
+      pension_amount: form.pensionAmount,
+      receiving_social_pension: form.receivingSocialPension,
+      is_indigent: form.isIndigent,
+      owns_property: form.ownsProperty,
+      property_type: form.propertyType,
+      health_condition: form.healthCondition,
+      existing_illnesses: form.existingIllnesses,
+      medications: form.medications,
+      mobility: form.mobility,
+      mental_health_status: form.mentalHealthStatus,
+      has_phil_health: form.hasPhilHealth,
+      phil_health_category: form.philHealthCategory,
+      last_checkup_date: form.lastCheckupDate,
+      hospital_preference: form.hospitalPreference,
+      living_arrangement: form.livingArrangement,
+      household_size: form.householdSize,
+      caregiver_name: form.caregiverName,
+      caregiver_relationship: form.caregiverRelationship,
+      caregiver_contact: form.caregiverContact,
+      housing_type: form.housingType,
+      has_access_to_water: form.hasAccessToWater,
+      has_access_to_electricity: form.hasAccessToElectricity,
+      has_access_to_sanitation: form.hasAccessToSanitation,
+      member_of_senior_org: form.memberOfSeniorOrg,
+      senior_org_name: form.seniorOrgName,
+      participates_in_activities: form.participatesInActivities,
+      activities_joined: form.activitiesJoined,
+      primary_needs: form.primaryNeeds,
+      suggested_programs: form.suggestedPrograms,
+      status: form.status,
+      completed_date: form.completedDate,
+    });
+    if (error) throw error;
+    return id;
+  },
+
+  async update(id: string, fields: Partial<NCSCDataForm>): Promise<void> {
+    const dbFields: Record<string, any> = {};
+    if (fields.status !== undefined) dbFields.status = fields.status;
+    if (fields.completedDate !== undefined) dbFields.completed_date = fields.completedDate;
+    // Add more as needed
+    const { error } = await supabase.from('ncsc_data_forms').update(dbFields).eq('id', id);
+    if (error) throw error;
+  },
+};
+
+// ============================================================
+// CENTENARIAN HONORING SERVICE
+// ============================================================
+
+function mapCentenarianFromDB(row: any): CentenarianApplication {
+  return {
+    id: row.id,
+    seniorId: row.senior_id,
+    milestoneType: row.milestone_type,
+    milestoneAge: row.milestone_age,
+    milestoneDateReached: row.milestone_date_reached,
+    cashGiftAmount: row.cash_gift_amount,
+    applicationDate: row.application_date,
+    applicantType: row.applicant_type,
+    representativeName: row.representative_name,
+    representativeRelationship: row.representative_relationship,
+    representativeContact: row.representative_contact,
+    hasApplicationForm: row.has_application_form || false,
+    hasFullBodyPhoto: row.has_full_body_photo || false,
+    hasEndorsementLetter: row.has_endorsement_letter || false,
+    hasBirthCertificate: row.has_birth_certificate || false,
+    hasValidId: row.has_valid_id || false,
+    hasDeathCertificate: row.has_death_certificate || false,
+    status: row.status,
+    endorsedBy: row.endorsed_by,
+    endorsedDate: row.endorsed_date,
+    claimDeadline: row.claim_deadline,
+    claimedDate: row.claimed_date,
+    remarks: row.remarks,
+  };
+}
+
+export const centenarianService = {
+  async getAll(): Promise<CentenarianApplication[]> {
+    const { data, error } = await supabase
+      .from('centenarian_applications')
+      .select('*')
+      .order('application_date', { ascending: false });
+    if (error) throw error;
+    return (data || []).map(mapCentenarianFromDB);
+  },
+
+  async getBySeniorId(seniorId: string): Promise<CentenarianApplication[]> {
+    const { data, error } = await supabase
+      .from('centenarian_applications')
+      .select('*')
+      .eq('senior_id', seniorId);
+    if (error) return [];
+    return (data || []).map(mapCentenarianFromDB);
+  },
+
+  async create(app: Omit<CentenarianApplication, 'id'>): Promise<string> {
+    const id = `cent-${Date.now()}`;
+    const { error } = await supabase.from('centenarian_applications').insert({
+      id,
+      senior_id: app.seniorId,
+      milestone_type: app.milestoneType,
+      milestone_age: app.milestoneAge,
+      milestone_date_reached: app.milestoneDateReached,
+      cash_gift_amount: app.cashGiftAmount,
+      application_date: app.applicationDate,
+      applicant_type: app.applicantType,
+      representative_name: app.representativeName,
+      representative_relationship: app.representativeRelationship,
+      representative_contact: app.representativeContact,
+      has_application_form: app.hasApplicationForm,
+      has_full_body_photo: app.hasFullBodyPhoto,
+      has_endorsement_letter: app.hasEndorsementLetter,
+      has_birth_certificate: app.hasBirthCertificate,
+      has_valid_id: app.hasValidId,
+      has_death_certificate: app.hasDeathCertificate,
+      status: app.status,
+      endorsed_by: app.endorsedBy,
+      endorsed_date: app.endorsedDate,
+      claim_deadline: app.claimDeadline,
+      claimed_date: app.claimedDate,
+      remarks: app.remarks,
+    });
+    if (error) throw error;
+    return id;
+  },
+
+  async update(id: string, fields: Partial<CentenarianApplication>): Promise<void> {
+    const dbFields: Record<string, any> = {};
+    if (fields.status !== undefined) dbFields.status = fields.status;
+    if (fields.endorsedBy !== undefined) dbFields.endorsed_by = fields.endorsedBy;
+    if (fields.endorsedDate !== undefined) dbFields.endorsed_date = fields.endorsedDate;
+    if (fields.claimedDate !== undefined) dbFields.claimed_date = fields.claimedDate;
+    if (fields.remarks !== undefined) dbFields.remarks = fields.remarks;
+    const { error } = await supabase.from('centenarian_applications').update(dbFields).eq('id', id);
+    if (error) throw error;
   },
 };

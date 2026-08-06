@@ -6,7 +6,7 @@ import IDCardPreview from '../components/id-generation/IDCardPreview';
 import IDCardFlipInline from '../components/id-generation/IDCardFlipInline';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X } from 'lucide-react';
+import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X, Skull, Calendar } from 'lucide-react';
 
 // Custom Map pin icon matching our AddressMapPicker style
 // Custom Map pin icon matching our AddressMapPicker style, colored by risk severity if at risk
@@ -46,10 +46,14 @@ const getProfileMarkerIcon = (inRiskArea?: string, riskSeverity?: string) => {
 };
 
 export default function SeniorProfilePage() {
-  const { seniors, approveSenior, rejectSenior } = useSeniorsStore();
+  const { seniors, approveSenior, rejectSenior, updateSenior } = useSeniorsStore();
   const { selectedSeniorId, setCurrentPage, showToast } = useUIStore();
   const { currentUser, hasPermission } = useAuthStore();
   const [selectedVariant, setSelectedVariant] = useState<'variant1' | 'variant2'>('variant1');
+
+  const [showDeceasedForm, setShowDeceasedForm] = useState(false);
+  const [deceasedDate, setDeceasedDate] = useState('');
+  const [deceasedCause, setDeceasedCause] = useState('');
 
   const senior = seniors.find((s) => s.id === selectedSeniorId);
   const canApprove = hasPermission('canApproveReject');
@@ -200,6 +204,77 @@ export default function SeniorProfilePage() {
                     Ang residenteng ito ay naninirahan sa isang <span className="font-bold uppercase tracking-wider">{senior.riskSeverity} risk area</span> na madalas maapektuhan ng <span className="font-bold uppercase">{senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}</span>.
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* Deceased / Vital Status Section */}
+            {senior.isDeceased ? (
+              <div className="mt-4 w-full p-3 rounded-2xl border bg-slate-100 border-slate-300 text-left">
+                <div className="flex items-center gap-2 mb-1">
+                  <Skull size={14} className="text-slate-600" />
+                  <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">Deceased / Pumanaw na</span>
+                </div>
+                <div className="text-[10px] text-slate-500 space-y-0.5 pl-5">
+                  {senior.dateOfDeath && <p>Petsa ng Pagkamatay: <strong className="text-slate-700">{senior.dateOfDeath}</strong></p>}
+                  {senior.causeOfDeath && <p>Dahilan: <strong className="text-slate-700">{senior.causeOfDeath}</strong></p>}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 w-full">
+                {!showDeceasedForm ? (
+                  <button
+                    onClick={() => setShowDeceasedForm(true)}
+                    className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-500 hover:text-slate-700 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Skull size={11} />
+                    Markahan bilang Deceased
+                  </button>
+                ) : (
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 animate-fadeIn">
+                    <div className="flex items-center gap-2">
+                      <Skull size={13} className="text-slate-600" />
+                      <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">I-record ang Pagpanaw</span>
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Petsa ng Pagkamatay (Date of Death)</label>
+                      <input
+                        type="date"
+                        value={deceasedDate}
+                        onChange={(e) => setDeceasedDate(e.target.value)}
+                        className="w-full mt-0.5 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Dahilan ng Pagkamatay (Cause of Death)</label>
+                      <input
+                        type="text"
+                        value={deceasedCause}
+                        onChange={(e) => setDeceasedCause(e.target.value)}
+                        placeholder="e.g. Natural causes, Heart attack, etc."
+                        className="w-full mt-0.5 px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-[11px] focus:outline-none focus:ring-2 focus:ring-slate-300"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setShowDeceasedForm(false)}
+                        className="flex-1 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 cursor-pointer"
+                      >
+                        Kanselahin
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (!deceasedDate) { showToast('Kailangan ang petsa ng pagkamatay.', 'warning'); return; }
+                          updateSenior(senior.id, { isDeceased: true, dateOfDeath: deceasedDate, causeOfDeath: deceasedCause || undefined } as any);
+                          showToast(`Si ${senior.firstName} ${senior.lastName} ay na-record na bilang deceased.`, 'info');
+                          setShowDeceasedForm(false);
+                        }}
+                        className="flex-1 py-1.5 bg-slate-700 text-white font-bold text-[10px] rounded-lg hover:bg-slate-800 cursor-pointer"
+                      >
+                        I-confirm
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

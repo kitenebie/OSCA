@@ -1,0 +1,160 @@
+-- ============================================================
+-- Migration: Add Deceased Status, NCSC Data Form, Centenarian Honoring
+-- Date: 2026-08-06
+-- Description: 
+--   1. Add deceased/vital status fields to seniors table
+--   2. Create ncsc_data_forms table for NCSC-SCDF v4.0b interview
+--   3. Create centenarian_applications table for RA 11982
+-- ============================================================
+
+-- ============================================================
+-- 1. ADD DECEASED / VITAL STATUS FIELDS TO SENIORS TABLE
+-- ============================================================
+
+ALTER TABLE seniors
+  ADD COLUMN IF NOT EXISTS is_deceased BOOLEAN DEFAULT FALSE,
+  ADD COLUMN IF NOT EXISTS date_of_death DATE,
+  ADD COLUMN IF NOT EXISTS cause_of_death TEXT;
+
+-- Index for quick filtering of deceased/alive seniors
+CREATE INDEX IF NOT EXISTS idx_seniors_is_deceased ON seniors(is_deceased);
+
+-- ============================================================
+-- 2. NCSC SENIOR CITIZEN DATA FORM TABLE
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS ncsc_data_forms (
+  id TEXT PRIMARY KEY,
+  senior_id TEXT NOT NULL REFERENCES seniors(id) ON DELETE CASCADE,
+  reference_code TEXT NOT NULL,
+  interview_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  interviewed_by TEXT,
+
+  -- Economic Profile
+  income_source TEXT,
+  estimated_monthly_income TEXT,
+  receiving_pension BOOLEAN DEFAULT FALSE,
+  pension_type TEXT,
+  pension_amount TEXT,
+  receiving_social_pension BOOLEAN DEFAULT FALSE,
+  is_indigent BOOLEAN DEFAULT FALSE,
+  owns_property BOOLEAN DEFAULT FALSE,
+  property_type TEXT,
+
+  -- Health Profile
+  health_condition TEXT,
+  existing_illnesses JSONB DEFAULT '[]'::jsonb,
+  medications JSONB DEFAULT '[]'::jsonb,
+  mobility TEXT DEFAULT 'Independent',
+  mental_health_status TEXT,
+  has_phil_health BOOLEAN DEFAULT FALSE,
+  phil_health_category TEXT,
+  last_checkup_date DATE,
+  hospital_preference TEXT,
+
+  -- Household Profile
+  living_arrangement TEXT DEFAULT 'With Children',
+  household_size INTEGER DEFAULT 1,
+  caregiver_name TEXT,
+  caregiver_relationship TEXT,
+  caregiver_contact TEXT,
+  housing_type TEXT DEFAULT 'Owned',
+  has_access_to_water BOOLEAN DEFAULT TRUE,
+  has_access_to_electricity BOOLEAN DEFAULT TRUE,
+  has_access_to_sanitation BOOLEAN DEFAULT TRUE,
+
+  -- Participation & Needs
+  member_of_senior_org BOOLEAN DEFAULT FALSE,
+  senior_org_name TEXT,
+  participates_in_activities BOOLEAN DEFAULT FALSE,
+  activities_joined JSONB DEFAULT '[]'::jsonb,
+  primary_needs JSONB DEFAULT '[]'::jsonb,
+  suggested_programs JSONB DEFAULT '[]'::jsonb,
+
+  -- Status
+  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN ('Pending', 'Completed', 'Incomplete')),
+  completed_date DATE,
+
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_ncsc_senior_id ON ncsc_data_forms(senior_id);
+CREATE INDEX IF NOT EXISTS idx_ncsc_status ON ncsc_data_forms(status);
+
+-- Enable RLS
+ALTER TABLE ncsc_data_forms ENABLE ROW LEVEL SECURITY;
+
+-- Allow all authenticated users to read/write (adjust per your RLS policy)
+CREATE POLICY "Allow all access to ncsc_data_forms" ON ncsc_data_forms
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- ============================================================
+-- 3. CENTENARIAN HONORING APPLICATIONS TABLE (RA 11982)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS centenarian_applications (
+  id TEXT PRIMARY KEY,
+  senior_id TEXT NOT NULL REFERENCES seniors(id) ON DELETE CASCADE,
+  
+  -- Milestone Info
+  milestone_type TEXT NOT NULL CHECK (milestone_type IN (
+    'Octogenarian-80', 'Octogenarian-85', 
+    'Nonagenarian-90', 'Nonagenarian-95', 
+    'Centenarian-100'
+  )),
+  milestone_age INTEGER NOT NULL,
+  milestone_date_reached DATE,
+  cash_gift_amount NUMERIC NOT NULL DEFAULT 10000,
+  
+  -- Application Info
+  application_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  applicant_type TEXT NOT NULL DEFAULT 'Self' CHECK (applicant_type IN ('Self', 'Representative', 'Posthumous')),
+  representative_name TEXT,
+  representative_relationship TEXT,
+  representative_contact TEXT,
+
+  -- Requirements Checklist
+  has_application_form BOOLEAN DEFAULT FALSE,
+  has_full_body_photo BOOLEAN DEFAULT FALSE,
+  has_endorsement_letter BOOLEAN DEFAULT FALSE,
+  has_birth_certificate BOOLEAN DEFAULT FALSE,
+  has_valid_id BOOLEAN DEFAULT FALSE,
+  has_death_certificate BOOLEAN DEFAULT FALSE,
+
+  -- Award / Status
+  status TEXT NOT NULL DEFAULT 'Pending' CHECK (status IN (
+    'Pending', 'Endorsed', 'Approved', 'Claimed', 'Expired', 'Posthumous'
+  )),
+  endorsed_by TEXT,
+  endorsed_date DATE,
+  claim_deadline DATE,
+  claimed_date DATE,
+  remarks TEXT,
+
+  -- Timestamps
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_centenarian_senior_id ON centenarian_applications(senior_id);
+CREATE INDEX IF NOT EXISTS idx_centenarian_status ON centenarian_applications(status);
+CREATE INDEX IF NOT EXISTS idx_centenarian_milestone ON centenarian_applications(milestone_type);
+CREATE INDEX IF NOT EXISTS idx_centenarian_deadline ON centenarian_applications(claim_deadline);
+
+-- Enable RLS
+ALTER TABLE centenarian_applications ENABLE ROW LEVEL SECURITY;
+
+-- Allow all authenticated users to read/write (adjust per your RLS policy)
+CREATE POLICY "Allow all access to centenarian_applications" ON centenarian_applications
+  FOR ALL USING (true) WITH CHECK (true);
+
+-- ============================================================
+-- 4. ENABLE REALTIME FOR NEW TABLES
+-- ============================================================
+
+ALTER PUBLICATION supabase_realtime ADD TABLE ncsc_data_forms;
+ALTER PUBLICATION supabase_realtime ADD TABLE centenarian_applications;

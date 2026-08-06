@@ -13,7 +13,9 @@ import {
   Scan,
   UserRoundCog,
   MonitorCog,
-  AlertTriangle
+  AlertTriangle,
+  ClipboardList,
+  Trophy
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -62,6 +64,18 @@ export default function Sidebar() {
       label: 'SMS Center', 
       icon: MessageSquare, 
       permission: 'canAccessSMSCenter' as const 
+    },
+    { 
+      id: 'NCSCInterview' as AppPages, 
+      label: 'NCSC Data Form', 
+      icon: ClipboardList, 
+      permission: 'canAccessSeniorsList' as const 
+    },
+    { 
+      id: 'CentenarianHonoring' as AppPages, 
+      label: 'Centenarian Honoring', 
+      icon: Trophy, 
+      permission: 'canAccessSeniorsList' as const 
     },
     { 
       id: 'UserManagement' as AppPages, 

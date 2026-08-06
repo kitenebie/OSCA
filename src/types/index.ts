@@ -50,6 +50,11 @@ export interface SeniorCitizen {
   riskType?: string;
   riskDetails?: string;
   riskSeverity?: "low" | "medium" | "high" | "critical";
+
+  // Deceased / Vital Status
+  isDeceased?: boolean;
+  dateOfDeath?: string;
+  causeOfDeath?: string;
 }
 
 export interface Barangay {
@@ -153,4 +158,88 @@ export interface ReportTemplate {
   type: "MasterList" | "Pension" | "Census" | "Individual";
   category: "Demographic" | "Financial" | "Administrative";
   parameters: string[];
+}
+
+// ==================== NCSC Senior Citizen Data Form ====================
+export interface NCSCDataForm {
+  id: string;
+  seniorId: string;
+  referenceCode: string; // Based on Region/Province/City/Barangay
+  interviewDate: string;
+  interviewedBy: string;
+
+  // Economic Profile
+  incomeSource?: string;
+  estimatedMonthlyIncome?: string;
+  receivingPension?: boolean;
+  pensionType?: string;
+  pensionAmount?: string;
+  receivingSocialPension?: boolean;
+  isIndigent?: boolean;
+  ownsProperty?: boolean;
+  propertyType?: string;
+
+  // Health Profile
+  healthCondition?: string;
+  existingIllnesses?: string[];
+  medications?: string[];
+  mobility?: "Independent" | "With Assistance" | "Bedridden";
+  mentalHealthStatus?: string;
+  hasPhilHealth?: boolean;
+  philHealthCategory?: string;
+  lastCheckupDate?: string;
+  hospitalPreference?: string;
+
+  // Household Profile
+  livingArrangement?: "Alone" | "With Spouse" | "With Children" | "With Relatives" | "Institution";
+  householdSize?: number;
+  caregiverName?: string;
+  caregiverRelationship?: string;
+  caregiverContact?: string;
+  housingType?: "Owned" | "Rented" | "Living with Relative" | "Government Housing" | "Informal Settlement";
+  hasAccessToWater?: boolean;
+  hasAccessToElectricity?: boolean;
+  hasAccessToSanitation?: boolean;
+
+  // Participation & Needs
+  memberOfSeniorOrg?: boolean;
+  seniorOrgName?: string;
+  participatesInActivities?: boolean;
+  activitiesJoined?: string[];
+  primaryNeeds?: string[];
+  suggestedPrograms?: string[];
+
+  status: "Pending" | "Completed" | "Incomplete";
+  completedDate?: string;
+}
+
+// ==================== Centenarian Honoring Program ====================
+export interface CentenarianApplication {
+  id: string;
+  seniorId: string;
+  milestoneType: "Octogenarian-80" | "Octogenarian-85" | "Nonagenarian-90" | "Nonagenarian-95" | "Centenarian-100";
+  milestoneAge: number;
+  milestoneDateReached: string;
+  cashGiftAmount: number;
+  applicationDate: string;
+  applicantType: "Self" | "Representative" | "Posthumous";
+  representativeName?: string;
+  representativeRelationship?: string;
+  representativeContact?: string;
+
+  // Requirements Checklist
+  hasApplicationForm: boolean;
+  hasFullBodyPhoto: boolean;
+  hasEndorsementLetter: boolean; // From Local Chief Executive
+  hasBirthCertificate: boolean;
+  hasValidId: boolean;
+  hasDeathCertificate?: boolean; // For posthumous
+
+  // Award Details
+  status: "Pending" | "Endorsed" | "Approved" | "Claimed" | "Expired" | "Posthumous";
+  endorsedBy?: string;
+  endorsedDate?: string;
+  claimDeadline?: string; // Must claim within 1 year of milestone
+  claimedDate?: string;
+  remarks?: string;
 }
