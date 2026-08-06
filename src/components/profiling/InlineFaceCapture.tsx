@@ -1,52 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { RefreshCw, Check, X, ShieldCheck, Loader2, Camera, Trash, Upload } from 'lucide-react';
-import FaceCapture from '@getyoti/react-face-capture';
-// Error Boundary to catch Yoti Face Capture crashes (e.g. missing WASM assets, null bounding box)
-class FaceCaptureErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: (error: string) => void },
-  { hasError: boolean }
-> {
-  constructor(props: any) {
-    super(props);
-    this.state = { hasError: false };
-  }
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  componentDidCatch(error: Error) {
-    console.error('[FaceCapture Crash]', error.message);
-    this.props.onError(
-      'Ang Face Capture AI module ay nag-crash. Posibleng hindi na-load ang face detection models. Gamitin ang Native Camera mode.'
-    );
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex items-center justify-center h-full bg-slate-900/50 p-6 text-center">
-          <div className="space-y-2">
-            <p className="text-amber-400 text-xs font-bold">⚠️ Face Capture Module Error</p>
-            <p className="text-slate-400 text-[10px]">
-              Hindi ma-load ang AI face detection. Lumipat sa Native Camera mode.
-            </p>
-          </div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
-
-
+import { RefreshCw, Check, X, ShieldCheck, Loader2, Camera, Trash } from 'lucide-react';
+// Yoti FaceCapture removed - uses native camera only
 
 interface InlineFaceCaptureProps {
   value: string | null;
   onChange: (base64Img: string | null) => void;
 }
 
-type CameraMode = 'yoti' | 'native';
+
 
 export default function InlineFaceCapture({ value, onChange }: InlineFaceCaptureProps) {
-  const [cameraMode, setCameraMode] = useState<CameraMode>('native');
+  
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
   const [detectionStatus, setDetectionStatus] = useState('Nilo-load ang AI Biometric Face Sensor...');
@@ -67,6 +31,13 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
     };
   }, [stream]);
 
+  // Auto-start camera on mount
+  useEffect(() => {
+    if (!value && !tempPhoto) {
+      startNativeCamera();
+    }
+  }, []);
+
   const handleSuccess = (payload: any) => {
     let imgData = payload.img;
     if (imgData && !imgData.startsWith('data:')) {
@@ -77,7 +48,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
   };
 
   const handleError = (error: any) => {
-    console.error('Yoti Face Capture Error:', error);
+    console.error('Camera Error:', error);
     let errorMsg = 'Hindi ma-load ang Face Capture. Pakisuri kung may camera at pinayagan ang permission.';
     if (error === 'NO_CAMERA_PERMISSION') {
       errorMsg = 'Walang pahintulot sa camera. Mangyaring payagan ito sa iyong browser.';
@@ -107,7 +78,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
     // Safe check for navigator.mediaDevices
     if (!navigator.mediaDevices) {
       const errorMsg = !window.isSecureContext
-        ? 'Insecure HTTP Connection: Ang camera/webcam access ay pinapahintulutan lamang sa HTTPS o localhost. Gumamit ng file upload.'
+        ? 'Insecure HTTP Connection: Ang camera/webcam access ay pinapahintulutan lamang sa HTTPS o localhost.'
         : 'Walang mediaDevices API na nahanap sa iyong browser.';
       setCameraError(errorMsg);
       // Camera error on insecure context
@@ -160,28 +131,13 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
     }
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const base64 = event.target?.result as string;
-        setTempPhoto(base64);
-        setCameraError(null);
-        stopNativeCamera();
-        setDetectionStatus('Larawan ay matagumpay na na-upload! Paki-confirm upang i-save.');
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+
 
   const handleRetake = () => {
     setTempPhoto(null);
     setIsReady(false);
-    setDetectionStatus(cameraMode === 'native' ? 'Sinisimulan ang camera...' : 'Nilo-load muli ang AI Biometric Face Sensor...');
-    if (cameraMode === 'native') {
-      startNativeCamera();
-    }
+    setDetectionStatus('Sinisimulan ang camera...');
+    startNativeCamera();
   };
 
   const handleConfirm = () => {
@@ -195,10 +151,8 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
     onChange(null);
     setTempPhoto(null);
     setIsReady(false);
-    setDetectionStatus(cameraMode === 'native' ? 'Sinisimulan ang camera...' : 'Nilo-load ang AI Biometric Face Sensor...');
-    if (cameraMode === 'native') {
-      startNativeCamera();
-    }
+    setDetectionStatus('Sinisimulan ang camera...');
+    startNativeCamera();
   };
 
   return (
@@ -210,26 +164,6 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
           <h4 className="font-bold text-xs text-slate-800 uppercase tracking-wider">LGU BIOMETRIC FACE CAPTURE</h4>
         </div>
         
-        {/* Toggle between Yoti AI and Standard Native Camera */}
-        {!value && !tempPhoto && (
-          <div className="flex bg-slate-200 p-0.5 rounded-lg border border-slate-350 self-start">
-            <button
-              type="button"
-              onClick={() => { setCameraMode('yoti'); setCameraError(null); stopNativeCamera(); }}
-              className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (cameraMode === 'yoti' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
-            >
-              Yoti AI Scan
-            </button>
-            <button
-              type="button"
-              onClick={() => { setCameraMode('native'); startNativeCamera(); }}
-              className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (cameraMode === 'native' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
-            >
-              Standard Camera
-            </button>
-            
-          </div>
-        )}
       </div>
 
       {/* Main Body Grid */}
@@ -274,23 +208,18 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
               <X className="text-red-500 shrink-0" size={32} />
               <div className="space-y-1 px-4">
                 <p className="text-xs font-bold leading-normal">{cameraError}</p>
-                <p className="text-[10px] text-slate-400">Hindi ma-access ang system camera. Gumamit ng file upload.</p>
+                <p className="text-[10px] text-slate-400">Hindi ma-access ang system camera. I-click ang Subukan Muli.</p>
               </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-
-                <label className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95">
-                  <Upload size={13} />
-                  <span>Mag-upload na lang</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
-                </label>
-              </div>
+              <button
+                type="button"
+                onClick={() => { setCameraError(null); startNativeCamera(); }}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold shadow-sm cursor-pointer transition-all active:scale-95"
+              >
+                <RefreshCw size={13} />
+                <span>Subukan Muli (Retry Camera)</span>
+              </button>
             </div>
-          ) : cameraMode === 'native' ? (
+          ) : (
             /* STANDARD HTML5 VIDEO CAMERA STREAM */
             <div className="w-full h-full relative flex items-center justify-center" id="native-camera-wrapper">
               <video
@@ -305,34 +234,6 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                   <span className="text-[11px] font-semibold">Sinisimulan ang standard camera...</span>
                 </div>
               )}
-            </div>
-          ) : (
-            /* REAL-TIME LIVE CAMERA FEET WITH YOTI */
-            <div className="w-full h-full relative flex items-center justify-center" id="inline-yoti-wrapper">
-              {!isReady && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 gap-3 text-slate-400" id="inline-camera-loading">
-                  <Loader2 className="animate-spin text-teal-500" size={28} />
-                  <span className="text-[11px] font-semibold">Nilo-load ang Biometric Sensors...</span>
-                </div>
-              )}
-              <div className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full" id="inline-yoti-component-container">
-                <FaceCaptureErrorBoundary onError={(msg) => { setCameraError(msg); setCameraMode('native'); }}>
-                  <FaceCapture
-                    faceCaptureAssetsRootUrl="/assets/face-capture/"
-                    secure={false}
-                    onSuccess={handleSuccess}
-                    onError={handleError}
-                    onReadyForCapture={() => {
-                      setIsReady(true);
-                      setDetectionStatus('I-align ang mukha sa bilog at kumuha...');
-                    }}
-                    showOverlay={true}
-                    showInitialGuidance={false}
-                    showGetHelpButton={false}
-                    numStableFrames={4}
-                  />
-                </FaceCaptureErrorBoundary>
-              </div>
             </div>
           )}
         </div>
@@ -359,7 +260,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
               }></div>
               <span className="text-[10px] font-mono font-bold text-slate-600 leading-none truncate flex-1">
                 {value ? 'Matagumpay na Naka-enroll' : 
-                 cameraMode === 'native' && isReady && !tempPhoto ? 'Standard Camera Aktibo' : detectionStatus}
+                 isReady && !tempPhoto ? 'Standard Camera Aktibo' : detectionStatus}
               </span>
             </div>
           </div>
@@ -399,7 +300,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                   <span>I-save ang Larawan</span>
                 </button>
               </div>
-            ) : cameraMode === 'native' && isReady ? (
+            ) : isReady ? (
               /* ACTIVE NATIVE CAMERA CAPTURE BUTTON */
               <button
                 type="button"
@@ -411,24 +312,16 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                 <span>Kumuha ng Larawan (Capture)</span>
               </button>
             ) : (
-              /* DEFAULT INSTRUCTIONS & FALLBACK FILE UPLOAD */
-              <div className="flex flex-col gap-2.5">
-                <label className="w-full py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-all active:scale-95" id="inline-upload-btn">
-                  <Upload size={13} className="text-slate-500" />
-                  <span>Mag-upload ng Larawan (Upload File)</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                  />
-                </label>
-                <div className="text-[10px] text-slate-400 font-semibold text-center italic bg-white/60 p-3 rounded-xl border border-dashed border-slate-200/80">
-                  {cameraMode === 'yoti' 
-                    ? 'Awtomatikong kukuha ang sensor kapag naging stable ang mukha sa green boundary.'
-                    : 'Paki-click ang Kumuha ng Larawan button sa itaas kapag handa na.'}
-                </div>
-              </div>
+              /* CAMERA INITIALIZING - START BUTTON */
+              <button
+                type="button"
+                onClick={startNativeCamera}
+                className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md shadow-teal-600/10 transition-all active:scale-95"
+                id="inline-start-camera-btn"
+              >
+                <Camera size={14} />
+                <span>Simulan ang Camera (Start Camera)</span>
+              </button>
             )}
 
             <div className="flex items-start gap-1.5 opacity-70 text-[9.5px] text-slate-400 pt-1" id="inline-privacy-badge">

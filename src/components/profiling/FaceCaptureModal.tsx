@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { RefreshCw, Check, X, ShieldCheck, Loader2 } from 'lucide-react';
-import FaceCapture from '@getyoti/react-face-capture';
+// Yoti FaceCapture removed for production
 // Error Boundary for Yoti Face Capture crashes
 class FaceCaptureErrorBoundary extends React.Component<
   { children: React.ReactNode; onError: (error: string) => void },
@@ -130,22 +130,9 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
                 </div>
               )}
               <div className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full" id="yoti-component-container">
-                <FaceCaptureErrorBoundary onError={(msg) => { handleError(msg); }}>
-                  <FaceCapture
-                    faceCaptureAssetsRootUrl="/assets/face-capture/"
-                    secure={false}
-                    onSuccess={handleSuccess}
-                    onError={handleError}
-                    onReadyForCapture={() => {
-                      setIsReady(true);
-                      setDetectionStatus('I-align ang mukha sa bilog at kumuha...');
-                    }}
-                    showOverlay={true}
-                    showInitialGuidance={false}
-                    showGetHelpButton={false}
-                    numStableFrames={4}
-                  />
-                </FaceCaptureErrorBoundary>
+                {/* Camera module removed for production */}
+                {/* Yoti FaceCapture removed */}
+                
               </div>
             </div>
           )}
