@@ -110,6 +110,7 @@ function mapUserFromDB(row: any): User {
   return {
     id: row.id,
     username: row.username,
+    profilePhoto: row.profile_photo || '',
     fullName: row.full_name,
     role: row.role,
     barangayAssigned: row.barangay_assigned || undefined,
@@ -275,6 +276,7 @@ export const usersService = {
         email: user.email,
         status: user.status,
         password: (user as any).password || null,
+        profile_photo: user.profilePhoto || null,
       })
       .select()
       .single();
@@ -292,6 +294,8 @@ export const usersService = {
     if (fields.status !== undefined) dbFields.status = fields.status;
     if (fields.username !== undefined) dbFields.username = fields.username;
     if ((fields as any).password !== undefined) dbFields.password = (fields as any).password;
+
+    if (fields.profilePhoto !== undefined) dbFields.profile_photo = fields.profilePhoto;
 
     const { error } = await supabase.from('users').update(dbFields).eq('id', id);
     if (error) throw error;
@@ -702,5 +706,92 @@ export const auditLogsService = {
       await supabase.from('audit_logs').delete().neq('id', '');
     } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('osca-audit-log-new'));
+  },
+};
+
+
+// ====== DOCUMENT SIGNATORIES SERVICE ======
+export interface DocumentSignatory {
+  id: string;
+  documentType: string;
+  roleKey: string;
+  fullName: string;
+  title: string;
+  designation: string;
+  licenseNo: string;
+  address: string;
+  isDefault: boolean;
+}
+
+function mapSignatoryFromDB(row: any): DocumentSignatory {
+  return {
+    id: row.id,
+    documentType: row.document_type,
+    roleKey: row.role_key,
+    fullName: row.full_name,
+    title: row.title || '',
+    designation: row.designation || '',
+    licenseNo: row.license_no || '',
+    address: row.address || '',
+    isDefault: row.is_default ?? true,
+  };
+}
+
+export const signatoriesService = {
+  async getByDocumentType(documentType: string): Promise<DocumentSignatory[]> {
+    const { data, error } = await supabase
+      .from('document_signatories')
+      .select('*')
+      .eq('document_type', documentType);
+    if (error) throw error;
+    return (data || []).map(mapSignatoryFromDB);
+  },
+
+  async getAll(): Promise<DocumentSignatory[]> {
+    const { data, error } = await supabase.from('document_signatories').select('*');
+    if (error) throw error;
+    return (data || []).map(mapSignatoryFromDB);
+  },
+
+  async upsert(signatory: Partial<DocumentSignatory> & { documentType: string; roleKey: string }): Promise<void> {
+    const dbFields: Record<string, any> = {
+      document_type: signatory.documentType,
+      role_key: signatory.roleKey,
+    };
+    if (signatory.fullName !== undefined) dbFields.full_name = signatory.fullName;
+    if (signatory.title !== undefined) dbFields.title = signatory.title;
+    if (signatory.designation !== undefined) dbFields.designation = signatory.designation;
+    if (signatory.licenseNo !== undefined) dbFields.license_no = signatory.licenseNo;
+    if (signatory.address !== undefined) dbFields.address = signatory.address;
+    if (signatory.id) dbFields.id = signatory.id;
+
+    const { error } = await supabase
+      .from('document_signatories')
+      .upsert(dbFields, { onConflict: 'document_type,role_key' });
+    if (error) throw error;
+  },
+
+  async update(id: string, fields: Partial<DocumentSignatory>): Promise<void> {
+    const dbFields: Record<string, any> = {};
+    if (fields.fullName !== undefined) dbFields.full_name = fields.fullName;
+    if (fields.title !== undefined) dbFields.title = fields.title;
+    if (fields.designation !== undefined) dbFields.designation = fields.designation;
+    if (fields.licenseNo !== undefined) dbFields.license_no = fields.licenseNo;
+    if (fields.address !== undefined) dbFields.address = fields.address;
+
+    const { error } = await supabase.from('document_signatories').update(dbFields).eq('id', id);
+    if (error) throw error;
+  },
+
+  subscribe(callback: (signatories: DocumentSignatory[]) => void) {
+    supabase.removeChannel(supabase.channel('signatories-realtime'));
+    const channel = supabase
+      .channel('signatories-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'document_signatories' }, async () => {
+        const signatories = await signatoriesService.getAll();
+        callback(signatories);
+      });
+    channel.subscribe();
+    return () => { supabase.removeChannel(channel); };
   },
 };

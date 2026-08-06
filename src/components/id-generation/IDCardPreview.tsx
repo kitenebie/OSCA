@@ -4,7 +4,7 @@ import { exportSeniorIDCardPDF } from '../../utils/pdfExport';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService } from '../../services/supabaseService';
-import { FileDown, Radio, ShieldCheck, Printer } from 'lucide-react';
+import { FileDown, Radio, ShieldCheck, Printer, Layers, Sparkles, CreditCard } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
 const phLogo = '/ph_logo.png';
@@ -12,14 +12,22 @@ const fingerprintImg = '/fingerprint.png';
 
 interface IDCardPreviewProps {
   senior: SeniorCitizen;
+  selectedVariant?: 'variant1' | 'variant2';
+  onVariantChange?: (v: 'variant1' | 'variant2') => void;
 }
 
-export default function IDCardPreview({ senior }: IDCardPreviewProps) {
+export default function IDCardPreview({ senior, selectedVariant: propVariant, onVariantChange }: IDCardPreviewProps) {
   const { showToast, nfcEnabled } = useUIStore();
   const { currentUser } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
   const [isNFCOpen, setIsNFCOpen] = useState(false);
   const [nfcWritten, setNfcWritten] = useState(false);
+  const [internalVariant, setInternalVariant] = useState<'variant1' | 'variant2'>('variant1');
+  const selectedVariant = propVariant ?? internalVariant;
+  const setSelectedVariant = (v: 'variant1' | 'variant2') => {
+    setInternalVariant(v);
+    onVariantChange?.(v);
+  };
 
   // Secure QR code API using direct CDN generator
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=02A952&data=${encodeURIComponent(
@@ -208,6 +216,45 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
         </div>
       </div>
 
+      {/* ID Card Variation Selection Tabs */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/60">
+        <div className="flex items-center gap-2">
+          <Layers size={16} className="text-teal-600 shrink-0" />
+          <div>
+            <h5 className="font-bold text-xs text-slate-800">Pumili ng ID Design Variant</h5>
+            <p className="text-[10px] text-slate-500">I-click para magpalit ng layout (Variant 1: Modern Digital Smart ID / Variant 2: Official Juban Form)</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => setSelectedVariant('variant1')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 ${
+              selectedVariant === 'variant1'
+                ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
+            }`}
+          >
+            <Sparkles size={13} className={selectedVariant === 'variant1' ? 'text-teal-600' : 'text-slate-400'} />
+            <span>Variant 1 (Smart Digital ID)</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSelectedVariant('variant2')}
+            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 ${
+              selectedVariant === 'variant2'
+                ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
+                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
+            }`}
+          >
+            <CreditCard size={13} className={selectedVariant === 'variant2' ? 'text-teal-600' : 'text-slate-400'} />
+            <span>Variant 2 (Official Juban Form)</span>
+          </button>
+        </div>
+      </div>
+
       {/* Double Sided ID Display Wrapper */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8 items-center justify-center py-4 bg-slate-50/50 p-4 sm:p-6 rounded-2xl border border-slate-100 w-full max-w-full overflow-hidden">
         
@@ -215,8 +262,11 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
             FRONT OF THE ID CARD — CR80 ratio 3.375" x 2.125" → 340 x 214px
            ═══════════════════════════════════════════════════════════════ */}
         <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Front Preview (Harap)</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {selectedVariant === 'variant1' ? 'Front Preview (Harap - Variant 1)' : 'Front Preview (Harap - Variant 2)'}
+          </span>
           <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0 w-[272px] min-[370px]:w-[306px] min-[420px]:w-[340px] h-[171.2px] min-[370px]:h-[192.6px] min-[420px]:h-[214px] flex items-center justify-center">
+            {selectedVariant === 'variant1' ? (
             <div 
               id={`id-card-front-${senior.id}`}
             style={{
@@ -709,15 +759,265 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
 
             </div>
           </div>
+        ) : (
+          /* ═══════════════════════════════════════════════════════════════
+             VARIANT 2 FRONT — Official Juban OSCA ID Form
+             ═══════════════════════════════════════════════════════════════ */
+          <div 
+            id={`id-card-front-${senior.id}`}
+            style={{
+              width: 340,
+              height: 214,
+              borderRadius: 10,
+              border: '1px solid #94a3b8',
+              background: '#ffffff',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+              userSelect: 'none',
+              flexShrink: 0,
+              position: 'relative',
+              overflow: 'hidden',
+              fontFamily: "'Segoe UI', 'Inter', Arial, sans-serif",
+              boxSizing: 'border-box',
+            }}
+          >
+            {/* Top Left Seal */}
+            <div style={{
+              position: 'absolute',
+              top: 6,
+              left: 8,
+              width: 44,
+              height: 44,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <img 
+                crossOrigin="anonymous"
+                referrerPolicy="no-referrer"
+                src="/juban-logo.png" 
+                alt="Juban Seal" 
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+              />
+            </div>
+
+            {/* Center Official Title (Full width across top header) */}
+            <div style={{
+              position: 'absolute',
+              top: 6,
+              left: 56,
+              right: 8,
+              textAlign: 'center',
+            }}>
+              <div style={{ fontSize: 9.5, fontWeight: 700, color: '#000000', lineHeight: 1.15 }}>
+                Republic of the Philippines
+              </div>
+              <div style={{ fontSize: 10.5, fontWeight: 800, color: '#000000', lineHeight: 1.15 }}>
+                Municipality of Juban
+              </div>
+              <div style={{ fontSize: 9.5, fontWeight: 800, color: '#000000', lineHeight: 1.15, marginTop: 1 }}>
+                Office for Senior Citizens Affairs
+              </div>
+            </div>
+
+            {/* 2x2 Photo Box (Placed below header on the right, matching red mark) */}
+            <div style={{
+              position: 'absolute',
+              top: 50,
+              right: 10,
+              width: 90,
+              height: 90,
+              border: '1.5px solid #000000',
+              background: '#f3f4f6',
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 5,
+            }}>
+              {senior.profilePhoto ? (
+                <img 
+                  crossOrigin="anonymous"
+                  referrerPolicy="no-referrer"
+                  src={senior.profilePhoto} 
+                  alt={senior.firstName} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <div style={{ fontSize: 8, fontWeight: 800, color: '#4b5563', textAlign: 'center' }}>
+                  2x2 PHOTO
+                </div>
+              )}
+            </div>
+
+            {/* NAME Field (aligned to the left of the 2x2 photo box) */}
+            <div style={{
+              position: 'absolute',
+              top: 52,
+              left: 10,
+              right: 108,
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 4,
+            }}>
+              <span style={{ fontSize: 8.5, fontWeight: 900, color: '#000000', letterSpacing: '0.2px' }}>NAME:</span>
+              <div style={{
+                flex: 1,
+                borderBottom: '1px solid #000000',
+                fontSize: 8.5,
+                fontWeight: 800,
+                color: '#000000',
+                paddingBottom: 1,
+                textTransform: 'uppercase',
+                letterSpacing: '0.2px',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {senior.lastName}, {senior.firstName} {senior.middleName || ''}
+              </div>
+            </div>
+
+            {/* ADDRESS Field (aligned to the left of the 2x2 photo box) */}
+            <div style={{
+              position: 'absolute',
+              top: 84,
+              left: 10,
+              right: 108,
+              display: 'flex',
+              alignItems: 'baseline',
+              gap: 4,
+            }}>
+              <span style={{ fontSize: 8.5, fontWeight: 900, color: '#000000', letterSpacing: '0.2px' }}>ADDRESS:</span>
+              <div style={{
+                flex: 1,
+                borderBottom: '1px solid #000000',
+                fontSize: 7.5,
+                fontWeight: 800,
+                color: '#000000',
+                paddingBottom: 1,
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}>
+                {senior.address || `BRGY. ${senior.barangay.toUpperCase()}, JUBAN, SORSOGON`}
+              </div>
+            </div>
+
+            {/* DATE OF BIRTH / AGE / SEX Row (aligned to the left of the 2x2 photo box) */}
+            <div style={{
+              position: 'absolute',
+              top: 116,
+              left: 10,
+              right: 108,
+              display: 'flex',
+              alignItems: 'baseline',
+              justifyContent: 'space-between',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                <span style={{ fontSize: 7.5, fontWeight: 900, color: '#000000' }}>DATE OF BIRTH:</span>
+                <span style={{ fontSize: 7.5, fontWeight: 800, color: '#000000', borderBottom: '1px solid #000000', paddingBottom: 1, paddingRight: 4 }}>
+                  {senior.birthdate}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                <span style={{ fontSize: 7.5, fontWeight: 900, color: '#000000' }}>AGE:</span>
+                <span style={{ fontSize: 7.5, fontWeight: 800, color: '#000000', borderBottom: '1px solid #000000', paddingBottom: 1, minWidth: 18, textAlign: 'center' }}>
+                  {senior.age}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 2 }}>
+                <span style={{ fontSize: 7.5, fontWeight: 900, color: '#000000' }}>SEX:</span>
+                <span style={{ fontSize: 7.5, fontWeight: 800, color: '#000000', borderBottom: '1px solid #000000', paddingBottom: 1, minWidth: 24, textAlign: 'center', textTransform: 'uppercase' }}>
+                  {senior.sex}
+                </span>
+              </div>
+            </div>
+
+            {/* Signatures & ID No Section */}
+            <div style={{
+              position: 'absolute',
+              bottom: 26,
+              left: 10,
+              right: 10,
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+            }}>
+              {/* Signature / Thumbmark on Left */}
+              <div style={{ width: 155, textAlign: 'center' }}>
+                <div style={{ height: 18, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {senior.signatureData && (
+                    <img 
+                      src={senior.signatureData} 
+                      alt="Signature" 
+                      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain', filter: 'brightness(0)' }}
+                    />
+                  )}
+                </div>
+                <div style={{ borderTop: '1px solid #000000', paddingTop: 2 }}>
+                  <div style={{ fontSize: 5.4, fontWeight: 900, color: '#000000', textTransform: 'uppercase', letterSpacing: '0.1px' }}>
+                    PRINTED NAME AND SIGNATURE / THUMBMARK
+                  </div>
+                </div>
+              </div>
+
+              {/* ID Card No & Date Issued on Right */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3, textAlign: 'right' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 4 }}>
+                  <span style={{ fontSize: 7.8, fontWeight: 900, color: '#000000' }}>I.D. CARD NO.:</span>
+                  <span style={{ fontSize: 8, fontWeight: 900, color: '#000000', borderBottom: '1px solid #000000', minWidth: 70, textAlign: 'center' }}>
+                    {senior.oscaNumber}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'flex-end', gap: 4 }}>
+                  <span style={{ fontSize: 7.8, fontWeight: 900, color: '#000000' }}>DATE ISSUED:</span>
+                  <span style={{ fontSize: 7.8, fontWeight: 800, color: '#000000', borderBottom: '1px solid #000000', minWidth: 70, textAlign: 'center' }}>
+                    {senior.registeredDate}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Solid Blue Bottom Banner */}
+            <div style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              height: 22,
+              background: '#0d3b8e',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '0 6px',
+            }}>
+              <span style={{
+                color: '#ffffff',
+                fontSize: 6.2,
+                fontWeight: 900,
+                letterSpacing: '0.4px',
+                textTransform: 'uppercase',
+              }}>
+                THIS CARD IS NON-TRANSFERABLE AND VALID ANYWHERE IN THE COUNTRY
+              </span>
+            </div>
+          </div>
+        )}
+          </div>
         </div>
-      </div>
 
         {/* ═══════════════════════════════════════════════════════════════
-            BACK OF THE ID CARD — Dominant green background
+            BACK OF THE ID CARD
            ═══════════════════════════════════════════════════════════════ */}
         <div className="flex flex-col items-center gap-2 overflow-hidden w-full">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Back Preview (Likod)</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {selectedVariant === 'variant1' ? 'Back Preview (Likod - Variant 1)' : 'Back Preview (Likod - Variant 2)'}
+          </span>
           <div className="scale-[0.8] min-[370px]:scale-[0.9] min-[420px]:scale-100 origin-center transition-transform shrink-0 my-[-15px] min-[420px]:my-0 w-[272px] min-[370px]:w-[306px] min-[420px]:w-[340px] h-[171.2px] min-[370px]:h-[192.6px] min-[420px]:h-[214px] flex items-center justify-center">
+            {selectedVariant === 'variant1' ? (
             <div 
               id={`id-card-back-${senior.id}`}
             style={{
@@ -1166,6 +1466,98 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
 
             </div>
           </div>
+        ) : (
+          /* ═══════════════════════════════════════════════════════════════
+             VARIANT 2 BACK — Official Juban OSCA Form Benefits & Signatures
+             ═══════════════════════════════════════════════════════════════ */
+          <div 
+            id={`id-card-back-${senior.id}`}
+            style={{
+              width: 340,
+              height: 214,
+              borderRadius: 10,
+              border: '1px solid #94a3b8',
+              background: '#ffffff',
+              boxShadow: '0 4px 24px rgba(0,0,0,0.12)',
+              userSelect: 'none',
+              flexShrink: 0,
+              position: 'relative',
+              overflow: 'hidden',
+              fontFamily: "'Segoe UI', 'Inter', Arial, sans-serif",
+              padding: '12px 14px 10px 14px',
+              boxSizing: 'border-box',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+            }}
+          >
+            {/* Title Header */}
+            <div>
+              <div style={{
+                fontSize: 9.2,
+                fontWeight: 900,
+                color: '#000000',
+                textTransform: 'uppercase',
+                letterSpacing: '0.2px',
+                textAlign: 'left',
+                marginBottom: 6,
+              }}>
+                BENEFITS & PRIVILEGES UNDER REPUBLIC ACT NO.9994
+              </div>
+
+              {/* Text provisions */}
+              <div style={{
+                fontSize: 6.5,
+                fontWeight: 500,
+                color: '#000000',
+                lineHeight: 1.35,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 5,
+              }}>
+                <p style={{ margin: 0 }}>
+                  Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.
+                </p>
+                <p style={{ margin: 0 }}>
+                  20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.
+                </p>
+                <p style={{ margin: 0 }}>
+                  5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.
+                </p>
+                <p style={{ margin: 0 }}>
+                  20% discount & VAT exemption, if applicable on the sale of goods & services.
+                </p>
+                <p style={{ margin: 0, fontWeight: 700 }}>
+                  Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.
+                </p>
+              </div>
+            </div>
+
+            {/* Signatures Row at Bottom */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-end',
+              marginTop: 'auto',
+              paddingTop: 4,
+              width: '100%',
+            }}>
+              <div style={{ textAlign: 'center', width: 105 }}>
+                <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
+                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>Marciana G. Olondriz</div>
+                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>OSCA Head</div>
+                </div>
+              </div>
+              <div style={{ textAlign: 'center', width: 105 }}>
+                <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
+                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>Rogel "Botox" B. Fulleros</div>
+                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>Municipal Mayor</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        )}
         </div>
       </div>
 

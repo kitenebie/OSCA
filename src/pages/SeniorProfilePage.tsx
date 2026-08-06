@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import IDCardPreview from '../components/id-generation/IDCardPreview';
+import IDCardFlipInline from '../components/id-generation/IDCardFlipInline';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X } from 'lucide-react';
@@ -48,6 +49,7 @@ export default function SeniorProfilePage() {
   const { seniors, approveSenior, rejectSenior } = useSeniorsStore();
   const { selectedSeniorId, setCurrentPage, showToast } = useUIStore();
   const { currentUser, hasPermission } = useAuthStore();
+  const [selectedVariant, setSelectedVariant] = useState<'variant1' | 'variant2'>('variant1');
 
   const senior = seniors.find((s) => s.id === selectedSeniorId);
   const canApprove = hasPermission('canApproveReject');
@@ -236,13 +238,16 @@ export default function SeniorProfilePage() {
             </div>
           </div>
 
+          {/* ID Card Flip Preview */}
+          <IDCardFlipInline senior={senior} selectedVariant={selectedVariant} />
+
         </div>
 
         {/* RIGHT COLUMN: Interactive Double Sided Smart ID Card and full census details */}
         <div className="lg:col-span-2 space-y-6">
           
           {/* OSCA ID Card Preview widget */}
-          <IDCardPreview senior={senior} />
+          <IDCardPreview senior={senior} selectedVariant={selectedVariant} onVariantChange={setSelectedVariant} />
 
           {/* Extended demographic details block */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full max-w-full overflow-hidden">

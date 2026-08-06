@@ -64,6 +64,7 @@ export interface Barangay {
 export interface User {
   id: string;
   username: string;
+  profilePhoto?: string;
   fullName: string;
   role: string;
   barangayAssigned?: string; // For Barangay Encoders

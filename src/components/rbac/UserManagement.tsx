@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { User } from '../../types';
 import { useBarangays } from '../../hooks/useBarangays';
 import { useUIStore } from '../../store/uiStore';
-import { UserPlus, ToggleLeft, ToggleRight, Trash2, Mail, Phone, MapPin, KeyRound, ShieldAlert, Check, Pencil, X, Eye, EyeOff, Lock } from 'lucide-react';
+import { UserPlus, ToggleLeft, ToggleRight, Trash2, Mail, Phone, MapPin, KeyRound, ShieldAlert, Check, Pencil, X, Eye, EyeOff, Lock, Camera, Upload, Image } from 'lucide-react';
+import { uploadUserPhoto } from '../../services/storageService';
 
 // SHA-256 hash function (same as login page)
 async function hashPassword(password: string): Promise<string> {
@@ -96,6 +97,103 @@ function PasswordStrengthIndicator({ validation }: { validation: PasswordValidat
   );
 }
 
+// ====== Photo Upload/Capture Component ======
+function UserPhotoUpload({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      onChange(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  };
+
+  const startCamera = async () => {
+    try {
+      const mediaStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } });
+      setStream(mediaStream);
+      setCameraOpen(true);
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+          videoRef.current.play();
+        }
+      }, 100);
+    } catch {
+      alert('Hindi ma-access ang camera. Siguraduhing pinapayagan ang browser na mag-access ng camera.');
+    }
+  };
+
+  const capturePhoto = () => {
+    if (!videoRef.current) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    canvas.getContext('2d')?.drawImage(videoRef.current, 0, 0);
+    const base64 = canvas.toDataURL('image/jpeg', 0.85);
+    onChange(base64);
+    stopCamera();
+  };
+
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      setStream(null);
+    }
+    setCameraOpen(false);
+  };
+
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Profile Photo</label>
+      
+      {/* Preview */}
+      {value && !cameraOpen && (
+        <div className="flex items-center gap-3">
+          <img src={value} alt="Profile" className="w-16 h-16 rounded-full object-cover border-2 border-teal-200" />
+          <button type="button" onClick={() => onChange('')} className="text-[10px] text-red-500 hover:text-red-700 font-semibold cursor-pointer">Alisin</button>
+        </div>
+      )}
+
+      {/* Camera Preview */}
+      {cameraOpen && (
+        <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-600">
+          <video ref={videoRef} autoPlay playsInline muted className="w-full h-48 object-cover bg-black" />
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-2">
+            <button type="button" onClick={capturePhoto} className="px-3 py-1.5 bg-teal-600 text-white text-[10px] font-bold rounded-lg shadow cursor-pointer">
+              <Camera size={12} className="inline mr-1" />Kunan
+            </button>
+            <button type="button" onClick={stopCamera} className="px-3 py-1.5 bg-slate-600 text-white text-[10px] font-bold rounded-lg shadow cursor-pointer">
+              <X size={12} className="inline mr-1" />Isara
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Buttons */}
+      {!cameraOpen && (
+        <div className="flex gap-2">
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer transition-all">
+            <Upload size={12} /> Mag-upload
+          </button>
+          <button type="button" onClick={startCamera} className="flex items-center gap-1 px-3 py-1.5 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-[10px] font-bold text-slate-600 dark:text-slate-300 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer transition-all">
+            <Camera size={12} /> Kumuha ng Photo
+          </button>
+          <input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function UserManagement() {
   const { barangays: barangaysData } = useBarangays();
   const { users, addUser, updateUser, deleteUser, currentUser, hasPermission } = useAuthStore();
@@ -113,6 +211,10 @@ export default function UserManagement() {
   });
 
   // Password fields for Create
+  // Photo state
+  const [createPhoto, setCreatePhoto] = useState('');
+  const [editPhoto, setEditPhoto] = useState('');
+
   const [createPassword, setCreatePassword] = useState('');
   const [createConfirmPassword, setCreateConfirmPassword] = useState('');
   const [showCreatePassword, setShowCreatePassword] = useState(false);
@@ -152,6 +254,7 @@ export default function UserManagement() {
     setEditConfirmPassword('');
     setShowEditPassword(false);
     setShowEditConfirm(false);
+    setEditPhoto(user.profilePhoto || '');
     setEditModal({ open: true, user });
   };
 

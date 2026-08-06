@@ -1,24 +1,40 @@
-import React, { useState } from 'react';
+import React, { Component, useState } from 'react';
 import { RefreshCw, Check, X, ShieldCheck, Loader2 } from 'lucide-react';
 // Yoti FaceCapture removed for production
 // Error Boundary for Yoti Face Capture crashes
+type FaceCaptureErrorBoundaryProps = {
+  children: React.ReactNode;
+  onError: (error: string) => void;
+};
+type FaceCaptureErrorBoundaryState = {
+  hasError: boolean;
+};
+
 class FaceCaptureErrorBoundary extends React.Component<
-  { children: React.ReactNode; onError: (error: string) => void },
+  any,
   { hasError: boolean }
 > {
+  props: any;
+  state = { hasError: false };
+
   constructor(props: any) {
     super(props);
-    this.state = { hasError: false };
+    this.props = props;
   }
+
   static getDerivedStateFromError() {
     return { hasError: true };
   }
+
   componentDidCatch(error: Error) {
     console.error('[FaceCapture Modal Crash]', error.message);
-    this.props.onError(
-      'Face Capture module crashed. Posibleng kulang ang AI models sa deployment.'
-    );
+    if (this.props && typeof this.props.onError === 'function') {
+      this.props.onError(
+        'Face Capture module crashed. Posibleng kulang ang AI models sa deployment.'
+      );
+    }
   }
+
   render() {
     if (this.state.hasError) {
       return (
@@ -32,7 +48,7 @@ class FaceCaptureErrorBoundary extends React.Component<
         </div>
       );
     }
-    return this.props.children;
+    return this.props?.children || null;
   }
 }
 

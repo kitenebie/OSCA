@@ -99,6 +99,41 @@ export async function uploadProfilePhoto(
 }
 
 /**
+ * Upload a user profile photo (base64) to Supabase Storage.
+ * Returns the public URL of the uploaded file.
+ */
+export async function uploadUserPhoto(
+  base64DataUri: string,
+  userId: string
+): Promise<string> {
+  if (!base64DataUri || !base64DataUri.startsWith('data:')) {
+    throw new Error('Invalid base64 image data');
+  }
+
+  const { blob, extension } = base64ToBlob(base64DataUri);
+  const bucket = await getAvailableBucket();
+  const fileName = `${userId}_${Date.now()}.${extension}`;
+  const filePath = `user-photos/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, blob, {
+      contentType: blob.type,
+      upsert: true,
+    });
+
+  if (uploadError) {
+    throw new Error(`User photo upload failed: ${uploadError.message}`);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
+
+/**
  * Upload a signature image (base64) to Supabase Storage.
  * Returns the public URL.
  */
