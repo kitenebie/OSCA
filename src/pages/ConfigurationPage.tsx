@@ -9,8 +9,12 @@ import {
   Sliders, HelpCircle, Shield, Plus, Trash2, Save, 
   Users, Eye, UserPlus, FileEdit, CheckSquare, FileBarChart, 
   MessageSquare, X, Pencil, Palette, Type, RotateCcw, CheckCircle2, Sun, Moon,
-  BellRing, LayoutDashboard, Scan, MapPin, UserRoundCog, MonitorCog, ShieldCheck, FileCheck, UserX, Trash
+  BellRing, LayoutDashboard, Scan, MapPin, UserRoundCog, MonitorCog, ShieldCheck, FileCheck, UserX, Trash,
+  Camera, FileText, Fingerprint
 } from 'lucide-react';
+import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
+import SignaturePad from '../components/profiling/SignaturePad';
+import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
 
 // Default roles configuration with notifications, CRUD, and page access control
 const DEFAULT_ROLES: RolePermission[] = [
@@ -1175,6 +1179,69 @@ const COLOR_PALETTES_DARK = [
             </div>
           </div>
 
+        </div>
+      </div>
+
+
+      {/* ====== BIOMETRIC HARDWARE TESTING SECTION ====== */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
+          <Fingerprint size={16} className="text-teal-600" />
+          <h5 className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm">Biometric Hardware Testing & Calibration</h5>
+        </div>
+
+        <div className="p-6 space-y-8">
+          <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
+            I-test at i-calibrate ang mga biometric devices na konektado sa system bago gamitin sa profiling ng senior citizens.
+          </p>
+
+          {/* --- Biometric Profile Photo (Camera Sync) --- */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+              <Camera size={14} className="text-blue-600" />
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h6>
+              <span className="text-[9px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800 uppercase tracking-wider">Test Mode</span>
+            </div>
+            <p className="text-[10px] text-slate-400">I-test ang camera connection at AI face detection para siguraduhing gumagana bago gamitin sa registration.</p>
+            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+              <InlineFaceCapture
+                value={null}
+                onChange={(img) => { if (img) console.log('[CONFIG TEST] Photo captured:', img.substring(0, 50) + '...'); }}
+              />
+            </div>
+          </div>
+
+          {/* --- E-Lagda Digital Signature Pad --- */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+              <FileText size={14} className="text-purple-600" />
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">E-Lagda Digital Signature Pad</h6>
+              <span className="text-[9px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-100 dark:border-purple-800 uppercase tracking-wider">Test Mode</span>
+            </div>
+            <p className="text-[10px] text-slate-400">I-test ang digital signature pad — gumuhit gamit ang mouse o stylus pen para i-verify na gumagana ang stroke capture.</p>
+            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+              <SignaturePad
+                value={null}
+                onChange={(sig) => { if (sig) console.log('[CONFIG TEST] Signature captured:', sig.substring(0, 50) + '...'); }}
+              />
+            </div>
+          </div>
+
+          {/* --- Fingerprint Biometric Scanner Sync --- */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+              <Fingerprint size={14} className="text-amber-600" />
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h6>
+              <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-100 dark:border-amber-800 uppercase tracking-wider">Test Mode</span>
+            </div>
+            <p className="text-[10px] text-slate-400">I-sync at i-test ang USB fingerprint scanner device. Siguraduhing naka-install ang driver at naka-connect ang device.</p>
+            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+              <ThumbprintCapture
+                value={null}
+                onChange={(fp) => { if (fp) console.log('[CONFIG TEST] Fingerprint captured:', fp.substring(0, 50) + '...'); }}
+              />
+            </div>
+          </div>
         </div>
       </div>
 

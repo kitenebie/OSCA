@@ -33,7 +33,7 @@ export default function FindUserPage() {
   const { showToast, nfcEnabled } = useUIStore();
   const { currentUser } = useAuthStore();
   
-  const [searchId, setSearchId] = useState('');
+  const [searchId, setSearchId] = useState('OSCA-JUB-');
   
   const C = {
     green:   '#02A952',
@@ -241,7 +241,7 @@ export default function FindUserPage() {
                   type="text"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
-                  placeholder="OSCA ID (e.g. 2024-0001) o Pangalan"
+                  placeholder="OSCA ID (e.g. OSCA-JUB-2024-0006) o Pangalan"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-2xl text-xs font-semibold focus:outline-none transition-all font-mono"
                   id="search-id-input"
                 />

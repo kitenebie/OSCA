@@ -1,6 +1,42 @@
 import React, { useState } from 'react';
 import { RefreshCw, Check, X, ShieldCheck, Loader2 } from 'lucide-react';
 import FaceCapture from '@getyoti/react-face-capture';
+// Error Boundary for Yoti Face Capture crashes
+class FaceCaptureErrorBoundary extends React.Component<
+  { children: React.ReactNode; onError: (error: string) => void },
+  { hasError: boolean }
+> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error: Error) {
+    console.error('[FaceCapture Modal Crash]', error.message);
+    this.props.onError(
+      'Face Capture module crashed. Posibleng kulang ang AI models sa deployment.'
+    );
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex items-center justify-center h-full bg-slate-900/50 p-6 text-center">
+          <div className="space-y-2">
+            <p className="text-amber-400 text-xs font-bold">⚠️ Face Capture Module Error</p>
+            <p className="text-slate-400 text-[10px]">
+              Hindi ma-load ang AI face detection models sa deployment na ito.
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+
 
 interface FaceCaptureModalProps {
   onCapture: (base64Img: string) => void;
@@ -94,20 +130,22 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
                 </div>
               )}
               <div className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full" id="yoti-component-container">
-                <FaceCapture
-                  faceCaptureAssetsRootUrl="/assets/face-capture/"
-                  secure={false}
-                  onSuccess={handleSuccess}
-                  onError={handleError}
-                  onReadyForCapture={() => {
-                    setIsReady(true);
-                    setDetectionStatus('I-align ang mukha sa bilog at kumuha...');
-                  }}
-                  showOverlay={true}
-                  showInitialGuidance={false}
-                  showGetHelpButton={false}
-                  numStableFrames={4}
-                />
+                <FaceCaptureErrorBoundary onError={(msg) => { handleError(msg); }}>
+                  <FaceCapture
+                    faceCaptureAssetsRootUrl="/assets/face-capture/"
+                    secure={false}
+                    onSuccess={handleSuccess}
+                    onError={handleError}
+                    onReadyForCapture={() => {
+                      setIsReady(true);
+                      setDetectionStatus('I-align ang mukha sa bilog at kumuha...');
+                    }}
+                    showOverlay={true}
+                    showInitialGuidance={false}
+                    showGetHelpButton={false}
+                    numStableFrames={4}
+                  />
+                </FaceCaptureErrorBoundary>
               </div>
             </div>
           )}
