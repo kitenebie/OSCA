@@ -352,12 +352,12 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
             {/* Live Status Bar */}
             <div className="flex items-center gap-2.5 p-3 rounded-xl bg-white border border-slate-200" id="inline-status-bar">
               <div className={'w-2 h-2 rounded-full shrink-0 ' + 
-              <div className={'w-2 h-2 rounded-full shrink-0 ' + 
                 (cameraError ? 'bg-red-500' : 
                  value ? 'bg-emerald-500' : 
                  tempPhoto ? 'bg-amber-500 animate-pulse' : 
                  !value && !tempPhoto && isReady ? 'bg-teal-400 animate-pulse' : 'bg-slate-300')
               }></div>
+              <span className="text-[10px] font-mono font-bold text-slate-600 leading-none truncate flex-1">
                 {value ? 'Matagumpay na Naka-enroll' : 
                  cameraMode === 'native' && isReady && !tempPhoto ? 'Standard Camera Aktibo' : detectionStatus}
               </span>
