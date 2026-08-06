@@ -338,6 +338,11 @@ export default function SeniorRegistrationPage() {
     const ageDate = new Date(ageDiff);
     const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
 
+    if (calculatedAge < 45) {
+      showToast('Hindi maaaring irehistro: Ang edad ay dapat hindi bababa sa 45 taong gulang.', 'error');
+      return;
+    }
+
     const mappedSenior = {
       firstName: form.firstName,
       middleName: form.middleName,
@@ -841,6 +846,7 @@ export default function SeniorRegistrationPage() {
                       id="birthdate"
                       type="date"
                       required
+                      max={new Date(new Date().getFullYear() - 45, new Date().getMonth(), new Date().getDate()).toISOString().split('T')[0]}
                       value={form.birthdate}
                       onChange={(e) => setForm({ ...form, birthdate: e.target.value })}
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
