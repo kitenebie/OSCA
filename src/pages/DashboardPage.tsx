@@ -21,12 +21,12 @@ export default function DashboardPage() {
 
   const getGreeting = () => {
     const hr = new Date().getHours();
-    if (hr < 12) return 'Magandang Umaga';
-    if (hr < 18) return 'Magandang Hapon';
-    return 'Magandang Gabi';
+    if (hr < 12) return 'Good Morning';
+    if (hr < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
-  const formattedDate = new Date().toLocaleDateString('fil-PH', {
+  const formattedDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -43,14 +43,14 @@ export default function DashboardPage() {
         
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-teal-400 font-mono">Bayan ng Juban Portal</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-teal-400 font-mono">Municipality of Juban Portal</span>
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></div>
           </div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
             {getGreeting()}, {currentUser?.fullName || 'LGU User'}!
           </h2>
           <p className="text-[11px] text-slate-100/90 font-semibold">
-            Maaari mong subaybayan, irehistro, at i-audit ang records ng mga nakatira nating Senior Citizens dito.
+            You can monitor, register, and audit the records of our resident Senior Citizens here.
           </p>
         </div>
 
@@ -63,10 +63,10 @@ export default function DashboardPage() {
       {/* Statistics Counter row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
-          title="Kabuuang Rehistrado (Total Seniors)"
+          title="Total Registered Seniors"
           value={totalSeniors}
           description="Registered senior citizen population"
-          change="+4.2% buwanang taas"
+          change="+4.2% monthly increase"
           changeType="increase"
           icon={Users}
           bgColor="bg-emerald-50"
@@ -76,24 +76,24 @@ export default function DashboardPage() {
           title="Social Pensioners (SocPen)"
           value={pensionSeniors}
           description="Seniors enrolled in indigent pension"
-          change={`${Math.round((pensionSeniors / (totalSeniors || 1)) * 100)}% ng kabuuan`}
+          change={`${Math.round((pensionSeniors / (totalSeniors || 1)) * 100)}% of total`}
           changeType="neutral"
           icon={CreditCard}
           bgColor="bg-blue-50"
           iconColor="text-teal-700"
         />
         <StatCard
-          title="Mga Hinihintay (Pending Approvals)"
+          title="Pending Approvals"
           value={pendingSeniors}
           description="Applications awaiting review"
-          change={pendingSeniors > 0 ? "Kailangan Suriin" : "Malinis ang Queue"}
+          change={pendingSeniors > 0 ? "Needs Review" : "Queue Clear"}
           changeType={pendingSeniors > 0 ? "decrease" : "increase"}
           icon={Clock}
           bgColor="bg-red-50"
           iconColor="text-[#FD0000]"
         />
         <StatCard
-          title="Aktibong Aprobado (Approved)"
+          title="Active Approved"
           value={approvedSeniors}
           description={nfcEnabled ? "Active records issued with NFC cards" : "Active records issued with ID cards"}
           change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% Active`}
@@ -121,7 +121,7 @@ export default function DashboardPage() {
           <div>
             <h5 className="font-bold text-xs uppercase tracking-wide">Localized Scope Protection Active</h5>
             <p className="text-[10px] text-teal-700 leading-normal mt-0.5">
-              Naka-filter ang inyong view sa <strong>Brgy. {currentUser.barangayAssigned}</strong>. Lahat ng bagong rehistro ay kusa naming iuugnay sa inyong barangay assigned. Ang inyong account ay limitado lamang sa pagrehistro at pag-edit ng inyong sariling barangay records alinsunod sa RBAC rules.
+              Your view is filtered to <strong>Brgy. {currentUser.barangayAssigned}</strong>. All new registrations will be automatically linked to your assigned barangay. Your account is limited to registering and editing your own barangay records in accordance with RBAC rules.
             </p>
           </div>
         </div>

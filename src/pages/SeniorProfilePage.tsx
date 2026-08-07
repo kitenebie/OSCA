@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
+import { ncscDataFormService, centenarianService } from '../services/supabaseService';
 import IDCardPreview from '../components/id-generation/IDCardPreview';
 import IDCardFlipInline from '../components/id-generation/IDCardFlipInline';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
-import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X, Skull, Calendar } from 'lucide-react';
+import { ChevronLeft, MapPin, CreditCard, ShieldCheck, UserCheck, ShieldAlert, Check, X, Skull, Calendar, FileText, Award } from 'lucide-react';
 
 // Custom Map pin icon matching our AddressMapPicker style
 // Custom Map pin icon matching our AddressMapPicker style, colored by risk severity if at risk
@@ -54,20 +55,35 @@ export default function SeniorProfilePage() {
   const [showDeceasedForm, setShowDeceasedForm] = useState(false);
   const [deceasedDate, setDeceasedDate] = useState('');
   const [deceasedCause, setDeceasedCause] = useState('');
+  
+  const [ncscData, setNcscData] = useState<any>(null);
+  const [centenarianData, setCentenarianData] = useState<any[]>([]);
 
   const senior = seniors.find((s) => s.id === selectedSeniorId);
   const canApprove = hasPermission('canApproveReject');
+
+  // Fetch NCSC Data and Centenarian Honoring records for this senior
+  useEffect(() => {
+    if (!selectedSeniorId) return;
+    ncscDataFormService.getBySeniorId(selectedSeniorId).then((data) => {
+      setNcscData(data);
+    }).catch(() => setNcscData(null));
+
+    centenarianService.getBySeniorId(selectedSeniorId).then((data) => {
+      setCentenarianData(data || []);
+    }).catch(() => setCentenarianData([]));
+  }, [selectedSeniorId]);
 
   if (!senior) {
     return (
       <div className="flex flex-col items-center justify-center p-20 text-slate-400 bg-white border border-slate-200 rounded-3xl">
         <ShieldAlert size={48} className="text-slate-300 stroke-[1.5] mb-3" />
-        <p className="text-xs font-semibold">Error: Hindi nahanap ang record ng Senior Citizen.</p>
+        <p className="text-xs font-semibold">Error: Senior Citizen record not found.</p>
         <button
           onClick={() => setCurrentPage('SeniorsList')}
           className="mt-4 px-4 py-2 bg-teal-600 text-white font-bold text-xs rounded-xl"
         >
-          Bumalik sa Listahan
+          Back to List
         </button>
       </div>
     );
@@ -76,15 +92,15 @@ export default function SeniorProfilePage() {
   const handleApprove = async () => {
     if (!currentUser) return;
     await approveSenior(senior.id, currentUser.fullName);
-    showToast(`Matagumpay na naaprubahan si ${senior.firstName}!`, 'success');
+    showToast(`Successfully approved si ${senior.firstName}!`, 'success');
   };
 
   const handleReject = () => {
     if (!currentUser) return;
-    const reason = prompt(`Mataas na Paunawa: Isulat ang dahilan ng pag-reject kay ${senior.firstName}:`, 'Kulang sa patunay o dokumento');
+    const reason = prompt(`Notice: Enter the reason for rejecting ${senior.firstName}:`, 'Insufficient proof or documentation');
     if (reason === null) return; // cancelled
-    rejectSenior(senior.id, reason || 'Kulang sa dokumento', currentUser.fullName);
-    showToast(`Tinanggihan ang aplikasyon ni ${senior.firstName}.`, 'warning');
+    rejectSenior(senior.id, reason || 'Insufficient documentation', currentUser.fullName);
+    showToast(`Application rejected for ${senior.firstName}.`, 'warning');
   };
 
   const isPending = senior.status === 'Pending' || senior.status === 'For Verification';
@@ -99,7 +115,7 @@ export default function SeniorProfilePage() {
           className="flex items-center justify-center gap-1.5 px-3 py-2 border border-slate-200 hover:border-slate-400 text-xs font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95 w-full sm:w-auto"
         >
           <ChevronLeft size={14} />
-          <span>Bumalik sa Listahan</span>
+          <span>Back to List</span>
         </button>
 
         {/* Verification quick bar for Officers */}
@@ -165,19 +181,19 @@ export default function SeniorProfilePage() {
 
             <div className="w-full text-left space-y-2.5 text-[11px] font-semibold text-slate-500">
               <div className="flex justify-between">
-                <span>Kasarian (Sex):</span>
+                <span>Sex:</span>
                 <span className="text-slate-800 font-bold uppercase">{senior.sex}</span>
               </div>
               <div className="flex justify-between">
-                <span>Edad (Age):</span>
+                <span>Age:</span>
                 <span className="text-slate-800 font-bold">{senior.age} y/o</span>
               </div>
               <div className="flex justify-between">
-                <span>Kaarawan (Bday):</span>
+                <span>Birthday:</span>
                 <span className="text-slate-800 font-bold">{senior.birthdate}</span>
               </div>
               <div className="flex justify-between">
-                <span>Status ng Program:</span>
+                <span>Program Status:</span>
                 <span className={`font-bold ${senior.pensionBeneficiary ? 'text-teal-600 font-mono' : 'text-slate-700'}`}>
                   {senior.pensionBeneficiary ? 'SocPen Pensioner' : 'No Grant'}
                 </span>
@@ -199,9 +215,9 @@ export default function SeniorProfilePage() {
                   ${senior.riskSeverity === 'low' ? 'text-blue-500' : ''}
                 `} size={15} />
                 <div>
-                  <p className="font-extrabold uppercase tracking-wide">Panganib sa Lugar (Disaster Risk)</p>
+                  <p className="font-extrabold uppercase tracking-wide">Disaster Risk Area</p>
                   <p className="mt-0.5 font-semibold">
-                    Ang residenteng ito ay naninirahan sa isang <span className="font-bold uppercase tracking-wider">{senior.riskSeverity} risk area</span> na madalas maapektuhan ng <span className="font-bold uppercase">{senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}</span>.
+                    This resident lives in a <span className="font-bold uppercase tracking-wider">{senior.riskSeverity} risk area</span> frequently affected by <span className="font-bold uppercase">{senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType}</span>.
                   </p>
                 </div>
               </div>
@@ -212,11 +228,11 @@ export default function SeniorProfilePage() {
               <div className="mt-4 w-full p-3 rounded-2xl border bg-slate-100 border-slate-300 text-left">
                 <div className="flex items-center gap-2 mb-1">
                   <Skull size={14} className="text-slate-600" />
-                  <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">Deceased / Pumanaw na</span>
+                  <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">Deceased</span>
                 </div>
                 <div className="text-[10px] text-slate-500 space-y-0.5 pl-5">
-                  {senior.dateOfDeath && <p>Petsa ng Pagkamatay: <strong className="text-slate-700">{senior.dateOfDeath}</strong></p>}
-                  {senior.causeOfDeath && <p>Dahilan: <strong className="text-slate-700">{senior.causeOfDeath}</strong></p>}
+                  {senior.dateOfDeath && <p>Date of Death: <strong className="text-slate-700">{senior.dateOfDeath}</strong></p>}
+                  {senior.causeOfDeath && <p>Cause: <strong className="text-slate-700">{senior.causeOfDeath}</strong></p>}
                 </div>
               </div>
             ) : (
@@ -227,16 +243,16 @@ export default function SeniorProfilePage() {
                     className="w-full px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-500 hover:text-slate-700 transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Skull size={11} />
-                    Markahan bilang Deceased
+                    Mark as Deceased
                   </button>
                 ) : (
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5 animate-fadeIn">
                     <div className="flex items-center gap-2">
                       <Skull size={13} className="text-slate-600" />
-                      <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">I-record ang Pagpanaw</span>
+                      <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wide">Record Death</span>
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">Petsa ng Pagkamatay (Date of Death)</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Date of Death</label>
                       <input
                         type="date"
                         value={deceasedDate}
@@ -245,7 +261,7 @@ export default function SeniorProfilePage() {
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-400 uppercase">Dahilan ng Pagkamatay (Cause of Death)</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase">Cause of Death</label>
                       <input
                         type="text"
                         value={deceasedCause}
@@ -259,18 +275,18 @@ export default function SeniorProfilePage() {
                         onClick={() => setShowDeceasedForm(false)}
                         className="flex-1 py-1.5 bg-white border border-slate-200 text-slate-600 font-bold text-[10px] rounded-lg hover:bg-slate-50 cursor-pointer"
                       >
-                        Kanselahin
+                        Cancel
                       </button>
                       <button
                         onClick={() => {
-                          if (!deceasedDate) { showToast('Kailangan ang petsa ng pagkamatay.', 'warning'); return; }
+                          if (!deceasedDate) { showToast('Date of death is required.', 'warning'); return; }
                           updateSenior(senior.id, { isDeceased: true, dateOfDeath: deceasedDate, causeOfDeath: deceasedCause || undefined } as any);
-                          showToast(`Si ${senior.firstName} ${senior.lastName} ay na-record na bilang deceased.`, 'info');
+                          showToast(`Si ${senior.firstName} ${senior.lastName} has been recorded as deceased.`, 'info');
                           setShowDeceasedForm(false);
                         }}
                         className="flex-1 py-1.5 bg-slate-700 text-white font-bold text-[10px] rounded-lg hover:bg-slate-800 cursor-pointer"
                       >
-                        I-confirm
+                        Confirm
                       </button>
                     </div>
                   </div>
@@ -327,14 +343,14 @@ export default function SeniorProfilePage() {
           {/* Extended demographic details block */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full max-w-full overflow-hidden">
             <div className="border-b border-slate-100 pb-3 mb-4">
-              <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">Pagsusuri ng Census Sheet</h4>
+              <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">Census Sheet Review</h4>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-[11px] font-medium text-slate-600 leading-normal">
               
               <div className="space-y-3.5">
                 <div>
-                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Tirahan (Street Address)</span>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Street Address</span>
                   <p className="text-slate-800 font-bold uppercase text-[11.5px]">{senior.address}, Brgy. {senior.barangay}, Juban, Sorsogon</p>
                 </div>
                 <div>
@@ -342,33 +358,33 @@ export default function SeniorProfilePage() {
                   <p className="text-slate-800 font-bold uppercase">{senior.civilStatus}</p>
                 </div>
                 <div>
-                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Lugar ng Kapanganakan</span>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Place of Birth</span>
                   <p className="text-slate-800 font-bold uppercase">{senior.remarks || 'Juban, Sorsogon'}</p>
                 </div>
                 <div>
-                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Nasa Risk Area Ba?</span>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">In Risk Area?</span>
                   <p className={`font-bold uppercase ${senior.inRiskArea === 'yes' ? 'text-red-600 font-mono' : 'text-slate-800'}`}>
-                    {senior.inRiskArea === 'yes' ? 'Oo (Yes)' : 'Hindi (No)'}
+                    {senior.inRiskArea === 'yes' ? 'Yes' : 'No'}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-3.5">
                 <div>
-                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Numero ng Mobile (Contact)</span>
-                  <p className="text-slate-800 font-bold font-mono text-[11.5px]">{senior.contactNumber || 'WALANG MATALANG CONTACT'}</p>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Mobile Number (Contact)</span>
+                  <p className="text-slate-800 font-bold font-mono text-[11.5px]">{senior.contactNumber || 'NO CONTACT ON FILE'}</p>
                 </div>
                 <div>
-                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Petsa ng Pagkarehistro</span>
+                  <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Date of Registration</span>
                   <p className="text-slate-800 font-bold font-mono">{senior.registeredDate}</p>
                 </div>
                 <div>
                   <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Biometrics Enrolled Template ID</span>
-                  <p className="text-slate-800 font-bold font-mono text-[10px] truncate max-w-full">{senior.thumbprintData || 'WALANG MATALANG BIOMETRICS'}</p>
+                  <p className="text-slate-800 font-bold font-mono text-[10px] truncate max-w-full">{senior.thumbprintData || 'NO BIOMETRICS ON FILE'}</p>
                 </div>
                 {senior.inRiskArea === 'yes' && (
                   <div>
-                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Uri ng Panganib at Severity</span>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Risk Type & Severity</span>
                     <p className="text-slate-800 font-bold uppercase">
                       {senior.riskType === 'Others' ? senior.riskDetails || 'Others' : senior.riskType} ({senior.riskSeverity})
                     </p>
@@ -377,6 +393,119 @@ export default function SeniorProfilePage() {
               </div>
 
             </div>
+          </div>
+
+          {/* NCSC Data Section */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full max-w-full overflow-hidden">
+            <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+              <FileText size={16} className="text-blue-600" />
+              <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">NCSC Data</h4>
+            </div>
+
+            {ncscData ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 text-[11px] font-medium text-slate-600 leading-normal">
+                <div className="space-y-3.5">
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Reference Code</span>
+                    <p className="text-slate-800 font-bold font-mono">{ncscData.referenceCode || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Interview Date</span>
+                    <p className="text-slate-800 font-bold">{ncscData.interviewDate || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Interviewed By</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.interviewedBy || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Income Source</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.incomeSource || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Health Condition</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.healthCondition || '—'}</p>
+                  </div>
+                </div>
+                <div className="space-y-3.5">
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Living Arrangement</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.livingArrangement || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Mobility</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.mobility || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Receiving Social Pension</span>
+                    <p className="text-slate-800 font-bold uppercase">{ncscData.receivingSocialPension ? 'Yes' : 'No'}</p>
+                  </div>
+                  <div>
+                    <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Status</span>
+                    <p className={`font-bold font-mono uppercase text-[10px] ${ncscData.status === 'Completed' ? 'text-teal-600' : ncscData.status === 'Pending' ? 'text-amber-600' : 'text-slate-600'}`}>
+                      {ncscData.status}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400 italic">No NCSC Data record for this senior.</p>
+            )}
+          </div>
+
+          {/* Centenarian Honoring Section */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full max-w-full overflow-hidden">
+            <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+              <Award size={16} className="text-amber-600" />
+              <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">Centenarian Honoring</h4>
+            </div>
+
+            {centenarianData.length > 0 ? (
+              <div className="space-y-4">
+                {centenarianData.map((app, idx) => (
+                  <div key={app.id || idx} className="border border-slate-100 rounded-xl p-4 space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] font-medium text-slate-600 leading-normal">
+                      <div className="space-y-3.5">
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Milestone Type</span>
+                          <p className="text-slate-800 font-bold uppercase">{app.milestoneType}</p>
+                        </div>
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Milestone Age</span>
+                          <p className="text-slate-800 font-bold">{app.milestoneAge} years old</p>
+                        </div>
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Cash Gift Amount</span>
+                          <p className="text-slate-800 font-bold font-mono">₱{app.cashGiftAmount?.toLocaleString() || '—'}</p>
+                        </div>
+                      </div>
+                      <div className="space-y-3.5">
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Application Date</span>
+                          <p className="text-slate-800 font-bold">{app.applicationDate || '—'}</p>
+                        </div>
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Applicant Type</span>
+                          <p className="text-slate-800 font-bold uppercase">{app.applicantType}</p>
+                        </div>
+                        <div>
+                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Status</span>
+                          <p className={`font-bold font-mono uppercase text-[10px] ${
+                            app.status === 'Claimed' ? 'text-teal-600' : 
+                            app.status === 'Approved' ? 'text-blue-600' : 
+                            app.status === 'Pending' ? 'text-amber-600' : 
+                            app.status === 'Expired' ? 'text-red-600' : 'text-slate-600'
+                          }`}>
+                            {app.status}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-400 italic">No Centenarian Honoring record for this senior.</p>
+            )}
           </div>
 
         </div>

@@ -21,9 +21,9 @@ export default function UserManagementPage() {
             <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-100 shadow-sm mb-4 shrink-0">
               <ShieldAlert size={28} />
             </div>
-            <h4 className="font-extrabold text-sm text-slate-800 uppercase tracking-wide">PAGSURI NG LIPUNAN: Walang Pahintulot (Access Denied)</h4>
+            <h4 className="font-extrabold text-sm text-slate-800 uppercase tracking-wide">SYSTEM ACCESS CONTROL: Access Denied</h4>
             <p className="text-xs text-slate-500 leading-relaxed max-w-sm mt-2">
-              Ang pahinang ito ay nakareserba lamang sa **Super Admin** ng LGU Juban. Ang inyong account ay hindi binigyan ng pahintulot na makita o baguhin ang system user directory.
+              This page is reserved for the **Super Admin** of LGU Juban only. Your account has not been granted permission to view or modify the system user directory.
             </p>
           </div>
         }

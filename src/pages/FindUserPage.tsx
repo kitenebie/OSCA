@@ -99,7 +99,7 @@ export default function FindUserPage() {
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!searchId.trim()) {
-      showToast('Pakisulat ang OSCA ID o pangalan upang maghanap.', 'warning');
+      showToast('Please enter the OSCA ID or name to search.', 'warning');
       return;
     }
 
@@ -119,12 +119,12 @@ export default function FindUserPage() {
       setSelectedSenior(found);
       setIsFlipped(false);
       addLog(`ID matched via search database query: ${found.oscaNumber} - ${found.firstName} ${found.lastName}`);
-      showToast(`Nahanap ang profile ni ${found.firstName} ${found.lastName}!`, 'success');
+      showToast(`Found the profile of ${found.firstName} ${found.lastName}!`, 'success');
 
       auditLogsService.log({
         action: 'LOGIN',
         entity: 'Senior',
-        details: `Nai-scan ang OSCA ID Card ni Senior: ${found.firstName} ${found.lastName} (${found.oscaNumber})`,
+        details: `Scanned the OSCA ID Card of Senior: ${found.firstName} ${found.lastName} (${found.oscaNumber})`,
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: found.barangay,
@@ -132,14 +132,14 @@ export default function FindUserPage() {
       });
     } else {
       addLog(`Failed database lookup for query: "${searchId}"`);
-      showToast('Walang nahanap na Senior Citizen sa ID o pangalang iyan.', 'error');
+      showToast('No Senior Citizen found with that ID or name.', 'error');
     }
   };
 
   // Simulate NFC Proximity scan of a random senior
   const handleSimulateScan = () => {
     if (!isScanning) {
-      showToast('Pakibuhay muna ang Scanning Laser sa switch.', 'warning');
+      showToast('Please turn on the Scanning Laser switch first.', 'warning');
       return;
     }
 
@@ -148,7 +148,7 @@ export default function FindUserPage() {
     // Pick a random senior
     setTimeout(() => {
       if (seniors.length === 0) {
-        showToast('Walang senior citizens sa database para i-scan.', 'error');
+        showToast('No senior citizens in the database to scan.', 'error');
         return;
       }
       const randomIndex = Math.floor(Math.random() * seniors.length);
@@ -163,7 +163,7 @@ export default function FindUserPage() {
       auditLogsService.log({
         action: 'CREATE',
         entity: 'Senior',
-        details: `Nai-scan via Proximity Scanner ang ID Card ni Senior: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.oscaNumber})`,
+        details: `Scanned via Proximity Scanner the ID Card of Senior: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.oscaNumber})`,
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: randomSenior.barangay,
@@ -200,7 +200,7 @@ export default function FindUserPage() {
             Find User & ID Scanner (Tag Verification)
           </h2>
           <p className="text-xs text-slate-400">
-            I-verify ang OSCA ID at impormasyon gamit ang automated biometric scanning module o database ID query.
+            Verify the OSCA ID and information using the automated biometric scanning module or database ID query.
           </p>
         </div>
 
@@ -229,7 +229,7 @@ export default function FindUserPage() {
           <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">
             <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-wider flex items-center gap-2">
               <Search size={14} className="text-teal-600" />
-              I-search ang OSCA ID o Pangalan
+              Search OSCA ID or Name
             </h3>
             
             <form onSubmit={handleSearch} className="relative flex gap-2">
@@ -241,7 +241,7 @@ export default function FindUserPage() {
                   type="text"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
-                  placeholder="OSCA ID (e.g. OSCA-JUB-2024-0006) o Pangalan"
+                  placeholder="OSCA ID (e.g. OSCA-JUB-2024-0006) or Name"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-2xl text-xs font-semibold focus:outline-none transition-all font-mono"
                   id="search-id-input"
                 />
@@ -252,14 +252,14 @@ export default function FindUserPage() {
                 id="search-id-submit-btn"
               >
                 <Search size={13} />
-                <span className="hidden sm:inline">Hanapin</span>
+                <span className="hidden sm:inline">Search</span>
               </button>
             </form>
 
             <div className="text-[10px] text-slate-400 leading-normal flex items-start gap-1.5 bg-slate-50 p-2.5 rounded-xl border border-slate-150">
               <HelpCircle size={13} className="text-teal-600 shrink-0 mt-0.5" />
               <span>
-                Tip: Isulat ang bahagi ng pangalan (e.g. "Reyes") o buong OSCA number upang agad na mahanap ang senior mula sa e-Census.
+                Tip: Enter part of the name (e.g. "Reyes") or the full OSCA number to quickly find the senior from the e-Census.
               </span>
             </div>
           </div>
@@ -349,7 +349,7 @@ export default function FindUserPage() {
                 id="simulate-scan-btn"
               >
                 <Radio size={14} className={isScanning ? 'animate-pulse' : ''} />
-                <span>{formatNfcText('Magsimula ng Proximity Tap (Simulate NFC Tag Scan)')}</span>
+                <span>{formatNfcText('Start Proximity Tap (Simulate NFC Tag Scan)')}</span>
               </button>
             </div>
           )}
@@ -398,18 +398,18 @@ export default function FindUserPage() {
                 </div>
               </div>
               <div className="max-w-md space-y-2">
-                <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Kasalukuyang Naghihintay...</h3>
+                <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Currently Waiting...</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   {nfcEnabled 
-                    ? 'Walang isinagawang scan o search sa kasalukuyan. I-type ang Senior ID sa itaas o pindutin ang "Proximity Tap" upang masubukan ang system.'
-                    : 'Walang isinagawang scan o search sa kasalukuyan. I-type ang Senior ID sa itaas upang mahanap ang profile.'
+                    ? 'No scan or search performed yet. Type the Senior ID above or press "Proximity Tap" to test the system.'
+                    : 'No scan or search performed yet. Type the Senior ID above to find the profile.'
                   }
                 </p>
               </div>
 
               {/* Demo auto selectors */}
               <div className="pt-4 border-t border-slate-100 w-full max-w-sm">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">O kaya, pumili ng mabilis na sample:</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Or, choose a quick sample:</p>
                 <div className="flex flex-wrap gap-2 justify-center">
                   {seniors.slice(0, 3).map((s) => (
                     <button
@@ -451,7 +451,7 @@ export default function FindUserPage() {
                     className="px-3 py-1.5 bg-slate-100 hover:bg-teal-50 text-slate-700 hover:text-teal-700 font-bold text-xs rounded-xl border border-slate-200 hover:border-teal-200 transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <RefreshCw size={12} className={`transition-transform duration-500 ${isFlipped ? 'rotate-180 text-teal-600' : ''}`} />
-                    <span>I-flip ang ID (Front/Back)</span>
+                    <span>Flip ID (Front/Back)</span>
                   </button>
                 </div>
 
@@ -683,7 +683,7 @@ export default function FindUserPage() {
                               lineHeight: 1.1,
                               textTransform: 'uppercase',
                               textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                            }}>BAYAN NG JUBAN</div>
+                            }}>MUNICIPALITY OF JUBAN</div>
                             <div style={{
                               fontSize: 5.5,
                               fontWeight: 600,
@@ -1115,7 +1115,7 @@ export default function FindUserPage() {
                               letterSpacing: '0.5px',
                               textTransform: 'uppercase',
                               lineHeight: 1.1,
-                            }}>BAYAN NG JUBAN</div>
+                            }}>MUNICIPALITY OF JUBAN</div>
                             <div style={{
                               fontSize: 5.5,
                               fontWeight: 600,
@@ -1384,7 +1384,7 @@ export default function FindUserPage() {
               </div>
 
                 <p className="text-[10px] text-slate-400 italic">
-                  * I-click ang card o pindutin ang "I-flip" button sa itaas upang tingnan ang kabilang panig ng ID.
+                  * Click the card or press the "Flip" button above to view the other side of the ID.
                 </p>
               </div>
 
@@ -1398,7 +1398,7 @@ export default function FindUserPage() {
                     </div>
                     <div>
                       <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight">
-                        Detalyadong Impormasyon
+                        Detailed Information
                       </h3>
                       <p className="text-[10px] text-slate-400 uppercase font-mono">
                         Biometric e-Census Metadata Profile
@@ -1420,37 +1420,37 @@ export default function FindUserPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Pangalan (Full Name)</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Full Name</span>
                     <p className="text-xs font-black text-slate-700 uppercase bg-slate-50 p-2.5 rounded-xl border border-slate-150">
                       {selectedSenior.firstName} {selectedSenior.middleName ? selectedSenior.middleName + ' ' : ''}{selectedSenior.lastName}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Barangay ng Juban</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Barangay of Juban</span>
                     <p className="text-xs font-black text-teal-700 bg-teal-50/40 p-2.5 rounded-xl border border-teal-100">
                       {selectedSenior.barangay}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Kasarian (Gender)</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Gender</span>
                     <p className="text-xs font-bold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-150">
                       {selectedSenior.sex}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Kapanganakan (Date of Birth)</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Date of Birth</span>
                     <p className="text-xs font-bold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-150 font-mono">
-                      {selectedSenior.birthdate} ({selectedSenior.age} taong gulang)
+                      {selectedSenior.birthdate} ({selectedSenior.age} years old)
                     </p>
                   </div>
 
                   <div className="space-y-1">
                     <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Telepono (Contact Number)</span>
                     <p className="text-xs font-bold text-slate-700 bg-slate-50 p-2.5 rounded-xl border border-slate-150 font-mono">
-                      {selectedSenior.contactNumber || 'N/A (Walang Isinumite)'}
+                      {selectedSenior.contactNumber || 'N/A (Not Submitted)'}
                     </p>
                   </div>
 
@@ -1460,14 +1460,14 @@ export default function FindUserPage() {
                       ${selectedSenior.pensionBeneficiary 
                         ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
                         : 'bg-rose-50 border-rose-100 text-rose-700'}`}>
-                      {selectedSenior.pensionBeneficiary ? '✔ BENEPISYARYO (RECEIVING ₱1,000 PENSION)' : '❌ HINDI BENEPISYARYO'}
+                      {selectedSenior.pensionBeneficiary ? '✔ BENEFICIARY (RECEIVING ₱1,000 PENSION)' : '❌ NOT A BENEFICIARY'}
                     </p>
                   </div>
 
                   <div className="space-y-1 sm:col-span-2">
-                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Mga Karagdagang Remarks / Tala</span>
+                    <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider block">Additional Remarks / Notes</span>
                     <p className="text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-150 leading-relaxed italic">
-                      {selectedSenior.remarks || 'Walang karagdagang tala para sa senior citizen na ito.'}
+                      {selectedSenior.remarks || 'No additional notes for this senior citizen.'}
                     </p>
                   </div>
 
@@ -1478,7 +1478,7 @@ export default function FindUserPage() {
                   <div className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
                     <Sparkles className="text-amber-500 shrink-0 mt-0.5" size={14} />
                     <p className="text-[10px] text-slate-500 leading-normal">
-                      Ang Senior Citizen na ito ay opisyal na nakarehistro sa ilalim ng encoder na si <strong className="text-slate-700">{selectedSenior.registeredBy}</strong> noong <strong className="text-slate-700">{selectedSenior.registeredDate}</strong>. Ang profile na ito ay ganap na verified para sa lahat ng MSWDO benefits sa Juban, Sorsogon.
+                      This Senior Citizen is officially registered under the encoder <strong className="text-slate-700">{selectedSenior.registeredBy}</strong> on <strong className="text-slate-700">{selectedSenior.registeredDate}</strong>. This profile is fully verified for all MSWDO benefits in Juban, Sorsogon.
                     </p>
                   </div>
                 </div>

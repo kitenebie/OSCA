@@ -48,7 +48,7 @@ export default function NFCWriteModal({ senior, onClose, onSuccess }: NFCWriteMo
       auditLogsService.log({
         action: 'CREATE',
         entity: 'Senior',
-        details: `Nai-program / nai-write sa NFC Smart Card ang record ni Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
+        details: `Programmed / wrote NFC Smart Card record for Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: senior.barangay,

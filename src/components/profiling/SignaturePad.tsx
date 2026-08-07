@@ -246,7 +246,7 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
         {!hasDrawn && (
           <div className="absolute inset-x-8 bottom-10 border-t border-dashed border-slate-200 pointer-events-none flex justify-center">
             <span className="text-[10px] text-slate-300 font-medium px-2 bg-white -mt-2 uppercase tracking-widest select-none">
-              Lumagda sa ibabaw ng linyang ito (Sign here)
+              Sign above this line
             </span>
           </div>
         )}
@@ -257,7 +257,7 @@ export default function SignaturePad({ value, onChange }: SignaturePadProps) {
         <div className="flex items-center gap-2 text-slate-500 text-[11px] font-medium">
           <div className={`w-1.5 h-1.5 rounded-full ${hasDrawn ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
           <span>
-            {hasDrawn ? 'Lagda naitala (Signature Captured)' : 'Waiting for digital signature input.'}
+            {hasDrawn ? 'Signature Captured' : 'Waiting for digital signature input.'}
           </span>
         </div>
         

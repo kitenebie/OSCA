@@ -226,7 +226,7 @@ export default function SeniorRegistrationPage() {
       for (const field of requiredFields) {
         const val = (form as any)[field.key];
         if (!val || (typeof val === 'string' && !val.trim())) {
-          showToast(`Pakisuyong punan ang kinakailangang field: ${field.label} *`, 'warning');
+          showToast(`Please fill in the required field: ${field.label} *`, 'warning');
           return false;
         }
       }
@@ -234,15 +234,15 @@ export default function SeniorRegistrationPage() {
     if (stepNum === 2) {
       if (form.inRiskArea === 'yes') {
         if (!form.riskType) {
-          showToast('Kailangan piliin ang Uri ng Panganib (Risk Type).', 'warning');
+          showToast('Please select the Risk Type.', 'warning');
           return false;
         }
         if (!form.riskSeverity) {
-          showToast('Kailangan piliin ang Critical Level (Severity).', 'warning');
+          showToast('Please select the Severity Level.', 'warning');
           return false;
         }
         if (form.riskType === 'Others' && (!form.riskDetails || !form.riskDetails.trim())) {
-          showToast('Kailangan tukuyin ang Iba pang Panganib (Details).', 'warning');
+          showToast('Please specify the Other Risk Details.', 'warning');
           return false;
         }
       }
@@ -264,7 +264,7 @@ export default function SeniorRegistrationPage() {
       for (const field of requiredFields) {
         const val = (form as any)[field.key];
         if (!val || (typeof val === 'string' && !val.trim())) {
-          showToast(`Pakisuyong punan ang kinakailangang field: ${field.label} *`, 'warning');
+          showToast(`Please fill in the required field: ${field.label} *`, 'warning');
           return false;
         }
       }
@@ -281,7 +281,7 @@ export default function SeniorRegistrationPage() {
       for (const field of requiredFields) {
         const val = (form as any)[field.key];
         if (!val || (typeof val === 'string' && !val.trim())) {
-          showToast(`Pakisuyong punan ang kinakailangang field: ${field.label} *`, 'warning');
+          showToast(`Please fill in the required field: ${field.label} *`, 'warning');
           return false;
         }
       }
@@ -292,19 +292,19 @@ export default function SeniorRegistrationPage() {
     }
     if (stepNum === 6) {
       if (!form.profilePhoto) {
-        showToast('Kailangan kumuha ng biometric profile photo bago magpatuloy.', 'warning');
+        showToast('A biometric profile photo is required before proceeding.', 'warning');
         return false;
       }
     }
     if (stepNum === 7) {
       if (!form.signatureData) {
-        showToast('Kailangan lumagda sa digital signature pad.', 'warning');
+        showToast('Please sign on the digital signature pad.', 'warning');
         return false;
       }
     }
     if (stepNum === 8) {
       if (!form.fingerprintTemplate) {
-        showToast('Mangyaring i-scan ang fingerprint muna sa biometric device.', 'warning');
+        showToast('Please scan fingerprint on the biometric device first.', 'warning');
         return false;
       }
     }
@@ -327,7 +327,7 @@ export default function SeniorRegistrationPage() {
     if (!validateStep(8)) return;
 
     setIsSubmitting(true);
-    showToast('Ipinapadala ang rehistro sa LGU database...', 'info');
+    showToast('Submitting registration to LGU database...', 'info');
 
     // Simulate database write delay
     await new Promise((resolve) => setTimeout(resolve, 1200));
@@ -339,7 +339,7 @@ export default function SeniorRegistrationPage() {
     const calculatedAge = Math.abs(ageDate.getUTCFullYear() - 1970);
 
     if (calculatedAge < 45) {
-      showToast('Hindi maaaring irehistro: Ang edad ay dapat hindi bababa sa 45 taong gulang.', 'error');
+      showToast('Cannot register: Age must be at least 45 years old.', 'error');
       return;
     }
 
@@ -393,19 +393,19 @@ export default function SeniorRegistrationPage() {
       // UPDATE existing senior
       await updateSenior(editingSenior.id, mappedSenior);
       setIsSubmitting(false);
-      showToast('Matagumpay na na-update ang record ng senior!', 'success');
+      showToast('Senior record updated successfully!', 'success');
       setCurrentPage('SeniorsList');
     } else {
       // CREATE new senior
       await addSenior(mappedSenior, currentUser?.fullName || 'LGU Encoder');
       setIsSubmitting(false);
-      showToast('Matagumpay na nairehistro ang aplikasyon! Nag-broadcast na rin ng SMS Alert sa senior.', 'success');
+      showToast('Application successfully registered! SMS Alert has been broadcast to the senior.', 'success');
 
       // Notify all users
       auditLogsService.log({
         action: 'CREATE',
         entity: 'Senior',
-        details: `Bagong Senior Citizen nairehistro: ${form.firstName} ${form.lastName} — Barangay ${form.barangay}`,
+        details: `New Senior Citizen registered: ${form.firstName} ${form.lastName} — Barangay ${form.barangay}`,
         actorName: currentUser?.fullName || 'System',
         actorRole: currentUser?.role || 'encoder',
         barangay: form.barangay,
@@ -423,10 +423,10 @@ export default function SeniorRegistrationPage() {
       {/* Page Title */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm lg:block hidden">
         <h4 className="font-bold text-slate-800 text-sm md:text-base">
-          {isEditMode ? `I-edit ang Record: ${editingSenior?.firstName} ${editingSenior?.lastName}` : 'Bagong Rehistro ng Senior Citizen'}
+          {isEditMode ? `Edit Record: ${editingSenior?.firstName} ${editingSenior?.lastName}` : 'New Senior Citizen Registration'}
         </h4>
         <p className="text-[11px] text-slate-400">
-          {isEditMode ? 'I-update ang mga impormasyon ng senior citizen' : 'Step-by-step biometric and geographic registration form wizard'}
+          {isEditMode ? 'Update the senior citizen information' : 'Step-by-step biometric and geographic registration form wizard'}
         </p>
       </div>
 
@@ -497,7 +497,7 @@ export default function SeniorRegistrationPage() {
                 </div>
                 <div>
                   <span className="text-[9.5px] font-bold text-slate-400 font-mono uppercase tracking-wider block font-sans leading-none">
-                    Hakbang {currentStep} ng {STEPS.length}
+                    Step {currentStep} of {STEPS.length}
                   </span>
                   <h5 className="text-xs font-extrabold text-slate-800 uppercase tracking-tight mt-1 leading-none">
                     {STEPS[currentStep - 1].label}
@@ -511,7 +511,7 @@ export default function SeniorRegistrationPage() {
                   onClick={() => setCurrentStep(prev => prev - 1)}
                   className="text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer"
                 >
-                  ← Bumalik
+                  ← Back
                 </button>
               )}
             </div>
@@ -531,7 +531,7 @@ export default function SeniorRegistrationPage() {
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokasyon at Residensya (Location & Address)</h5>
-                  <p className="text-[10.5px] text-slate-400">Punan ang rehiyonal at barangay address details ng Senior Citizen.</p>
+                  <p className="text-[10.5px] text-slate-400">Fill in the regional and barangay address details of the Senior Citizen.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -636,8 +636,8 @@ export default function SeniorRegistrationPage() {
             <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri ng Panganib sa Lugar (Disaster Risk Profiling)</h5>
-                  <p className="text-[10.5px] text-slate-400">Tukuyin kung ang tirahan ay nasa loob ng mga disaster-prone sectors sa LGU Juban.</p>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Disaster Risk Profiling</h5>
+                  <p className="text-[10.5px] text-slate-400">Determine if the residence is within disaster-prone sectors in LGU Juban.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -650,7 +650,7 @@ export default function SeniorRegistrationPage() {
               <div className="space-y-3 pt-4">
                 <h6 className="text-[11px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
-                  Disaster Risk Profiling (Pagsusuri ng Panganib sa Lugar)
+                  Disaster Risk Profiling
                 </h6>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -664,15 +664,15 @@ export default function SeniorRegistrationPage() {
                       required
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
                     >
-                      <option value="no">Hindi (No)</option>
-                      <option value="yes">Oo (Yes)</option>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
                     </select>
                   </div>
 
                   {/* Type of Risk (Shown only if inRiskArea is yes) */}
                   {form.inRiskArea === 'yes' && (
                     <div className="space-y-1.5 animate-fadeIn">
-                      <label htmlFor="risk-type" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Uri ng Panganib (Risk Type) *</label>
+                      <label htmlFor="risk-type" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Risk Type *</label>
                       <select
                         id="risk-type"
                         value={form.riskType}
@@ -682,10 +682,10 @@ export default function SeniorRegistrationPage() {
                       >
                         <option value="">--Select Risk Type--</option>
                         <option value="Flooding">Flooding (Pagbaha)</option>
-                        <option value="Landslide">Landslide (Pagguho ng Lupa)</option>
+                        <option value="Landslide">Landslide</option>
                         <option value="Volcanic Eruption">Volcanic Hazard (Bulkan)</option>
                         <option value="Storm Surge">Storm Surge (Daluyong-Bagyo)</option>
-                        <option value="Others">Iba pa (Others)</option>
+                        <option value="Others">Others</option>
                       </select>
                     </div>
                   )}
@@ -708,7 +708,7 @@ export default function SeniorRegistrationPage() {
                           <span className="text-[11px] font-bold">Mababa (Low)</span>
                           <span className={`w-3.5 h-3.5 rounded-full bg-emerald-500`}></span>
                         </div>
-                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Ligtas o maliit na banta ng panganib sa lugar.</span>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Safe or minimal risk in the area.</span>
                       </div>
 
                       {/* MEDIUM CARD */}
@@ -723,7 +723,7 @@ export default function SeniorRegistrationPage() {
                           <span className="text-[11px] font-bold">Katamtaman (Medium)</span>
                           <span className={`w-3.5 h-3.5 rounded-full bg-amber-500`}></span>
                         </div>
-                        <span className="text-[9px] leading-tight text-slate-400 mt-1">May pana-panahong pagbaha o katamtamang panganib.</span>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Occasional flooding or moderate risk.</span>
                       </div>
 
                       {/* HIGH CARD */}
@@ -738,7 +738,7 @@ export default function SeniorRegistrationPage() {
                           <span className="text-[11px] font-bold">Mataas (High)</span>
                           <span className={`w-3.5 h-3.5 rounded-full bg-orange-500`}></span>
                         </div>
-                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Madalas bahain o malapit sa landslide/hazard zones.</span>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Frequently flooded or near landslide/hazard zones.</span>
                       </div>
 
                       {/* CRITICAL CARD */}
@@ -753,7 +753,7 @@ export default function SeniorRegistrationPage() {
                           <span className="text-[11px] font-bold">Kritikal (Critical)</span>
                           <span className={`w-3.5 h-3.5 rounded-full bg-red-500 animate-pulse`}></span>
                         </div>
-                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Lubhang mapanganib at kailangang ilikas agad tuwing may banta.</span>
+                        <span className="text-[9px] leading-tight text-slate-400 mt-1">Extremely dangerous; immediate evacuation needed during threats.</span>
                       </div>
                     </div>
                   </div>
@@ -762,7 +762,7 @@ export default function SeniorRegistrationPage() {
                 {/* Others custom input (Shown only if inRiskArea is yes and riskType is Others) */}
                 {form.inRiskArea === 'yes' && form.riskType === 'Others' && (
                   <div className="space-y-1.5 animate-fadeIn max-w-md">
-                    <label htmlFor="risk-details" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Iba pang Panganib (Specify Risk details) *</label>
+                    <label htmlFor="risk-details" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Other Risk (Specify details) *</label>
                     <input
                       id="risk-details"
                       type="text"
@@ -783,8 +783,8 @@ export default function SeniorRegistrationPage() {
             <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Personal na Impormasyon (Personal Details)</h5>
-                  <p className="text-[10.5px] text-slate-400">Paki-sulat ang opisyal na personal at contact details ng Senior Citizen.</p>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Personal Information (Personal Details)</h5>
+                  <p className="text-[10.5px] text-slate-400">Enter the official personal and contact details of the Senior Citizen.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -797,7 +797,7 @@ export default function SeniorRegistrationPage() {
               <div className="space-y-4">
                 <h6 className="text-[11px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
-                  Personal na Impormasyon (Personal details)
+                  Personal Information (Personal Details)
                 </h6>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                   <div className="space-y-1.5">
@@ -893,10 +893,10 @@ export default function SeniorRegistrationPage() {
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
                     >
                       <option value="">Choose option</option>
-                      <option value="Single">Walang Asawa (Single)</option>
+                      <option value="Single">Single</option>
                       <option value="Married">May Asawa (Married)</option>
                       <option value="Widowed">Biyudo/Biyuda (Widowed)</option>
-                      <option value="Separated">Hiwalay (Separated)</option>
+                      <option value="Separated">Separated</option>
                       <option value="Divorced">Divorced</option>
                     </select>
                   </div>
@@ -1006,8 +1006,8 @@ export default function SeniorRegistrationPage() {
             <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Mga ID, Trabaho at Katayuan (Government IDs & Status)</h5>
-                  <p className="text-[10.5px] text-slate-400">Punan ang mga ID card numbers, pension status, at emergency contact details.</p>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Government IDs & Status</h5>
+                  <p className="text-[10.5px] text-slate-400">Fill in the ID card numbers, pension status, and emergency contact details.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1020,7 +1020,7 @@ export default function SeniorRegistrationPage() {
               <div className="space-y-4">
                 <h6 className="text-[11px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
-                  Mga Numero ng ID sa Gobyerno (Government Identification Numbers)
+                  Government Identification Numbers
                 </h6>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1.5">
@@ -1148,7 +1148,7 @@ export default function SeniorRegistrationPage() {
               <div className="space-y-4">
                 <h6 className="text-[11px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>
-                  Impormasyon sa Emergency (Emergency Contact Details)
+                  Emergency Contact Details
                 </h6>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-1.5">
@@ -1179,8 +1179,6 @@ export default function SeniorRegistrationPage() {
                 </div>
               </div>
 
-
-
             </div>
           )}
 
@@ -1190,7 +1188,7 @@ export default function SeniorRegistrationPage() {
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Lokalidad at Geotag Pinning (Address Details)</h5>
-                  <p className="text-[10.5px] text-slate-400">Isulat ang exact address, at i-double-click o i-drag ang pin sa map upang makuha ang GPS coordinates.</p>
+                  <p className="text-[10.5px] text-slate-400">Enter the exact address, and double-click or drag the pin on the map to get the GPS coordinates.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1229,7 +1227,7 @@ export default function SeniorRegistrationPage() {
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h5>
-                  <p className="text-[10.5px] text-slate-400">Kailangan ng malinaw na biometric profile shot laban sa maliwanag na background para sa ID Card rendering.</p>
+                  <p className="text-[10.5px] text-slate-400">A clear biometric profile shot against a bright background is required for ID Card rendering.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1251,7 +1249,7 @@ export default function SeniorRegistrationPage() {
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">E-Lagda Digital Signature Pad</h5>
-                  <p className="text-[10.5px] text-slate-400">Gawing digital ang lagda ng senior sa pamamagitan ng pagguhit gamit ang mouse o touch-pen sa tablet.</p>
+                  <p className="text-[10.5px] text-slate-400">Digitize the senior's signature by drawing with a mouse or touch-pen on the tablet.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1273,7 +1271,7 @@ export default function SeniorRegistrationPage() {
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h5>
-                  <p className="text-[10.5px] text-slate-400">I-scan ang hinlalaki ng senior sa connected USB biometric device upang ma-enroll ang fingerprint template.</p>
+                  <p className="text-[10.5px] text-slate-400">Scan the senior's thumb on the connected USB biometric device to enroll the fingerprint template.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1294,8 +1292,8 @@ export default function SeniorRegistrationPage() {
             <div className="space-y-6 max-w-full animate-fadeIn">
               <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Pagsusuri bago I-submit (Review Registration Details)</h5>
-                  <p className="text-[10.5px] text-slate-400">Suriing mabuti ang lahat ng detalye sa ibaba. Ang records na ito ay isasailalim sa review bago maaprubahan.</p>
+                  <h5 className="font-bold text-sm text-slate-800 uppercase tracking-wide">Review Before Submission (Review Registration Details)</h5>
+                  <p className="text-[10.5px] text-slate-400">Carefully review all details below. These records will undergo review before approval.</p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
@@ -1317,10 +1315,10 @@ export default function SeniorRegistrationPage() {
                   <div className="grid grid-cols-2 gap-3 leading-normal">
                     <div className="col-span-2 p-3 bg-teal-50 border border-teal-100 rounded-xl flex items-center justify-between" id="generated-id-card-banner">
                       <div>
-                        <span className="text-[8.5px] text-teal-700 uppercase tracking-wider block font-bold">Generated OSCA ID (Sistemang ID)</span>
+                        <span className="text-[8.5px] text-teal-700 uppercase tracking-wider block font-bold">Generated OSCA ID (System ID)</span>
                         <strong className="text-teal-900 font-mono text-xs tracking-wide uppercase">{previewOscaNumber}</strong>
                       </div>
-                      <span className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-teal-600 text-white uppercase tracking-wider">Awtomatiko</span>
+                      <span className="text-[9px] font-bold font-mono px-2 py-0.5 rounded bg-teal-600 text-white uppercase tracking-wider">Auto-generated</span>
                     </div>
                     <div>
                       <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">FirstName</span>
@@ -1369,7 +1367,7 @@ export default function SeniorRegistrationPage() {
                     <div>
                       <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">Nasa Risk Area Ba?</span>
                       <strong className={`uppercase ${form.inRiskArea === 'yes' ? 'text-red-600 font-bold' : 'text-slate-800'}`}>
-                        {form.inRiskArea === 'yes' ? 'Oo (Yes)' : 'Hindi (No)'}
+                        {form.inRiskArea === 'yes' ? 'Yes' : 'No'}
                       </strong>
                     </div>
                     {form.inRiskArea === 'yes' && (
@@ -1501,7 +1499,7 @@ export default function SeniorRegistrationPage() {
               className="flex items-center gap-1.5 px-4.5 py-2.5 border border-slate-200 hover:border-slate-400 text-xs font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95"
             >
               <ArrowLeft size={13} />
-              <span>Bumalik (Back)</span>
+              <span>Back (Back)</span>
             </button>
           ) : (
             <button
@@ -1509,7 +1507,7 @@ export default function SeniorRegistrationPage() {
               onClick={() => setCurrentPage('SeniorsList')}
               className="px-4.5 py-2.5 border border-slate-200 hover:border-slate-400 text-xs font-semibold text-slate-500 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95"
             >
-              Bumalik sa Listahan
+              Back to List
             </button>
           )}
 
@@ -1531,15 +1529,13 @@ export default function SeniorRegistrationPage() {
               className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-xs font-bold text-white rounded-xl shadow-md shadow-emerald-600/10 transition-all duration-150 active:scale-95 cursor-pointer"
             >
               <Check size={13} />
-              <span>{isSubmitting ? 'Sumusumite...' : isEditMode ? 'I-update ang Record' : 'Isumite ang Aplikasyon (Submit)'}</span>
+              <span>{isSubmitting ? 'Submitting...' : isEditMode ? 'Update Record' : 'Submit Application'}</span>
             </button>
           )}
 
         </div>
 
       </div>
-
-
 
     </div>
   );

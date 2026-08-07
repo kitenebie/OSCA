@@ -434,7 +434,7 @@ const COLOR_PALETTES_DARK = [
     applySystemTheme(updated);
     // Save to Supabase per-user
     if (currentUser) {
-      userSettingsService.upsert(currentUser.id, updated).catch((err) => { console.error('[THEME SAVE ERROR]', err); showToast('Hindi ma-save ang theme settings.', 'error'); });
+      userSettingsService.upsert(currentUser.id, updated).catch((err) => { console.error('[THEME SAVE ERROR]', err); showToast('Could not save theme settings.', 'error'); });
     }
   };
 
@@ -444,7 +444,7 @@ const COLOR_PALETTES_DARK = [
     if (currentUser) {
       userSettingsService.remove(currentUser.id).catch(() => {});
     }
-    showToast('Na-reset sa default theme settings.', 'info');
+    showToast('Reset to default theme settings.', 'info');
   };
 
   const [roles, setRoles] = useState<RolePermission[]>([]);
@@ -522,11 +522,11 @@ const COLOR_PALETTES_DARK = [
   const handleAddRole = () => {
     const name = newRoleName.trim().toLowerCase().replace(/\s+/g, '-');
     if (!name) {
-      showToast('Mangyaring mag-lagay ng pangalan ng role.', 'warning');
+      showToast('Please enter a role name.', 'warning');
       return;
     }
     if (roles.find((r) => r.role === name)) {
-      showToast('Mayroon nang role na may ganitong pangalan.', 'error');
+      showToast('A role with that name already exists.', 'error');
       return;
     }
 
@@ -567,18 +567,18 @@ const COLOR_PALETTES_DARK = [
       },
     ]);
     setNewRoleName('');
-    showToast(`Role "${name}" na-dagdag na. I-save para ma-apply.`, 'success');
+    showToast(`Role "${name}" added. Save to apply.`, 'success');
   };
 
   // Delete role
   const handleDeleteRole = (roleName: string) => {
     if (roleName === 'super-admin') {
-      showToast('Hindi pwedeng burahin ang super-admin role.', 'error');
+      showToast('Cannot delete the super-admin role.', 'error');
       return;
     }
 
     setRoles((prev) => prev.filter((r) => r.role !== roleName));
-    showToast(`Role "${roleName}" natanggal na. I-save para ma-apply.`, 'info');
+    showToast(`Role "${roleName}" removed. Save to apply.`, 'info');
   };
 
   // Rename role
@@ -589,14 +589,14 @@ const COLOR_PALETTES_DARK = [
       return;
     }
     if (roles.find((r) => r.role === name)) {
-      showToast('Mayroon nang role na may ganitong pangalan.', 'error');
+      showToast('A role with that name already exists.', 'error');
       return;
     }
     setRoles((prev) =>
       prev.map((r) => (r.role === oldName ? { ...r, role: name } : r))
     );
     setEditingRole(null);
-    showToast(`Role renamed to "${name}". I-save para ma-apply.`, 'success');
+    showToast(`Role renamed to "${name}". Save to apply.`, 'success');
   };
 
   // Save roles configuration to Supabase & localStorage
@@ -625,10 +625,10 @@ const COLOR_PALETTES_DARK = [
       // Re-initialize auth store roles
       await useAuthStore.getState().initialize();
 
-      showToast('Matagumpay na na-save ang roles configuration!', 'success');
+      showToast('Roles configuration saved successfully!', 'success');
     } catch (err: any) {
       console.error('Save roles error:', err);
-      showToast('Matagumpay na na-save ang roles configuration sa lokal!', 'success');
+      showToast('Roles configuration saved locally!', 'success');
     }
     setIsSaving(false);
   };
@@ -636,7 +636,7 @@ const COLOR_PALETTES_DARK = [
   // Reset to defaults
   const handleResetDefaults = () => {
     setRoles([...DEFAULT_ROLES]);
-    showToast('Na-reset sa default roles. I-save para ma-apply.', 'info');
+    showToast('Reset to default roles. Save to apply.', 'info');
   };
 
   const handleNfcToggle = () => {
@@ -656,7 +656,7 @@ const COLOR_PALETTES_DARK = [
       {/* Page Title */}
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <h4 className="font-bold text-slate-800 text-sm md:text-base">System Configuration & Settings</h4>
-        <p className="text-[11px] text-slate-400">I-configure ang user roles, permissions, at hardware parameters</p>
+        <p className="text-[11px] text-slate-400">Configure user roles, permissions, and hardware parameters</p>
       </div>
 
       {/* ====== ROLE CONFIGURATION SECTION ====== */}
@@ -706,7 +706,7 @@ const COLOR_PALETTES_DARK = [
               className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
             >
               <Save size={11} />
-              {isSaving ? 'Saving...' : 'I-save'}
+              {isSaving ? 'Saving...' : 'Save'}
             </button>
           </div>
         </div>
@@ -719,7 +719,7 @@ const COLOR_PALETTES_DARK = [
               type="text"
               value={newRoleName}
               onChange={(e) => setNewRoleName(e.target.value)}
-              placeholder="Bagong role name (e.g. municipal-encoder)"
+              placeholder="New role name (e.g. municipal-encoder)"
               className="flex-1 px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
               onKeyDown={(e) => e.key === 'Enter' && handleAddRole()}
             />
@@ -955,7 +955,7 @@ const COLOR_PALETTES_DARK = [
                             <button
                               onClick={() => handleDeleteRole(role.role)}
                               className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
-                              title="I-delete ang role"
+                              title="Delete this role"
                             >
                               <Trash2 size={13} />
                             </button>
@@ -975,7 +975,7 @@ const COLOR_PALETTES_DARK = [
           <div className="p-3 bg-blue-50/50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900/60 rounded-xl flex gap-2">
             <HelpCircle size={14} className="text-blue-500 dark:text-blue-300 shrink-0 mt-0.5" />
             <p className="text-[10px] text-blue-700 dark:text-blue-200 leading-relaxed">
-              Gamitin ang <strong>By Role Tabs</strong> para sa mas malinaw at madaling pag-configure ng mga permiso bawat role, o ang <strong>Matrix Grid</strong> para sa pangkalahatang talahanayan. I-click ang "I-save" pagkatapos magpalit.
+              Use <strong>By Role Tabs</strong> for a clearer and easier way to configure permissions per role, or the <strong>Matrix Grid</strong> for an overall table view. Click "Save" after making changes.
             </p>
           </div>
 
@@ -999,7 +999,7 @@ const COLOR_PALETTES_DARK = [
             <div className="space-y-1 max-w-md">
               <span className="font-extrabold text-slate-800 text-xs md:text-sm block">NFC-Enabled OSCA ID Card</span>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Toggle NFC (NTAG213) support para sa biometric scans, automated logging, at quick profile retrieval.
+                Toggle NFC (NTAG213) support for biometric scans, automated logging, and quick profile retrieval.
               </p>
             </div>
             <button 
@@ -1167,7 +1167,7 @@ const COLOR_PALETTES_DARK = [
             <div className="p-5 rounded-xl border border-slate-200" style={{ backgroundColor: theme.bgTint, fontFamily: theme.fontFamily === 'System Default' ? 'system-ui' : theme.fontFamily, fontSize: theme.fontSize }}>
               <div className="space-y-2">
                 <h4 className="font-bold" style={{ color: theme.primaryColor }}>LGU Juban OSCA System</h4>
-                <p className="text-slate-600">Ito ang preview ng inyong napiling theme settings. Ang lahat ng text at kulay ay nagbabago in real-time.</p>
+                <p className="text-slate-600">This is a preview of your selected theme settings. All text and colors change in real-time.</p>
                 <div className="flex gap-2 pt-1">
                   <span className="px-2.5 py-1 rounded-lg text-white text-[10px] font-bold" style={{ backgroundColor: theme.primaryColor }}>Primary</span>
                   <span className="px-2.5 py-1 rounded-lg text-white text-[10px] font-bold" style={{ backgroundColor: theme.secondaryColor }}>Secondary</span>
@@ -1182,7 +1182,6 @@ const COLOR_PALETTES_DARK = [
         </div>
       </div>
 
-
       {/* ====== BIOMETRIC HARDWARE TESTING SECTION ====== */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
         <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
@@ -1192,7 +1191,7 @@ const COLOR_PALETTES_DARK = [
 
         <div className="p-6 space-y-8">
           <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
-            I-test at i-calibrate ang mga biometric devices na konektado sa system bago gamitin sa profiling ng senior citizens.
+            Test and calibrate the biometric devices connected to the system before using them for senior citizen profiling.
           </p>
 
           {/* --- Biometric Profile Photo (Camera Sync) --- */}
@@ -1202,7 +1201,7 @@ const COLOR_PALETTES_DARK = [
               <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Biometric Profile Photo (Camera Sync)</h6>
               <span className="text-[9px] font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 px-2 py-0.5 rounded-full border border-blue-100 dark:border-blue-800 uppercase tracking-wider">Test Mode</span>
             </div>
-            <p className="text-[10px] text-slate-400">I-test ang camera connection at AI face detection para siguraduhing gumagana bago gamitin sa registration.</p>
+            <p className="text-[10px] text-slate-400">Test the camera connection and AI face detection to ensure they are working before use in registration.</p>
             <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
               <InlineFaceCapture
                 value={null}
@@ -1218,7 +1217,7 @@ const COLOR_PALETTES_DARK = [
               <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">E-Lagda Digital Signature Pad</h6>
               <span className="text-[9px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-100 dark:border-purple-800 uppercase tracking-wider">Test Mode</span>
             </div>
-            <p className="text-[10px] text-slate-400">I-test ang digital signature pad — gumuhit gamit ang mouse o stylus pen para i-verify na gumagana ang stroke capture.</p>
+            <p className="text-[10px] text-slate-400">Test the digital signature pad — draw with a mouse or stylus pen to verify that stroke capture is working.</p>
             <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
               <SignaturePad
                 value={null}
@@ -1234,7 +1233,7 @@ const COLOR_PALETTES_DARK = [
               <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h6>
               <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-100 dark:border-amber-800 uppercase tracking-wider">Test Mode</span>
             </div>
-            <p className="text-[10px] text-slate-400">I-sync at i-test ang USB fingerprint scanner device. Siguraduhing naka-install ang driver at naka-connect ang device.</p>
+            <p className="text-[10px] text-slate-400">Sync and test the USB fingerprint scanner device. Ensure the driver is installed and the device is connected.</p>
             <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
               <ThumbprintCapture
                 value={null}

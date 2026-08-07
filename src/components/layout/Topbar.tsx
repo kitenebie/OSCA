@@ -101,8 +101,8 @@ export default function Topbar() {
       }
     }
 
-    const modeLabels = { light: 'Maliwanag (Light)', dark: 'Madilim (Dark)', system: 'Sangguniang Sistema (System)' };
-    showToast(`Inilapat ang tema: ${modeLabels[mode]}`, 'info');
+    const modeLabels = { light: 'Light', dark: 'Dark', system: 'System' };
+    showToast(`Theme applied: ${modeLabels[mode]}`, 'info');
   };
 
   const formattedTime = time.toLocaleTimeString('en-US', {
@@ -140,11 +140,11 @@ export default function Topbar() {
               {PAGE_TITLES[currentPage]}
             </h1>
             <p className="text-[9px] text-slate-400 font-extrabold uppercase tracking-wider md:flex items-center gap-1.5 hidden">
-              <span>Republika ng Pilipinas</span>
+              <span>Republic of the Philippines</span>
               <span>•</span>
-              <span className="text-teal-600">Lalawigan ng Sorsogon</span>
+              <span className="text-teal-600">Province of Sorsogon</span>
               <span>•</span>
-              <span className="text-blue-700">Bayan ng Juban</span>
+              <span className="text-blue-700">Municipality of Juban</span>
             </p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function Topbar() {
               <button
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
                 className="p-2 text-slate-500 hover:text-emerald-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative flex items-center justify-center cursor-pointer"
-                title="Mga Abiso at Audit Logs"
+                title="Notifications & Audit Logs"
               >
                 <Bell size={18} className="text-emerald-700 dark:text-teal-400" />
                 {unreadCount > 0 && (
@@ -200,7 +200,7 @@ export default function Topbar() {
                         type="button"
                         onClick={() => auditLogsService.markAllAsRead()}
                         className="p-1 text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all cursor-pointer"
-                        title="Mark lahat bilang nabasa"
+                        title="Mark all as read"
                       >
                         <CheckCheck size={14} />
                       </button>
@@ -208,7 +208,7 @@ export default function Topbar() {
                         type="button"
                         onClick={() => auditLogsService.clearAll()}
                         className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all cursor-pointer"
-                        title="Burahin ang mga abiso"
+                        title="Clear all notifications"
                       >
                         <Trash size={14} />
                       </button>
@@ -220,8 +220,8 @@ export default function Topbar() {
                     {notifications.length === 0 ? (
                       <div className="text-center py-10 px-4">
                         <Bell size={24} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Walang bagong notification o audit log.</p>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Awtomatikong lalabas dito kapag may bagong record o pagbabago sa system.</p>
+                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No new notifications or audit logs.</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Notifications will appear here when there are new records or system changes.</p>
                       </div>
                     ) : (
                       notifications.map((n) => {
@@ -303,7 +303,7 @@ export default function Topbar() {
               {themeDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-50 animate-fadeIn">
                   <div className="px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Moda ng Tema (Theme)</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">Theme Mode</p>
                   </div>
 
                   <button
@@ -316,7 +316,7 @@ export default function Topbar() {
                   >
                     <div className="flex items-center gap-2.5">
                       <Sun size={15} className="text-amber-500" />
-                      <span>Light (Maliwanag)</span>
+                      <span>Light</span>
                     </div>
                     {activeMode === 'light' && <Check size={14} className="text-amber-600" />}
                   </button>
@@ -331,7 +331,7 @@ export default function Topbar() {
                   >
                     <div className="flex items-center gap-2.5">
                       <Moon size={15} className="text-teal-400" />
-                      <span>Dark (Madilim)</span>
+                      <span>Dark</span>
                     </div>
                     {activeMode === 'dark' && <Check size={14} className="text-teal-500" />}
                   </button>
@@ -346,7 +346,7 @@ export default function Topbar() {
                   >
                     <div className="flex items-center gap-2.5">
                       <Monitor size={15} className="text-emerald-600 dark:text-emerald-400" />
-                      <span>System (Sistema)</span>
+                      <span>System</span>
                     </div>
                     {activeMode === 'system' && <Check size={14} className="text-emerald-600" />}
                   </button>

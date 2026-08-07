@@ -56,7 +56,7 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
           className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 hover:text-blue-900 transition-colors bg-blue-50 hover:bg-blue-100 rounded-full px-3 py-1.5"
         >
           <RotateCcw size={11} />
-          {flipped ? 'Tingnan ang Harap' : 'Tingnan ang Likod'}
+          {flipped ? 'View Front' : 'View Back'}
         </button>
       </div>
 
@@ -117,7 +117,7 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
                       <img src="/juban-logo.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 7, fontWeight: 800, color: C.white, letterSpacing: '0.5px', lineHeight: 1.1, textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>BAYAN NG JUBAN</div>
+                      <div style={{ fontSize: 7, fontWeight: 800, color: C.white, letterSpacing: '0.5px', lineHeight: 1.1, textTransform: 'uppercase', textShadow: '0 1px 2px rgba(0,0,0,0.2)' }}>MUNICIPALITY OF JUBAN</div>
                       <div style={{ fontSize: 5.5, fontWeight: 600, color: 'rgba(254,254,254,0.85)', lineHeight: 1.1, textTransform: 'uppercase' }}>Office of Senior Citizens Affairs</div>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
                       <img src="/juban-logo.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <div>
-                      <div style={{ fontSize: 7, fontWeight: 800, color: C.white, letterSpacing: '0.5px', textTransform: 'uppercase', lineHeight: 1.1 }}>BAYAN NG JUBAN</div>
+                      <div style={{ fontSize: 7, fontWeight: 800, color: C.white, letterSpacing: '0.5px', textTransform: 'uppercase', lineHeight: 1.1 }}>MUNICIPALITY OF JUBAN</div>
                       <div style={{ fontSize: 5.5, fontWeight: 600, color: 'rgba(254,254,254,0.8)', textTransform: 'uppercase', lineHeight: 1.1 }}>OSCA — Sorsogon, Philippines</div>
                     </div>
                   </div>
@@ -301,18 +301,15 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
                     <span style={{ fontSize: 5, fontWeight: 700, color: C.white, fontFamily: "'Consolas','SF Mono',monospace", letterSpacing: '0.8px', textTransform: 'uppercase' }}>SMART TAG</span>
                   </div>
 
-                  {/* Terms & Privileges text */}
+                  {/* Benefits & Privileges text (matching Variant 2) */}
                   <div style={{ position: 'absolute', top: 36, left: 14, right: 120, zIndex: 10 }}>
-                    <div style={{ fontSize: 6.5, fontWeight: 800, color: C.white, textTransform: 'uppercase', letterSpacing: '0.5px', lineHeight: 1, marginBottom: 4 }}>Terms &amp; Privileges</div>
-                    <div style={{ fontSize: 5.5, fontWeight: 400, color: C.white, lineHeight: 1.45 }}>
-                      <p style={{ margin: '0 0 2px' }}>1. 20% Discount on Medicines, transport, hospitals, medical supplies as per RA 9994.</p>
-                      <p style={{ margin: '0 0 2px' }}>2. Non-transferable. Misuse is punishable under LGU Municipal Penal Codes.</p>
-                      <p style={{ margin: '0 0 2px' }}>3. If lost, report immediately to OSCA Office, Juban Municipal Hall.</p>
-                    </div>
-                    <div style={{ marginTop: 5 }}>
-                      <div style={{ fontSize: 5.5, fontWeight: 800, color: C.white, textTransform: 'uppercase', letterSpacing: '0.4px', lineHeight: 1, marginBottom: 2 }}>Emergency Contact:</div>
-                      <div style={{ fontSize: 5.5, fontWeight: 500, color: C.white, lineHeight: 1.4 }}>Landline: (056) 211-1234 (MSWDO)</div>
-                      <div style={{ fontSize: 5.5, fontWeight: 500, color: C.white, lineHeight: 1.4 }}>Mobile: {senior.contactNumber || '+63 LGU Emergency'}</div>
+                    <div style={{ fontSize: 5.5, fontWeight: 800, color: C.white, textTransform: 'uppercase', letterSpacing: '0.3px', lineHeight: 1, marginBottom: 4 }}>BENEFITS & PRIVILEGES UNDER RA 9994</div>
+                    <div style={{ fontSize: 5, fontWeight: 400, color: C.white, lineHeight: 1.35, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                      <p style={{ margin: 0 }}>Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.</p>
+                      <p style={{ margin: 0 }}>20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.</p>
+                      <p style={{ margin: 0 }}>5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.</p>
+                      <p style={{ margin: 0 }}>20% discount & VAT exemption, if applicable on the sale of goods & services.</p>
+                      <p style={{ margin: 0, fontWeight: 700 }}>Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.</p>
                     </div>
                   </div>
 
@@ -346,17 +343,19 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
                     <span style={{ fontSize: 5.5, fontFamily: "'Consolas','SF Mono',monospace", fontWeight: 700, color: 'rgba(254,254,254,0.7)', marginTop: 1, letterSpacing: '0.5px' }}>{senior.oscaNumber}</span>
                   </div>
 
-                  {/* Footer signatures */}
+                  {/* Footer signatures (matching Variant 2) */}
                   <div style={{ position: 'absolute', bottom: 6, left: 14, right: 14, zIndex: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '1px solid rgba(254,254,254,0.15)', paddingTop: 4 }}>
-                    <div>
-                      <div style={{ fontSize: 6, fontWeight: 800, color: C.white, lineHeight: 1, textTransform: 'uppercase' }}>Hon. Antonio Alindogan</div>
-                      <div style={{ fontSize: 4.5, fontWeight: 500, color: 'rgba(254,254,254,0.65)', textTransform: 'uppercase', marginTop: 1 }}>Municipal Mayor</div>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ borderTop: '1px solid rgba(254,254,254,0.5)', paddingTop: 2 }}>
+                        <div style={{ fontSize: 5.5, fontWeight: 800, color: C.white, lineHeight: 1, textTransform: 'uppercase' }}>Marciana G. Olondriz</div>
+                        <div style={{ fontSize: 4.5, fontWeight: 500, color: 'rgba(254,254,254,0.65)', textTransform: 'uppercase', marginTop: 1 }}>OSCA Head</div>
+                      </div>
                     </div>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ height: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <span style={{ fontSize: 7, fontStyle: 'italic', color: C.white, fontFamily: 'Georgia, serif', transform: 'rotate(-3deg)', display: 'inline-block', opacity: 0.85 }}>M. Santos</span>
+                      <div style={{ borderTop: '1px solid rgba(254,254,254,0.5)', paddingTop: 2 }}>
+                        <div style={{ fontSize: 5.5, fontWeight: 800, color: C.white, lineHeight: 1, textTransform: 'uppercase' }}>Rogel "Botox" B. Fulleros</div>
+                        <div style={{ fontSize: 4.5, fontWeight: 500, color: 'rgba(254,254,254,0.65)', textTransform: 'uppercase', marginTop: 1 }}>Municipal Mayor</div>
                       </div>
-                      <div style={{ fontSize: 4.5, fontWeight: 500, color: 'rgba(254,254,254,0.65)', textTransform: 'uppercase', borderTop: '1px solid rgba(254,254,254,0.3)', paddingTop: 1, marginTop: 1 }}>OSCA Head / MSWDO</div>
                     </div>
                   </div>
                 </div>

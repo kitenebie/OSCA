@@ -206,7 +206,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       auditLogsService.log({
         action: 'CREATE',
         entity: 'User',
-        details: `Idinagdag ang bagong system user: ${newUserData.fullName} (${newUserData.role})`,
+        details: `Added new system user: ${newUserData.fullName} (${newUserData.role})`,
         actorName: actor?.fullName || 'Super Admin',
         actorRole: actor?.role || 'admin',
         barangay: newUserData.barangayAssigned,
@@ -231,7 +231,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       auditLogsService.log({
         action: 'UPDATE',
         entity: 'User',
-        details: `In-update ang user account ni: ${updatedFields.fullName || target?.fullName || id}`,
+        details: `Updated user account of: ${updatedFields.fullName || target?.fullName || id}`,
         actorName: actor?.fullName || 'Super Admin',
         actorRole: actor?.role || 'admin',
         barangay: target?.barangayAssigned,
@@ -267,7 +267,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       auditLogsService.log({
         action: 'DELETE',
         entity: 'User',
-        details: `Tinanggal ang user account ni: ${target ? target.fullName : id}`,
+        details: `Removed user account of: ${target ? target.fullName : id}`,
         actorName: actor?.fullName || 'Super Admin',
         actorRole: actor?.role || 'admin',
         barangay: target?.barangayAssigned,

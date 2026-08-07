@@ -406,6 +406,14 @@ export const smsLogsService = {
     return rows.length;
   },
 
+  async updateStatus(id: string, status: SMSLog['status']): Promise<void> {
+    const { error } = await supabase
+      .from('sms_logs')
+      .update({ status })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
   subscribe(callback: (logs: SMSLog[]) => void) {
     supabase.removeChannel(supabase.channel('sms-logs-realtime'));
     

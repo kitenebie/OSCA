@@ -29,6 +29,7 @@ interface SeniorsState {
 
   sendSMS: (recipientName: string, recipientPhone: string, barangay: string, message: string, sentBy: string) => Promise<boolean>;
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
+  resendSMS: (logId: string) => Promise<void>;
 }
 
 export const useSeniorsStore = create<SeniorsState>((set, get) => ({
@@ -143,7 +144,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       auditLogsService.log({
         action: 'UPDATE',
         entity: 'Senior',
-        details: `In-update ang senior record ni: ${name}`,
+        details: `Updated senior record of: ${name}`,
         actorName: actorName,
         actorRole: 'user',
         barangay: target?.barangay,
@@ -173,7 +174,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       auditLogsService.log({
         action: 'DELETE',
         entity: 'Senior',
-        details: `In-archive / binura ang senior record ni: ${name}`,
+        details: `Archived / deleted senior record of: ${name}`,
         actorName: actorName,
         actorRole: 'admin',
         barangay: target?.barangay,
@@ -201,7 +202,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     auditLogsService.log({
       action: 'APPROVE',
       entity: 'Senior',
-      details: `In-approve ni ${officerName} ang rehistro ni ${name}`,
+      details: `Approved by ${officerName} the registration of ${name}`,
       actorName: officerName,
       actorRole: 'approver',
       barangay: target?.barangay,
@@ -221,7 +222,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     auditLogsService.log({
       action: 'REJECT',
       entity: 'Senior',
-      details: `Tinanggihan ni ${officerName} ang rehistro ni ${name} (Dahilan: ${reason})`,
+      details: `Rejected by ${officerName} the registration of ${name} (Cause: ${reason})`,
       actorName: officerName,
       actorRole: 'approver',
       barangay: target?.barangay,
@@ -244,7 +245,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         recipientPhone,
         barangay,
         message,
-        status: 'Sent',
+        status: 'Pending',
         timestamp: new Date().toISOString(),
         sentBy,
       });
@@ -275,7 +276,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         recipientPhone: r.contactNumber,
         barangay: r.barangay,
         message: message.replace('[name]', r.firstName).replace('[barangay]', r.barangay),
-        status: 'Sent' as const,
+        status: 'Pending' as const,
         timestamp,
         sentBy,
       }));
@@ -287,6 +288,20 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       console.error('Failed to send batch SMS:', error);
       set({ isLoading: false });
       return 0;
+    }
+  },
+
+  resendSMS: async (logId) => {
+    try {
+      await smsLogsService.updateStatus(logId, 'Pending');
+      // Update local state immediately
+      set((state) => ({
+        smsLogs: state.smsLogs.map((log) =>
+          log.id === logId ? { ...log, status: 'Pending' as const } : log
+        ),
+      }));
+    } catch (error) {
+      console.error('Failed to resend SMS:', error);
     }
   },
 }));

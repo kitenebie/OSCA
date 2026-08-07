@@ -149,7 +149,7 @@ export default function MappingPage() {
             Census Demographics Mapping Node
           </h2>
           <p className="text-xs text-slate-400">
-            I-visualize at suriin ang density ng mga rehistradong Senior Citizens sa bawat barangay ng Juban, Sorsogon.
+            Visualize and analyze the density of registered Senior Citizens across each barangay of Juban, Sorsogon.
           </p>
         </div>
         
@@ -157,7 +157,7 @@ export default function MappingPage() {
           onClick={handleResetMap}
           className="px-4 py-2 bg-slate-100 hover:bg-slate-200/80 text-slate-700 text-xs font-extrabold rounded-2xl shadow-sm border border-slate-200 transition-all cursor-pointer shrink-0"
         >
-          I-reset ang Map (Center Juban)
+          Reset Map (Center Juban)
         </button>
       </div>
 
@@ -269,7 +269,7 @@ export default function MappingPage() {
                  type="text"
                  value={brgySearch}
                  onChange={(e) => setBrgySearch(e.target.value)}
-                 placeholder="Maghanap ng Barangay..."
+                 placeholder="Search Barangay..."
                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-xl text-xs font-semibold focus:outline-none transition-all min-w-0"
                />
              </div>
@@ -301,7 +301,7 @@ export default function MappingPage() {
                       <div className="flex items-center gap-2 shrink-0">
                         {/* Overlapping Senior Avatars Stack */}
                         {item.seniors.length > 0 && (
-                          <div className="flex items-center -space-x-2 overflow-hidden" title={`Senior Citizens sa Brgy. ${item.name}`}>
+                          <div className="flex items-center -space-x-2 overflow-hidden" title={`Senior Citizens in Brgy. ${item.name}`}>
                             {item.seniors.slice(0, 3).map((s) => (
                               <div
                                 key={s.id}
@@ -335,7 +335,7 @@ export default function MappingPage() {
                   );
                 })
               ) : (
-                <p className="text-xs text-slate-400 text-center py-6">Walang barangay na tumugma sa inyong paghahanap.</p>
+                <p className="text-xs text-slate-400 text-center py-6">No barangay matched your search.</p>
               )}
             </div>
           </div>
@@ -379,7 +379,7 @@ export default function MappingPage() {
                   <div>
                     <p className="font-bold uppercase tracking-wider text-[9px] text-red-700">Disaster Risk Area Alert</p>
                     <p className="text-red-600 mt-0.5 font-medium">
-                      May mga senior citizen sa barangay na ito na naninirahan sa mga lugar na may panganib (flood/landslide). Sila ay may kulay na badge sa listahan.
+                      Some senior citizens in this barangay reside in hazard-prone areas (flood/landslide). They are marked with a colored badge in the list.
                     </p>
                   </div>
                 </div>

@@ -29,7 +29,6 @@ export default function BarangayChart() {
   const chartGridColor = isDark ? '#334155' : (getComputedStyle(document.documentElement).getPropertyValue('--color-slate-200').trim() || '#f1f5f9');
   const chartTooltipTheme = isDark ? 'dark' : 'light';
 
-
   // --- Dynamic Computations ---
 
   // 1. Barangay Distribution
@@ -227,7 +226,7 @@ export default function BarangayChart() {
             show: true,
             total: {
               show: true,
-              label: 'Kabuuan',
+              label: 'Total',
               formatter: () => String(seniors.length),
               fontSize: '12px',
               fontWeight: 600,
@@ -301,7 +300,7 @@ export default function BarangayChart() {
   // Gender Donut Chart
   const genderDonutOptions: ApexOptions = {
     chart: { type: 'donut' },
-    labels: ['Lalaki (Male)', 'Babae (Female)'],
+    labels: ['Male', 'Female'],
     colors: ['#3B82F6', '#EC4899'],
     legend: {
       position: 'bottom',
@@ -321,7 +320,7 @@ export default function BarangayChart() {
             show: true,
             total: {
               show: true,
-              label: 'Kabuuan',
+              label: 'Total',
               formatter: () => String(seniors.length),
               fontSize: '14px',
               fontWeight: 700,
@@ -365,8 +364,8 @@ export default function BarangayChart() {
     }
   };
   const genderGroupedBarSeries = [
-    { name: 'Lalaki (Male)', data: maleSeries },
-    { name: 'Babae (Female)', data: femaleSeries }
+    { name: 'Male', data: maleSeries },
+    { name: 'Female', data: femaleSeries }
   ];
 
   return (
@@ -388,7 +387,7 @@ export default function BarangayChart() {
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <BarChart size={13} />
-            <span>Kada Barangay</span>
+            <span>Per Barangay</span>
           </button>
           <button
             onClick={() => setActiveTab('demographic')}
@@ -398,7 +397,7 @@ export default function BarangayChart() {
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <PieChart size={13} />
-            <span>Edad at Katayuan</span>
+            <span>Age & Status</span>
           </button>
           <button
             onClick={() => setActiveTab('gender')}
@@ -408,7 +407,7 @@ export default function BarangayChart() {
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <Users size={13} />
-            <span>Kasarian</span>
+            <span>Sex</span>
           </button>
           <button
             onClick={() => setActiveTab('trends')}
@@ -418,7 +417,7 @@ export default function BarangayChart() {
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <TrendingUp size={13} />
-            <span>Trend ng Rehistro</span>
+            <span>Registration Trends</span>
           </button>
         </div>
       </div>
@@ -442,7 +441,7 @@ export default function BarangayChart() {
         {activeTab === 'demographic' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div className="flex flex-col items-center">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Edad Distribution (Age Brackets)</span>
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Age Distribution (Age Brackets)</span>
               <div className="w-full max-w-[240px] min-[380px]:max-w-[260px]">
                 <ReactApexChart 
                   options={donutChartOptions} 
@@ -454,7 +453,7 @@ export default function BarangayChart() {
             </div>
             
             <div className="flex flex-col items-center border-t md:border-t-0 md:border-l border-slate-100 pt-6 md:pt-0">
-              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Katayuan ng Aplikasyon (Status)</span>
+              <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Application Status</span>
               <div className="w-full max-w-[240px] min-[380px]:max-w-[260px]">
                 <ReactApexChart 
                   options={statusChartOptions} 
@@ -476,9 +475,9 @@ export default function BarangayChart() {
                   <span className="text-lg">♂</span>
                 </div>
                 <span className="text-2xl font-black text-blue-600">{maleSeniors}</span>
-                <span className="text-xs font-semibold text-blue-500 mt-0.5">Lalaki (Male)</span>
+                <span className="text-xs font-semibold text-blue-500 mt-0.5">Male</span>
                 <span className="text-[10px] text-slate-400 mt-1">
-                  {Math.round((maleSeniors / (seniors.length || 1)) * 100)}% ng kabuuan
+                  {Math.round((maleSeniors / (seniors.length || 1)) * 100)}% of total
                 </span>
               </div>
               <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-pink-50 border border-pink-100">
@@ -486,9 +485,9 @@ export default function BarangayChart() {
                   <span className="text-lg">♀</span>
                 </div>
                 <span className="text-2xl font-black text-pink-500">{femaleSeniors}</span>
-                <span className="text-xs font-semibold text-pink-400 mt-0.5">Babae (Female)</span>
+                <span className="text-xs font-semibold text-pink-400 mt-0.5">Female</span>
                 <span className="text-[10px] text-slate-400 mt-1">
-                  {Math.round((femaleSeniors / (seniors.length || 1)) * 100)}% ng kabuuan
+                  {Math.round((femaleSeniors / (seniors.length || 1)) * 100)}% of total
                 </span>
               </div>
             </div>
@@ -496,7 +495,7 @@ export default function BarangayChart() {
             {/* Donut + Grouped Bar */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               <div className="flex flex-col items-center">
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Kabuuang Kasarian</span>
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4">Total Gender Distribution</span>
                 <div className="w-full max-w-[240px]">
                   <ReactApexChart
                     options={genderDonutOptions}
@@ -507,7 +506,7 @@ export default function BarangayChart() {
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4 text-center">Kasarian kada Barangay</span>
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4 text-center">Gender per Barangay</span>
                 <ReactApexChart
                   options={genderGroupedBarOptions}
                   series={genderGroupedBarSeries}
@@ -530,7 +529,7 @@ export default function BarangayChart() {
             <div className="mt-4 flex items-center gap-2 p-3 bg-teal-50 border border-teal-100/50 rounded-xl">
               <Heart className="text-teal-500 shrink-0" size={16} />
               <p className="text-[11px] text-teal-700 leading-normal">
-                Ang trend na ito ay nagpapakita ng tuluy-tuloy na pagpapatala ng mga senior citizens sa Juban, Sorsogon e-Census database mula nang ilunsad ang digital portal.
+                This trend shows the continuous registration of senior citizens in the Juban, Sorsogon e-Census database since the digital portal was launched.
               </p>
             </div>
           </div>

@@ -205,7 +205,7 @@ export default function Sidebar() {
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-200 hover:bg-red-950/20 transition-all duration-150 group"
           >
             <LogOut size={18} className="text-red-300 group-hover:translate-x-1 transition-transform" />
-            {sidebarOpen && <span>Magsara (Logout)</span>}
+            {sidebarOpen && <span>Logout</span>}
           </button>
           
           {sidebarOpen && (
@@ -236,9 +236,9 @@ export default function Sidebar() {
             </div>
 
             <div className="text-center space-y-1.5">
-              <h3 className="font-bold text-lg text-slate-800">Gusto mo bang mag-logout?</h3>
+              <h3 className="font-bold text-lg text-slate-800">Do you want to logout?</h3>
               <p className="text-sm text-slate-500">
-                Mawawala ang iyong session at kailangan mong mag-login ulit.
+                Your session will end and you will need to log in again.
               </p>
             </div>
 
@@ -247,13 +247,13 @@ export default function Sidebar() {
                 onClick={() => setShowLogoutModal(false)}
                 className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
               >
-                Kanselahin
+                Cancel
               </button>
               <button
                 onClick={handleLogout}
                 className="flex-1 py-2.5 px-4 bg-red-500 hover:bg-red-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
               >
-                Oo, Mag-logout
+                Yes, Logout
               </button>
             </div>
           </div>

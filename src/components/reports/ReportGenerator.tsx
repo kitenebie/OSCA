@@ -99,18 +99,18 @@ export default function ReportGenerator() {
 
   const handleExportPDF = async () => {
     setIsRendering(true);
-    showToast('Inihahanda ang layout para sa pag-export ng PDF...', 'info');
+    showToast('Preparing layout for PDF export...', 'info');
     await new Promise((r) => setTimeout(r, 350));
     const filename = 'LGU_JUBAN_REPORT_' + selectedTemplate.toUpperCase() + '_' + Date.now() + '.pdf';
     const success  = await exportElementToPDF(HIDDEN_SHEET_ID, filename, 'p', 'a4');
     setIsRendering(false);
-    showToast(success ? 'Matagumpay na na-download ang report (PDF)!' : 'Nagka-error sa pag-download ng PDF.', success ? 'success' : 'error');
+    showToast(success ? 'Report (PDF) downloaded successfully!' : 'Error downloading PDF.', success ? 'success' : 'error');
 
     if (success) {
       auditLogsService.log({
         action: 'CREATE',
         entity: 'Report',
-        details: `Na-download ang Report (PDF): ${selectedTemplate.toUpperCase()} (Barangay: ${filterBarangay})`,
+        details: `Downloaded Report (PDF): ${selectedTemplate.toUpperCase()} (Barangay: ${filterBarangay})`,
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: filterBarangay !== 'All' ? filterBarangay : undefined,
@@ -154,15 +154,15 @@ export default function ReportGenerator() {
           // ─── CENSUS: Single Page ───
           <div className="pdf-page" style={pageStyle}>
             <div style={headerStyle}>
-              <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republika ng Pilipinas</p>
+              <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republic of the Philippines</p>
               <p style={{ fontSize:'10px', fontWeight:900, color:'#0f172a', letterSpacing:'0.08em', textTransform:'uppercase', margin:'3px 0 0' }}>Municipal Social Welfare and Development Office</p>
-              <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Bayan ng Juban, Lalawigan ng Sorsogon</p>
+              <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Municipality of Juban, Province of Sorsogon</p>
               <div style={{ width:'48px', height:'1px', background:'#cbd5e1', margin:'8px auto' }} />
               <h3 style={{ fontSize:'12px', fontWeight:900, color:'#0f172a', textTransform:'uppercase', letterSpacing:'0.03em', margin:0 }}>
                 MUNICIPAL DEMOGRAPHICS & CENSUS SHEET
               </h3>
               <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
-                Filters: {filterBarangay === 'All' ? 'Lahat ng Barangay' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'Lahat' : filterStatus}
+                Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus}
               </p>
             </div>
 
@@ -210,7 +210,7 @@ export default function ReportGenerator() {
                 <p style={{ fontSize:'7px', color:'#94a3b8', textTransform:'uppercase', marginTop:'3px', lineHeight:1 }}>{currentUser?.role || 'LGU Encoder Node'}</p>
               </div>
               <div style={{ textAlign:'right' }}>
-                <p style={{ color:'#94a3b8', textTransform:'uppercase', fontWeight:600, margin:'0 0 28px' }}>Sertipikadong Wasto at Aprubado:</p>
+                <p style={{ color:'#94a3b8', textTransform:'uppercase', fontWeight:600, margin:'0 0 28px' }}>Sertipikadong Wasto at Approved:</p>
                 <p style={{ fontWeight:900, color:'#0f172a', textTransform:'uppercase', margin:0, lineHeight:1 }}>Maria Consuelo Santos, RSW</p>
                 <p style={{ fontSize:'7px', color:'#94a3b8', textTransform:'uppercase', marginTop:'3px', lineHeight:1 }}>MSWDO Head Officer</p>
               </div>
@@ -231,15 +231,15 @@ export default function ReportGenerator() {
               <div key={pageIdx} className="pdf-page" style={pageStyle}>
                 {isFirstPage ? (
                   <div style={headerStyle}>
-                    <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republika ng Pilipinas</p>
+                    <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republic of the Philippines</p>
                     <p style={{ fontSize:'10px', fontWeight:900, color:'#0f172a', letterSpacing:'0.08em', textTransform:'uppercase', margin:'3px 0 0' }}>Municipal Social Welfare and Development Office</p>
-                    <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Bayan ng Juban, Lalawigan ng Sorsogon</p>
+                    <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Municipality of Juban, Province of Sorsogon</p>
                     <div style={{ width:'48px', height:'1px', background:'#cbd5e1', margin:'8px auto' }} />
                     <h3 style={{ fontSize:'12px', fontWeight:900, color:'#0f172a', textTransform:'uppercase', letterSpacing:'0.03em', margin:0 }}>
                       {selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS' : 'INDIGENT PENSION PROGRAM DISBURSEMENT ROSTER'}
                     </h3>
                     <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
-                      Filters: {filterBarangay === 'All' ? 'Lahat ng Barangay' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'Lahat' : filterStatus}
+                      Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus}
                     </p>
                   </div>
                 ) : (
@@ -257,7 +257,7 @@ export default function ReportGenerator() {
                   {selectedTemplate === 'master' ? (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Senior Citizen Name','Barangay','Edad','Kasarian','Contact No.','Registered'].map((h) => (
+                        {['OSCA ID','Senior Citizen Name','Barangay','Age','Sex','Contact No.','Registered'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -278,7 +278,7 @@ export default function ReportGenerator() {
                   ) : (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Beneficiary Name','Barangay','Edad','Qualified Track','SocPen Amount','Status'].map((h) => (
+                        {['OSCA ID','Beneficiary Name','Barangay','Age','Qualified Track','SocPen Amount','Status'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -311,7 +311,7 @@ export default function ReportGenerator() {
                       <p style={{ fontSize:'7px', color:'#94a3b8', textTransform:'uppercase', marginTop:'3px', lineHeight:1 }}>{currentUser?.role || 'LGU Encoder Node'}</p>
                     </div>
                     <div style={{ textAlign:'right' }}>
-                      <p style={{ color:'#94a3b8', textTransform:'uppercase', fontWeight:600, margin:'0 0 20px' }}>Sertipikadong Wasto at Aprubado:</p>
+                      <p style={{ color:'#94a3b8', textTransform:'uppercase', fontWeight:600, margin:'0 0 20px' }}>Sertipikadong Wasto at Approved:</p>
                       <p style={{ fontWeight:900, color:'#0f172a', textTransform:'uppercase', margin:0, lineHeight:1 }}>Maria Consuelo Santos, RSW</p>
                       <p style={{ fontSize:'7px', color:'#94a3b8', textTransform:'uppercase', marginTop:'3px', lineHeight:1 }}>MSWDO Head Officer</p>
                     </div>
@@ -343,7 +343,7 @@ export default function ReportGenerator() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Pumili ng Template</label>
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select Template</label>
             <div className="space-y-2">
               {REPORT_TEMPLATES.map((tpl) => (
                 <button key={tpl.id} type="button" onClick={() => setSelectedTemplate(tpl.id)}
@@ -359,7 +359,7 @@ export default function ReportGenerator() {
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Barangay Filter</label>
             <select value={filterBarangay} onChange={(e) => setFilterBarangay(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
-              <option value="All">Lahat ng Barangay (LGU Juban)</option>
+              <option value="All">All Barangays (LGU Juban)</option>
               {barangaysData.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
             </select>
           </div>
@@ -368,8 +368,8 @@ export default function ReportGenerator() {
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Status Filter</label>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
-              <option value="All">Lahat ng Status</option>
-              <option value="Approved">Approved (Aktibo)</option>
+              <option value="All">All Status</option>
+              <option value="Approved">Approved (Active)</option>
               <option value="Pending">Pending Applications</option>
               <option value="For Verification">For Verification</option>
               <option value="Rejected">Rejected</option>
@@ -379,7 +379,7 @@ export default function ReportGenerator() {
           <div className="pt-3 mt-auto border-t border-slate-100">
             <button type="button" disabled={isRendering || isGenerating || filteredSeniors.length === 0} onClick={handleExportPDF}
               className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
-              <FileDown size={13} /><span>{isRendering ? 'Saving...' : 'I-save sa PDF'}</span>
+              <FileDown size={13} /><span>{isRendering ? 'Saving...' : 'Save as PDF'}</span>
             </button>
           </div>
         </div>
@@ -396,7 +396,7 @@ export default function ReportGenerator() {
                 <a href={pdfBlobUrl} target="_blank" rel="noopener noreferrer"
                   className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:border-slate-350 hover:bg-slate-50 rounded-xl text-[10.5px] font-bold text-slate-700 shadow-sm transition-all duration-150 active:scale-95">
                   <ExternalLink size={12} className="text-teal-600" />
-                  <span>Buksan sa Bagong Tab</span>
+                  <span>Open in New Tab</span>
                 </a>
               )}
               <button onClick={generatePreview} disabled={isGenerating}
@@ -411,14 +411,14 @@ export default function ReportGenerator() {
             {isGenerating ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-4 text-slate-400">
                 <RefreshCw size={28} className="animate-spin text-teal-500" />
-                <p className="text-xs font-semibold">Ginagawa ang PDF preview...</p>
-                <p className="text-[10px] text-slate-300">Sandali lamang po</p>
+                <p className="text-xs font-semibold">Generating PDF preview...</p>
+                <p className="text-[10px] text-slate-300">Please wait</p>
               </div>
             ) : filteredSeniors.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">
                 <AlertCircle size={36} className="text-slate-300 stroke-[1.5]" />
-                <p className="text-xs font-semibold">Walang nahanap na records para sa filter na ito.</p>
-                <p className="text-[10px] text-slate-400">I-adjust ang Barangay o Status filters sa control panel.</p>
+                <p className="text-xs font-semibold">No records found for this filter.</p>
+                <p className="text-[10px] text-slate-400">Adjust the Barangay or Status filters in the control panel.</p>
               </div>
             ) : pdfBlobUrl ? (
               <iframe
@@ -431,7 +431,7 @@ export default function ReportGenerator() {
             ) : (
               <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">
                 <RefreshCw size={28} className="text-slate-300" />
-                <p className="text-xs font-semibold">I-click ang Refresh Preview para makita ang PDF.</p>
+                <p className="text-xs font-semibold">Click Refresh Preview to view the PDF.</p>
               </div>
             )}
           </div>

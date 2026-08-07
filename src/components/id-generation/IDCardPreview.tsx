@@ -41,12 +41,12 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
 
   const handleExportPDF = async () => {
     if (senior.status !== 'Approved') {
-      showToast('Hindi maaaring i-download ang ID ng hindi pa aprubadong senior citizen.', 'error');
+      showToast('Cannot download ID for a senior citizen that is not yet approved.', 'error');
       return;
     }
 
     setIsExporting(true);
-    showToast('Inihahanda ang PDF layout para sa ID Card...', 'info');
+    showToast('Preparing PDF layout for ID Card...', 'info');
     
     // Tiny delay to allow state changes to paint
     await new Promise((resolve) => setTimeout(resolve, 300));
@@ -59,19 +59,19 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
 
     setIsExporting(false);
     if (success) {
-      showToast('Nai-download na ang inyong Senior Citizen ID (PDF)!', 'success');
+      showToast('Senior Citizen ID (PDF) downloaded successfully!', 'success');
 
       auditLogsService.log({
         action: 'CREATE',
         entity: 'Senior',
-        details: `In-export / na-download ang ID Card PDF ni Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
+        details: `Exported / downloaded ID Card PDF for Senior: ${senior.firstName} ${senior.lastName} (${senior.oscaNumber})`,
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: senior.barangay,
         severity: 'info',
       });
     } else {
-      showToast('Kakulangan sa pag-render ng ID card PDF.', 'error');
+      showToast('Error rendering ID card PDF.', 'error');
     }
   };
 
@@ -79,13 +79,13 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
     const frontEl = document.getElementById(`id-card-front-${senior.id}`);
     const backEl = document.getElementById(`id-card-back-${senior.id}`);
     if (!frontEl || !backEl) {
-      showToast('Hindi mahanap ang ID Card layout para i-print.', 'error');
+      showToast('Cannot find ID Card layout for printing.', 'error');
       return;
     }
 
     const printWindow = window.open('', '_blank', 'width=800,height=600');
     if (!printWindow) {
-      showToast('Naka-block ang pop-up window ng inyong browser.', 'warning');
+      showToast('Your browser blocked the pop-up window.', 'warning');
       return;
     }
 
@@ -202,14 +202,14 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
             disabled={isExporting || senior.status !== 'Approved'}
             onClick={handleExportPDF}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-all duration-150 active:scale-95"
-            title={senior.status !== 'Approved' ? 'Maaari lamang i-download ang ID kung ang status ng Senior ay Approved.' : ''}
+            title={senior.status !== 'Approved' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
           >
             <FileDown size={14} />
             <span>
               {isExporting 
                 ? 'Rendering...' 
                 : senior.status !== 'Approved' 
-                  ? 'Hindi Aprubado (Bawal I-download)' 
+                  ? 'Not Approved (Download Disabled)' 
                   : 'I-download (CR80 PDF)'}
             </span>
           </button>
@@ -221,8 +221,8 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
         <div className="flex items-center gap-2">
           <Layers size={16} className="text-teal-600 shrink-0" />
           <div>
-            <h5 className="font-bold text-xs text-slate-800">Pumili ng ID Design Variant</h5>
-            <p className="text-[10px] text-slate-500">I-click para magpalit ng layout (Variant 1: Modern Digital Smart ID / Variant 2: Official Juban Form)</p>
+            <h5 className="font-bold text-xs text-slate-800">Select ID Design Variant</h5>
+            <p className="text-[10px] text-slate-500">Click to switch layout (Variant 1: Modern Digital Smart ID / Variant 2: Official Juban Form)</p>
           </div>
         </div>
 
@@ -355,7 +355,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 zIndex: 0,
               }}
             />
-
 
             {/* ── BOTTOM-RIGHT CONCENTRIC CURVED ACCENT ── */}
             {/* Blue accent (outermost) */}
@@ -498,7 +497,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   lineHeight: 1.1,
                   textTransform: 'uppercase',
                   textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                }}>BAYAN NG JUBAN</div>
+                }}>MUNICIPALITY OF JUBAN</div>
                 <div style={{
                   fontSize: 5.5,
                   fontWeight: 600,
@@ -1166,7 +1165,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               zIndex: 3,
             }} />
 
-
             {/* ── LOGO (top-left, white/light version on green bg) ── */}
             <div style={{
               position: 'absolute',
@@ -1204,7 +1202,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   letterSpacing: '0.5px',
                   textTransform: 'uppercase',
                   lineHeight: 1.1,
-                }}>BAYAN NG JUBAN</div>
+                }}>MUNICIPALITY OF JUBAN</div>
                 <div style={{
                   fontSize: 5.5,
                   fontWeight: 600,
@@ -1242,7 +1240,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               }}>{nfcEnabled ? 'NFC SMART TAG' : 'SMART TAG'}</span>
             </div>
 
-            {/* ── TERMS & CONDITIONS TEXT BLOCK ── */}
+            {/* ── BENEFITS & PRIVILEGES TEXT BLOCK (from Variant 2) ── */}
             <div style={{
               position: 'absolute',
               top: 36,
@@ -1251,42 +1249,28 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               zIndex: 10,
             }}>
               <div style={{
-                fontSize: 6.5,
+                fontSize: 5.5,
                 fontWeight: 800,
                 color: C.white,
                 textTransform: 'uppercase',
-                letterSpacing: '0.5px',
+                letterSpacing: '0.3px',
                 lineHeight: 1,
                 marginBottom: 4,
-              }}>Terms & Privileges</div>
+              }}>BENEFITS & PRIVILEGES UNDER RA 9994</div>
               <div style={{
-                fontSize: 5.5,
+                fontSize: 5,
                 fontWeight: 400,
                 color: C.white,
-                lineHeight: 1.45,
+                lineHeight: 1.35,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
               }}>
-                <p style={{ margin: '0 0 2px' }}>1. 20% Discount on Medicines, transport, hospitals, medical supplies as per RA 9994.</p>
-                <p style={{ margin: '0 0 2px' }}>2. Non-transferable. Misuse is punishable under LGU Municipal Penal Codes.</p>
-                <p style={{ margin: '0 0 2px' }}>3. If lost, report immediately to OSCA Office, Juban Municipal Hall.</p>
-              </div>
-              
-              {/* Emergency contact */}
-              <div style={{ marginTop: 5 }}>
-                <div style={{
-                  fontSize: 5.5,
-                  fontWeight: 800,
-                  color: C.white,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.4px',
-                  lineHeight: 1,
-                  marginBottom: 2,
-                }}>Emergency Contact:</div>
-                <div style={{ fontSize: 5.5, fontWeight: 500, color: C.white, lineHeight: 1.4 }}>
-                  Landline: (056) 211-1234 (MSWDO)
-                </div>
-                <div style={{ fontSize: 5.5, fontWeight: 500, color: C.white, lineHeight: 1.4 }}>
-                  Mobile: {senior.contactNumber || '+63 LGU Emergency'}
-                </div>
+                <p style={{ margin: 0 }}>Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.</p>
+                <p style={{ margin: 0 }}>20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.</p>
+                <p style={{ margin: 0 }}>5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.</p>
+                <p style={{ margin: 0 }}>20% discount & VAT exemption, if applicable on the sale of goods & services.</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.</p>
               </div>
             </div>
 
@@ -1406,7 +1390,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               }}>{senior.oscaNumber}</span>
             </div>
 
-            {/* ── FOOTER SIGNATURES ── */}
+            {/* ── FOOTER SIGNATURES (matching Variant 2) ── */}
             <div style={{
               position: 'absolute',
               bottom: 6,
@@ -1419,48 +1403,47 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               borderTop: '1px solid rgba(254,254,254,0.15)',
               paddingTop: 4,
             }}>
-              <div>
+              <div style={{ textAlign: 'center' }}>
                 <div style={{
-                  fontSize: 6,
-                  fontWeight: 800,
-                  color: C.white,
-                  lineHeight: 1,
-                  textTransform: 'uppercase',
-                }}>Hon. Antonio Alindogan</div>
-                <div style={{
-                  fontSize: 4.5,
-                  fontWeight: 500,
-                  color: 'rgba(254,254,254,0.65)',
-                  textTransform: 'uppercase',
-                  marginTop: 1,
-                }}>Municipal Mayor</div>
+                  borderTop: '1px solid rgba(254,254,254,0.5)',
+                  paddingTop: 2,
+                }}>
+                  <div style={{
+                    fontSize: 5.5,
+                    fontWeight: 800,
+                    color: C.white,
+                    lineHeight: 1,
+                    textTransform: 'uppercase',
+                  }}>Marciana G. Olondriz</div>
+                  <div style={{
+                    fontSize: 4.5,
+                    fontWeight: 500,
+                    color: 'rgba(254,254,254,0.65)',
+                    textTransform: 'uppercase',
+                    marginTop: 1,
+                  }}>OSCA Head</div>
+                </div>
               </div>
               <div style={{ textAlign: 'center' }}>
                 <div style={{
-                  height: 12,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  borderTop: '1px solid rgba(254,254,254,0.5)',
+                  paddingTop: 2,
                 }}>
-                  <span style={{
-                    fontSize: 7,
-                    fontStyle: 'italic',
+                  <div style={{
+                    fontSize: 5.5,
+                    fontWeight: 800,
                     color: C.white,
-                    fontFamily: 'Georgia, serif',
-                    transform: 'rotate(-3deg)',
-                    display: 'inline-block',
-                    opacity: 0.85,
-                  }}>M. Santos</span>
+                    lineHeight: 1,
+                    textTransform: 'uppercase',
+                  }}>Rogel "Botox" B. Fulleros</div>
+                  <div style={{
+                    fontSize: 4.5,
+                    fontWeight: 500,
+                    color: 'rgba(254,254,254,0.65)',
+                    textTransform: 'uppercase',
+                    marginTop: 1,
+                  }}>Municipal Mayor</div>
                 </div>
-                <div style={{
-                  fontSize: 4.5,
-                  fontWeight: 500,
-                  color: 'rgba(254,254,254,0.65)',
-                  textTransform: 'uppercase',
-                  borderTop: '1px solid rgba(254,254,254,0.3)',
-                  paddingTop: 1,
-                  marginTop: 1,
-                }}>OSCA Head / MSWDO</div>
               </div>
             </div>
 

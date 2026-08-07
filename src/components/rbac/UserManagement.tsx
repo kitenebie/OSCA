@@ -62,11 +62,11 @@ function validatePassword(password: string): PasswordValidation {
 // Password strength indicator component
 function PasswordStrengthIndicator({ validation }: { validation: PasswordValidation }) {
   const checks = [
-    { label: 'Hindi bababa sa 8 characters', passed: validation.hasMinLength },
-    { label: 'May malaking letra (A-Z)', passed: validation.hasUppercase },
-    { label: 'May maliit na letra (a-z)', passed: validation.hasLowercase },
-    { label: 'May numero (0-9)', passed: validation.hasNumber },
-    { label: 'May special character (!@#$...)', passed: validation.hasSpecialChar },
+    { label: 'At least 8 characters', passed: validation.hasMinLength },
+    { label: 'Has uppercase letter (A-Z)', passed: validation.hasUppercase },
+    { label: 'Has lowercase letter (a-z)', passed: validation.hasLowercase },
+    { label: 'Has number (0-9)', passed: validation.hasNumber },
+    { label: 'Has special character (!@#$...)', passed: validation.hasSpecialChar },
   ];
 
   const passedCount = checks.filter(c => c.passed).length;
@@ -128,7 +128,7 @@ function UserPhotoUpload({ value, onChange }: { value: string; onChange: (v: str
         }
       }, 100);
     } catch {
-      alert('Hindi ma-access ang camera. Siguraduhing pinapayagan ang browser na mag-access ng camera.');
+      alert('Cannot access camera. Make sure the browser is allowed to access the camera.');
     }
   };
 
@@ -159,7 +159,7 @@ function UserPhotoUpload({ value, onChange }: { value: string; onChange: (v: str
       {value && !cameraOpen && (
         <div className="flex items-center gap-3">
           <img src={value} alt="Profile" className="w-16 h-16 rounded-full object-cover border-2 border-teal-200" />
-          <button type="button" onClick={() => onChange('')} className="text-[10px] text-red-500 hover:text-red-700 font-semibold cursor-pointer">Alisin</button>
+          <button type="button" onClick={() => onChange('')} className="text-[10px] text-red-500 hover:text-red-700 font-semibold cursor-pointer">Remove</button>
         </div>
       )}
 
@@ -266,11 +266,11 @@ export default function UserManagement() {
     if (editPassword || editConfirmPassword) {
       const validation = validatePassword(editPassword);
       if (!validation.isValid) {
-        showToast('Ang password ay hindi sapat na malakas. Tingnan ang mga requirement.', 'error');
+        showToast('Password is not strong enough. See the requirements.', 'error');
         return;
       }
       if (editPassword !== editConfirmPassword) {
-        showToast('Hindi magkatugma ang password at confirmation!', 'error');
+        showToast('Password and confirmation do not match!', 'error');
         return;
       }
     }
@@ -289,18 +289,18 @@ export default function UserManagement() {
         updateData.password = await hashPassword(editPassword);
       }
       await updateUser(editModal.user.id, updateData);
-      showToast(`Matagumpay na na-update si ${editForm.fullName}!`, 'success');
+      showToast(`Successfully updated si ${editForm.fullName}!`, 'success');
       setEditModal({ open: false, user: null });
       setEditPassword('');
       setEditConfirmPassword('');
     } catch {
-      showToast('Hindi ma-update ang user. Subukan muli.', 'error');
+      showToast('Failed to update user. Please try again.', 'error');
     }
   };
 
   const handleToggleStatus = (id: string, currentStatus: User['status']) => {
     if (currentUser && currentUser.id === id) {
-      showToast('Hindi mo maaaring i-deactivate ang sarili mong account!', 'error');
+      showToast('You cannot deactivate your own account!', 'error');
       return;
     }
     const nextStatus = currentStatus === 'Active' ? 'Deactivated' : 'Active';
@@ -310,12 +310,12 @@ export default function UserManagement() {
 
   const handleDeleteUser = (id: string, name: string) => {
     if (currentUser && currentUser.id === id) {
-      showToast('Hindi mo maaaring i-delete ang sarili mong account!', 'error');
+      showToast('You cannot delete your own account!', 'error');
       return;
     }
-    if (confirm(`Sigurado ka bang nais mong tanggalin si ${name} bilang system user?`)) {
+    if (confirm(`Are you sure you want to remove ${name} as a system user?`)) {
       deleteUser(id);
-      showToast(`Account ni ${name} ay tinanggal na sa system.`, 'warning');
+      showToast(`Account of ${name} has been removed from the system.`, 'warning');
     }
   };
 
@@ -323,18 +323,18 @@ export default function UserManagement() {
     e.preventDefault();
     
     if (users.some((u) => u.username.toLowerCase() === formData.username.toLowerCase())) {
-      showToast('Error: Ang username na ito ay nakarehistro na.', 'error');
+      showToast('Error: This username is already registered.', 'error');
       return;
     }
 
     // Validate password
     const validation = validatePassword(createPassword);
     if (!validation.isValid) {
-      showToast('Ang password ay hindi sapat na malakas. Tingnan ang mga requirement.', 'error');
+      showToast('Password is not strong enough. See the requirements.', 'error');
       return;
     }
     if (createPassword !== createConfirmPassword) {
-      showToast('Hindi magkatugma ang password at confirmation!', 'error');
+      showToast('Password and confirmation do not match!', 'error');
       return;
     }
 
@@ -349,7 +349,7 @@ export default function UserManagement() {
       }
 
       await addUser({ ...formData, password: hashedPw, profilePhoto: photoUrl } as any);
-      showToast(`Matagumpay na naidagdag si ${formData.fullName}!`, 'success');
+      showToast(`Successfully added ${formData.fullName}!`, 'success');
       
       // Reset form
       setFormData({
@@ -368,7 +368,7 @@ export default function UserManagement() {
       setCreatePhoto('');
       setIsOpen(false);
     } catch {
-      showToast('Hindi mairehistro ang user. Subukan muli.', 'error');
+      showToast('Failed to register user. Please try again.', 'error');
     }
   };
 
@@ -391,7 +391,7 @@ export default function UserManagement() {
             className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white rounded-xl shadow-md shadow-teal-600/10 transition-all duration-150 active:scale-95 cursor-pointer"
           >
             <UserPlus size={14} />
-            <span>Magdagdag ng User</span>
+            <span>Add User</span>
           </button>
         )}
       </div>
@@ -463,11 +463,11 @@ export default function UserManagement() {
                       ${isActive ? 'text-teal-600 hover:text-teal-700' : 'text-slate-400 hover:text-slate-600'}`}
                   >
                     {isActive ? <ToggleRight size={20} className="text-teal-600" /> : <ToggleLeft size={20} className="text-slate-300" />}
-                    <span>{isActive ? 'Aktibo (Active)' : 'Naka-deactivate'}</span>
+                    <span>{isActive ? 'Active' : 'Deactivated'}</span>
                   </button>
                 ) : (
                   <span className="text-[10px] font-semibold text-slate-400">
-                    {isActive ? 'Aktibo' : 'Naka-deactivate'}
+                    {isActive ? 'Active' : 'Deactivated'}
                   </span>
                 )}
 
@@ -477,7 +477,7 @@ export default function UserManagement() {
                       type="button"
                       onClick={() => openEditModal(user)}
                       className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-lg transition-all cursor-pointer"
-                      title="I-edit ang user"
+                      title="Edit user"
                     >
                       <Pencil size={13} />
                     </button>
@@ -522,7 +522,7 @@ export default function UserManagement() {
               <UserPhotoUpload value={createPhoto} onChange={setCreatePhoto} />
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Pangalan (Full Name)</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Full Name</label>
                 <input
                   type="text"
                   required
@@ -578,7 +578,7 @@ export default function UserManagement() {
                   onChange={(e) => setFormData({ ...formData, barangayAssigned: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 >
-                  <option value="">-- Walang Assigned --</option>
+                  <option value="">-- None Assigned --</option>
                   {barangaysData.map((b) => (
                     <option key={b.id} value={b.name}>
                       {b.name}
@@ -626,7 +626,7 @@ export default function UserManagement() {
                       required
                       value={createPassword}
                       onChange={(e) => setCreatePassword(e.target.value)}
-                      placeholder="Ilagay ang password"
+                      placeholder="Enter password"
                       maxLength={128}
                       className="w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                     />
@@ -642,14 +642,14 @@ export default function UserManagement() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Kumpirmahin ang Password</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Confirm Password</label>
                   <div className="relative">
                     <input
                       type={showCreateConfirm ? 'text' : 'password'}
                       required
                       value={createConfirmPassword}
                       onChange={(e) => setCreateConfirmPassword(e.target.value)}
-                      placeholder="Ulitin ang password"
+                      placeholder="Repeat password"
                       maxLength={128}
                       className={`w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none ${
                         createConfirmPassword && createConfirmPassword !== createPassword
@@ -669,12 +669,12 @@ export default function UserManagement() {
                   </div>
                   {createConfirmPassword && createConfirmPassword !== createPassword && (
                     <p className="text-[9.5px] text-red-500 font-semibold flex items-center gap-1">
-                      <ShieldAlert size={10} /> Hindi magkatugma ang password!
+                      <ShieldAlert size={10} /> Passwords do not match!
                     </p>
                   )}
                   {createConfirmPassword && createConfirmPassword === createPassword && (
                     <p className="text-[9.5px] text-teal-600 font-semibold flex items-center gap-1">
-                      <Check size={10} /> Magkatugma ang password ✓
+                      <Check size={10} /> Passwords match ✓
                     </p>
                   )}
                 </div>
@@ -695,7 +695,7 @@ export default function UserManagement() {
                   className="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white rounded-xl shadow-md shadow-teal-600/10 flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Check size={13} />
-                  <span>I-save at irehistro</span>
+                  <span>Save and Register</span>
                 </button>
               </div>
 
@@ -715,7 +715,7 @@ export default function UserManagement() {
           <div className="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-[scaleIn_250ms_ease-out]">
             {/* Header */}
             <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-900">
-              <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 uppercase tracking-wide">I-edit ang User</h3>
+              <h3 className="font-bold text-sm text-slate-800 dark:text-slate-100 uppercase tracking-wide">Edit User</h3>
               <button 
                 onClick={() => setEditModal({ open: false, user: null })}
                 className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all cursor-pointer"
@@ -785,7 +785,7 @@ export default function UserManagement() {
                   onChange={(e) => setEditForm({ ...editForm, barangayAssigned: e.target.value })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 >
-                  <option value="">-- Walang Assigned --</option>
+                  <option value="">-- None Assigned --</option>
                   {barangaysData.map((b) => (
                     <option key={b.id} value={b.name}>{b.name}</option>
                   ))}
@@ -833,18 +833,18 @@ export default function UserManagement() {
               <div className="border-t border-slate-100 dark:border-slate-700 pt-4 space-y-3">
                 <div className="flex items-center gap-2 mb-2">
                   <Lock size={13} className="text-amber-500" />
-                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Palitan ang Password (Opsyonal)</span>
+                  <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wide">Change Password (Optional)</span>
                 </div>
-                <p className="text-[9.5px] text-slate-400 -mt-1">Iwanang blangko kung hindi papalitan ang password.</p>
+                <p className="text-[9.5px] text-slate-400 -mt-1">Leave blank if not changing the password.</p>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Bagong Password</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">New Password</label>
                   <div className="relative">
                     <input
                       type={showEditPassword ? 'text' : 'password'}
                       value={editPassword}
                       onChange={(e) => setEditPassword(e.target.value)}
-                      placeholder="Ilagay ang bagong password"
+                      placeholder="Enter new password"
                       maxLength={128}
                       className="w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                     />
@@ -861,13 +861,13 @@ export default function UserManagement() {
 
                 {editPassword && (
                   <div className="space-y-1.5 animate-[fadeIn_200ms_ease-out]">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Kumpirmahin ang Bagong Password</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Confirm New Password</label>
                     <div className="relative">
                       <input
                         type={showEditConfirm ? 'text' : 'password'}
                         value={editConfirmPassword}
                         onChange={(e) => setEditConfirmPassword(e.target.value)}
-                        placeholder="Ulitin ang bagong password"
+                        placeholder="Repeat new password"
                         maxLength={128}
                         className={`w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none ${
                           editConfirmPassword && editConfirmPassword !== editPassword
@@ -887,12 +887,12 @@ export default function UserManagement() {
                     </div>
                     {editConfirmPassword && editConfirmPassword !== editPassword && (
                       <p className="text-[9.5px] text-red-500 font-semibold flex items-center gap-1">
-                        <ShieldAlert size={10} /> Hindi magkatugma ang password!
+                        <ShieldAlert size={10} /> Passwords do not match!
                       </p>
                     )}
                     {editConfirmPassword && editConfirmPassword === editPassword && (
                       <p className="text-[9.5px] text-teal-600 font-semibold flex items-center gap-1">
-                        <Check size={10} /> Magkatugma ang password ✓
+                        <Check size={10} /> Passwords match ✓
                       </p>
                     )}
                   </div>
@@ -906,7 +906,7 @@ export default function UserManagement() {
                   onClick={() => setEditModal({ open: false, user: null })}
                   className="px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200/50 dark:border-slate-600 cursor-pointer"
                 >
-                  Kanselahin
+                  Cancel
                 </button>
                 <button
                   type="submit"
@@ -914,7 +914,7 @@ export default function UserManagement() {
                   className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-xs font-bold text-white rounded-xl shadow-md flex items-center gap-1.5 active:scale-95 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Check size={13} />
-                  <span>I-update</span>
+                  <span>Update</span>
                 </button>
               </div>
             </form>

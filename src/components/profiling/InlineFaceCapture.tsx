@@ -13,7 +13,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
   const [cameraMode, setCameraMode] = useState<CameraMode>('yoti');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [detectionStatus, setDetectionStatus] = useState('Nilo-load ang AI Biometric Face Sensor...');
+  const [detectionStatus, setDetectionStatus] = useState('Loading AI Biometric Face Sensor...');
   const [tempPhoto, setTempPhoto] = useState<string | null>(null);
   const [yotiCrashed, setYotiCrashed] = useState(false);
 
@@ -59,7 +59,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
       imgData = 'data:image/jpeg;base64,' + imgData;
     }
     setTempPhoto(imgData);
-    setDetectionStatus('Larawan ay matagumpay na nakuha! Paki-confirm upang i-save.');
+    setDetectionStatus('Photo captured successfully! Please confirm to save.');
   };
 
   const handleYotiError = (error: any) => {
@@ -84,8 +84,8 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
 
     if (!navigator.mediaDevices) {
       setCameraError(!window.isSecureContext
-        ? 'Insecure HTTP: Kailangan ng HTTPS para sa camera access.'
-        : 'Walang mediaDevices API sa iyong browser.');
+        ? 'Insecure HTTP: HTTPS is required for camera access.'
+        : 'No mediaDevices API available in your browser.');
       return;
     }
 
@@ -95,7 +95,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
       });
       setStream(mediaStream);
       setIsReady(true);
-      setDetectionStatus('Camera aktibo — i-click ang Capture button.');
+      setDetectionStatus('Camera active — click the Capture button.');
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = mediaStream;
@@ -103,7 +103,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
       }, 100);
     } catch (err: any) {
       console.error('Native Camera Error:', err);
-      setCameraError('Hindi ma-access ang camera: ' + err.message);
+      setCameraError('Cannot access camera: ' + err.message);
     }
   };
 
@@ -129,7 +129,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
         const base64 = canvas.toDataURL('image/jpeg');
         setTempPhoto(base64);
         stopNativeCamera();
-        setDetectionStatus('Larawan ay matagumpay na nakuha! Paki-confirm upang i-save.');
+        setDetectionStatus('Photo captured successfully! Please confirm to save.');
       }
     }
   };
@@ -138,10 +138,10 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
     setTempPhoto(null);
     setIsReady(false);
     if (cameraMode === 'native' || yotiCrashed) {
-      setDetectionStatus('Sinisimulan ang camera...');
+      setDetectionStatus('Starting camera...');
       startNativeCamera();
     } else {
-      setDetectionStatus('Nilo-load ang AI Biometric Face Sensor...');
+      setDetectionStatus('Loading AI Biometric Face Sensor...');
     }
   };
 
@@ -245,7 +245,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
               {!isReady && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 gap-3 text-slate-400">
                   <Loader2 className="animate-spin text-teal-500" size={28} />
-                  <span className="text-[11px] font-semibold">Sinisimulan ang camera...</span>
+                  <span className="text-[11px] font-semibold">Starting camera...</span>
                 </div>
               )}
             </div>
@@ -255,7 +255,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
               {!isReady && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 z-20 gap-3 text-slate-400">
                   <Loader2 className="animate-spin text-teal-500" size={28} />
-                  <span className="text-[11px] font-semibold">Nilo-load ang AI Biometric Face Sensor...</span>
+                  <span className="text-[11px] font-semibold">Loading AI Biometric Face Sensor...</span>
                 </div>
               )}
               <div className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full">
@@ -266,7 +266,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                   onError={handleYotiError}
                   onReadyForCapture={() => {
                     setIsReady(true);
-                    setDetectionStatus('I-align ang mukha sa bilog — awtomatikong kukuha...');
+                    setDetectionStatus('Align face within the circle — auto-capture will trigger...');
                   }}
                   showOverlay={true}
                   showInitialGuidance={false}
@@ -282,17 +282,17 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
         <div className="md:col-span-5 p-5 flex flex-col justify-between bg-slate-50 gap-5">
           {/* Instructions */}
           <div className="space-y-3">
-            <h5 className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">Mga Tagubilin:</h5>
+            <h5 className="text-[11px] font-bold text-slate-700 uppercase tracking-wide">Instructions:</h5>
             <ul className="space-y-1.5 text-[10.5px] text-slate-500 font-medium list-disc list-inside leading-relaxed">
-              <li>Tumingin nang diretso sa camera.</li>
-              <li>Siguraduhing maliwanag ang paligid.</li>
-              <li>Tanggalin ang sumbrero, salamin, at mask.</li>
-              <li>Huwag gumalaw habang kumukuha.</li>
+              <li>Look directly at the camera.</li>
+              <li>Ensure the surroundings are well-lit.</li>
+              <li>Remove hat, glasses, and mask.</li>
+              <li>Do not move while capturing.</li>
               {cameraMode === 'yoti' && !yotiCrashed && (
-                <li className="text-teal-600 font-semibold">Awtomatikong kukuha kapag stable ang mukha.</li>
+                <li className="text-teal-600 font-semibold">Auto-captures when face is stable.</li>
               )}
               {cameraMode === 'native' && (
-                <li className="text-teal-600 font-semibold">I-click ang Capture button kapag handa na.</li>
+                <li className="text-teal-600 font-semibold">Click the Capture button when ready.</li>
               )}
             </ul>
           </div>
@@ -306,7 +306,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                isReady ? 'bg-teal-400 animate-pulse' : 'bg-slate-300')
             }></div>
             <span className="text-[10px] font-mono font-bold text-slate-600 leading-none truncate flex-1">
-              {value ? 'Matagumpay na Naka-enroll' : detectionStatus}
+              {value ? 'Successfully Enrolled' : detectionStatus}
             </span>
           </div>
 
@@ -339,7 +339,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                   className="flex-1 py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 shadow-md cursor-pointer transition-all active:scale-95"
                 >
                   <Check size={13} />
-                  <span>I-confirm at I-save</span>
+                  <span>Confirm and Save</span>
                 </button>
               </div>
             ) : cameraMode === 'native' && isReady ? (
@@ -350,15 +350,15 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                 className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-teal-600/20 cursor-pointer transition-all active:scale-95"
               >
                 <Camera size={16} />
-                <span>Kumuha ng Larawan (Capture)</span>
+                <span>Capture Photo</span>
               </button>
             ) : cameraMode === 'yoti' && !isReady ? (
               <div className="text-[10px] text-slate-400 font-semibold text-center italic p-3 rounded-xl border border-dashed border-slate-200">
-                Hinihintay ang AI face scanner...
+                Waiting for AI face scanner...
               </div>
             ) : cameraMode === 'yoti' && isReady ? (
               <div className="text-[10px] text-teal-600 font-semibold text-center p-3 rounded-xl bg-teal-50 border border-teal-100">
-                Awtomatikong kukuha kapag stable ang mukha sa green boundary.
+                Will auto-capture when the face is stable within the green boundary.
               </div>
             ) : (
               <button
@@ -367,7 +367,7 @@ export default function InlineFaceCapture({ value, onChange }: InlineFaceCapture
                 className="w-full py-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-95"
               >
                 <Camera size={14} />
-                <span>Simulan ang Camera</span>
+                <span>Start Camera</span>
               </button>
             )}
           </div>

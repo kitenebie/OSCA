@@ -89,9 +89,9 @@ export default function SeniorsListPage() {
   const handleArchiveConfirm = async () => {
     try {
       await updateSenior(archiveModal.id, { status: 'Deactivated' });
-      showToast(`Matagumpay na na-archive si ${archiveModal.name}.`, 'success');
+      showToast(`Successfully archived si ${archiveModal.name}.`, 'success');
     } catch {
-      showToast('Hindi ma-archive ang record. Subukan muli.', 'error');
+      showToast('Failed to archive record. Please try again.', 'error');
     }
     setArchiveModal({ open: false, id: '', name: '' });
   };
@@ -122,9 +122,9 @@ export default function SeniorsListPage() {
     if (!newPhoto || !photoModal.id) return;
     try {
       await updateSenior(photoModal.id, { profilePhoto: newPhoto });
-      showToast(`Matagumpay na na-update ang photo ni ${photoModal.name}!`, 'success');
+      showToast(`Successfully updated photo for ${photoModal.name}!`, 'success');
     } catch {
-      showToast('Hindi ma-update ang photo. Subukan muli.', 'error');
+      showToast('Failed to update photo. Please try again.', 'error');
     }
     setPhotoModal({ open: false, id: '', name: '' });
     setNewPhoto('');
@@ -141,22 +141,20 @@ export default function SeniorsListPage() {
     if (!statusModal.id || !newStatus) return;
     try {
       await updateSenior(statusModal.id, { status: newStatus });
-      showToast(`Status ni ${statusModal.name} na-update sa "${newStatus}"!`, 'success');
+      showToast(`${statusModal.name}'s status updated to "${newStatus}"!`, 'success');
     } catch {
-      showToast('Hindi ma-update ang status. Subukan muli.', 'error');
+      showToast('Failed to update status. Please try again.', 'error');
     }
     setStatusModal({ open: false, id: '', name: '', currentStatus: '' });
   };
 
-
-
   return (
-    <div className="space-y-6 animate-fadeIn font-sans">
+    <div className="space-y-6 animate-fadeIn font-sans h-fit">
       
       {/* Controls / Filter Panel Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
         <div>
-          <h4 className="font-bold text-slate-800 text-sm md:text-base">Rehistro ng mga Senior Citizens</h4>
+          <h4 className="font-bold text-slate-800 text-sm md:text-base">Senior Citizens Registry</h4>
           <p className="text-[11px] text-slate-400">Manage, review, filter and search Master List records</p>
         </div>
 
@@ -166,7 +164,7 @@ export default function SeniorsListPage() {
             className="flex items-center gap-1.5 px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-xs font-bold text-white rounded-xl shadow-md shadow-teal-600/10 transition-all duration-150 active:scale-95 cursor-pointer w-full sm:w-auto text-center justify-center"
           >
             <Plus size={14} />
-            <span>Bagong Rehistro</span>
+            <span>New Registration</span>
           </button>
         )}
       </div>
@@ -176,7 +174,7 @@ export default function SeniorsListPage() {
         
         {/* Search Input */}
         <div className="space-y-1.5">
-          <label htmlFor="search" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Paghahanap (Search)</label>
+          <label htmlFor="search" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Search</label>
           <div className="relative">
             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400 pointer-events-none">
               <Search size={14} />
@@ -186,7 +184,7 @@ export default function SeniorsListPage() {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Pangalan o OSCA ID..."
+              placeholder="Name or OSCA ID..."
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none"
             />
           </div>
@@ -202,7 +200,7 @@ export default function SeniorsListPage() {
             onChange={(e) => setFilterBarangay(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
-            <option value="All">Lahat ng Barangay</option>
+            <option value="All">All Barangays</option>
             {barangaysData.map((b) => (
               <option key={b.id} value={b.name}>{b.name}</option>
             ))}
@@ -218,8 +216,8 @@ export default function SeniorsListPage() {
             onChange={(e) => setSelectedStatus(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
-            <option value="All">Lahat ng Status</option>
-            <option value="Approved">Approved (Aktibo)</option>
+            <option value="All">All Status</option>
+            <option value="Approved">Approved (Active)</option>
             <option value="Pending">Pending Application</option>
             <option value="For Verification">For Verification</option>
             <option value="Rejected">Rejected</option>
@@ -236,7 +234,7 @@ export default function SeniorsListPage() {
             onChange={(e) => setFilterPension(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
-            <option value="All">Lahat (Pensioner/Non)</option>
+            <option value="All">All (Pensioner/Non)</option>
             <option value="Pensioner">Pension Beneficiary (SocPen)</option>
             <option value="Non-Pensioner">Non-Beneficiary</option>
           </select>
@@ -251,8 +249,8 @@ export default function SeniorsListPage() {
             <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-3">
               <UserCheck size={24} />
             </div>
-            <p className="text-xs font-semibold">Walang nahanap na record ng Senior Citizen.</p>
-            <p className="text-[10px] text-slate-400 mt-1">Suriing muli ang spelling o baguhin ang nilagay na filter.</p>
+            <p className="text-xs font-semibold">No Senior Citizen records found.</p>
+            <p className="text-[10px] text-slate-400 mt-1">Please check the spelling or adjust the filters.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -262,7 +260,7 @@ export default function SeniorsListPage() {
                   <th className="py-4 px-5">Senior Citizen Info</th>
                   <th className="py-4 px-5 hidden sm:table-cell">OSCA Number</th>
                   <th className="py-4 px-5 hidden md:table-cell">Barangay Hall</th>
-                  <th className="py-4 px-5 text-center">Edad (Age)</th>
+                  <th className="py-4 px-5 text-center">Age (Age)</th>
                   <th className="py-4 px-5 text-center hidden sm:table-cell">Pension Enrollee</th>
                   <th className="py-4 px-5 text-center">Status</th>
                   <th className="py-4 px-5 text-right">Actions</th>
@@ -343,21 +341,21 @@ export default function SeniorsListPage() {
                     <td className="py-3.5 px-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {/* View Dossier */}
-                        <button
+                        {/* <button
                           type="button"
                           onClick={() => handleRowClick(senior.id)}
-                          title="Tingnan ang Dossier (Profile)"
+                          title="View Dossier (Profile)"
                           className="p-2 text-slate-500 dark:text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                         >
                           <Eye size={18} />
-                        </button>
+                        </button> */}
                         {/* Edit with Hover Popup */}
                         {hasPermission('canEditSenior') && (
                           <div className="relative group/edit">
                             <button
                               type="button"
                               onClick={(e) => handleEdit(e, senior.id)}
-                              title="I-edit ang record"
+                              title="Edit record"
                               className="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                             >
                               <Pencil size={18} />
@@ -371,7 +369,7 @@ export default function SeniorsListPage() {
                                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer"
                                 >
                                   <Pencil size={13} />
-                                  <span>I-edit ang Record</span>
+                                  <span>Edit Record</span>
                                 </button>
                                 <button
                                   type="button"
@@ -379,7 +377,7 @@ export default function SeniorsListPage() {
                                   className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-300 hover:bg-teal-50 dark:hover:bg-teal-950/40 hover:text-teal-600 dark:hover:text-teal-400 transition-all cursor-pointer"
                                 >
                                   <Camera size={13} />
-                                  <span>Palitan ang Photo</span>
+                                  <span>Change Photo</span>
                                 </button>
                                 <button
                                   type="button"
@@ -422,7 +420,7 @@ export default function SeniorsListPage() {
                           <button
                             type="button"
                             onClick={(e) => handleArchiveClick(e, senior.id, `${senior.firstName} ${senior.lastName}`)}
-                            title="I-archive (deactivate)"
+                            title="Archive (deactivate)"
                             className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                           >
                             <Archive size={18} />
@@ -433,7 +431,7 @@ export default function SeniorsListPage() {
                         <button
                           type="button"
                           onClick={(e) => handleViewID(e, senior.id)}
-                          title="Tingnan/Generate ID Card"
+                          title="View Profile/Generate ID Card"
                           className="p-2 text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                         >
                           <CreditCard size={18} />
@@ -453,9 +451,9 @@ export default function SeniorsListPage() {
         {filteredSeniors.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-slate-100 bg-slate-50/40" id="pagination-controls-container">
             <span className="text-[11px] font-semibold text-slate-500" id="pagination-info">
-              Ipinapakita ang <strong className="text-slate-800">{startIndex + 1}</strong> hanggang{' '}
-              <strong className="text-slate-800">{Math.min(startIndex + itemsPerPage, filteredSeniors.length)}</strong> sa kabuuang{' '}
-              <strong className="text-slate-800">{filteredSeniors.length}</strong> na records
+              Showing <strong className="text-slate-800">{startIndex + 1}</strong> to{' '}
+              <strong className="text-slate-800">{Math.min(startIndex + itemsPerPage, filteredSeniors.length)}</strong> of{' '}
+              <strong className="text-slate-800">{filteredSeniors.length}</strong> records
             </span>
             
             {totalPages > 1 && (
@@ -544,9 +542,9 @@ export default function SeniorsListPage() {
 
           {/* Content */}
           <div className="text-center space-y-1.5">
-            <h3 className="font-bold text-lg text-slate-800">I-archive ang Record?</h3>
+            <h3 className="font-bold text-lg text-slate-800">Archive this Record?</h3>
             <p className="text-sm text-slate-500">
-              Ide-deactivate si <span className="font-semibold text-slate-700">{archiveModal.name}</span>. Hindi na siya lalabas sa active records list.
+              <span className="font-semibold text-slate-700">{archiveModal.name}</span> will be deactivated and will no longer appear in the active records list.
             </p>
           </div>
 
@@ -556,13 +554,13 @@ export default function SeniorsListPage() {
               onClick={() => setArchiveModal({ open: false, id: '', name: '' })}
               className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
             >
-              Kanselahin
+              Cancel
             </button>
             <button
               onClick={handleArchiveConfirm}
               className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
             >
-              I-archive
+              Archive
             </button>
           </div>
         </div>
@@ -588,9 +586,9 @@ export default function SeniorsListPage() {
             </div>
 
             <div className="text-center space-y-1.5">
-              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Palitan ang Photo</h3>
+              <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Change Photo</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Pumili ng bagong profile photo para kay <span className="font-semibold text-slate-700 dark:text-slate-200">{photoModal.name}</span>
+                Choose a new profile photo for <span className="font-semibold text-slate-700 dark:text-slate-200">{photoModal.name}</span>
               </p>
             </div>
 
@@ -614,14 +612,14 @@ export default function SeniorsListPage() {
                 onClick={() => setPhotoModal({ open: false, id: '', name: '' })}
                 className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
               >
-                Kanselahin
+                Cancel
               </button>
               <button
                 onClick={handlePhotoConfirm}
                 disabled={!newPhoto}
                 className="flex-1 py-2.5 px-4 bg-teal-600 hover:bg-teal-500 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                I-save ang Photo
+                Save Photo
               </button>
             </div>
           </div>
@@ -650,7 +648,7 @@ export default function SeniorsListPage() {
             <div className="text-center space-y-1.5">
               <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100">Update Status</h3>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                Piliin ang bagong status para kay <span className="font-semibold text-slate-700 dark:text-slate-200">{statusModal.name}</span>
+                Select a new status for <span className="font-semibold text-slate-700 dark:text-slate-200">{statusModal.name}</span>
               </p>
             </div>
 
@@ -675,20 +673,19 @@ export default function SeniorsListPage() {
                 onClick={() => setStatusModal({ open: false, id: '', name: '', currentStatus: '' })}
                 className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
               >
-                Kanselahin
+                Cancel
               </button>
               <button
                 onClick={handleStatusConfirm}
                 disabled={newStatus === statusModal.currentStatus}
                 className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                I-update Status
+                Update Status
               </button>
             </div>
           </div>
         </div>
       )}
-
 
     </div>
   );

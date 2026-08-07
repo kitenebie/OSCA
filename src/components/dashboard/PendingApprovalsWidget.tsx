@@ -19,23 +19,23 @@ export default function PendingApprovalsWidget() {
     e.stopPropagation();
     if (!currentUser) return;
     await approveSenior(id, currentUser.fullName);
-    useUIStore.getState().showToast(`Naprubahan na si ${name}!`, 'success');
+    useUIStore.getState().showToast(`${name} has been approved!`, 'success');
   };
 
   const handleReject = async (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     if (!currentUser) return;
-    const reason = prompt(`Mataas na Paunawa: Isulat ang dahilan ng pag-reject kay ${name}:`, 'Kulang sa dokumento');
+    const reason = prompt(`Notice: Enter the reason for rejecting ${name}:`, 'Insufficient documentation');
     if (reason === null) return; // cancelled
-    await rejectSenior(id, reason || 'Kulang sa patunay o dokumento', currentUser.fullName);
-    useUIStore.getState().showToast(`Tinanggihan si ${name}.`, 'warning');
+    await rejectSenior(id, reason || 'Insufficient proof or documentation', currentUser.fullName);
+    useUIStore.getState().showToast(`${name} has been rejected.`, 'warning');
   };
 
   return (
     <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col h-full">
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
         <div>
-          <h4 className="font-bold text-slate-800 text-sm md:text-base">Mga Hinihintay na Pagsusuri</h4>
+          <h4 className="font-bold text-slate-800 text-sm md:text-base">Pending Reviews</h4>
           <p className="text-[11px] text-slate-400">List of pending and verification-required files</p>
         </div>
         <button
@@ -45,7 +45,7 @@ export default function PendingApprovalsWidget() {
           }}
           className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1 hover:underline transition-all"
         >
-          <span>Tignan Lahat</span>
+          <span>View All</span>
           <ArrowUpRight size={14} />
         </button>
       </div>
@@ -56,8 +56,8 @@ export default function PendingApprovalsWidget() {
             <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-2">
               <UserCheck size={24} />
             </div>
-            <p className="text-xs font-semibold">Walang Nakabinbing Aplikasyon</p>
-            <p className="text-[10px] text-slate-400 mt-1">Lahat ng records ay nasuri at naproseso na.</p>
+            <p className="text-xs font-semibold">No Pending Applications</p>
+            <p className="text-[10px] text-slate-400 mt-1">All records have been reviewed and processed.</p>
           </div>
         ) : (
           pendingSeniors.map((senior) => (

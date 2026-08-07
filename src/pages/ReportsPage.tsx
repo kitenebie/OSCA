@@ -61,10 +61,10 @@ export default function ReportsPage() {
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'recipient', fullName: sigs.recipient.name, title: sigs.recipient.position, address: sigs.recipientAddress });
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mayor', fullName: sigs.notedBy.name, title: sigs.notedBy.position });
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'admin_assistant', fullName: sigs.adminAssistant.name, title: sigs.adminAssistant.position });
-      showToast('Matagumpay na na-save ang mga signatory!', 'success');
+      showToast('Signatories saved successfully!', 'success');
     } catch (err) {
       console.error('Save signatories error:', err);
-      showToast('Hindi ma-save ang signatories. Subukan muli.', 'error');
+      showToast('Failed to save signatories. Please try again.', 'error');
     }
   };
 
@@ -133,8 +133,8 @@ export default function ReportsPage() {
     const style = document.createElement('style');
     style.id = 'print-page-style';
     style.textContent = isLandscape
-      ? '@page { size: landscape; margin: 0; }'
-      : '@page { size: letter portrait; margin: 0; }';
+      ? '@page { size: landscape; margin: 0.38in 0 0.5in 0; }'
+      : '@page { size: letter portrait; margin: 0.38in 0 0.5in 0; }';
     document.head.appendChild(style);
 
     window.print();
@@ -146,7 +146,7 @@ export default function ReportsPage() {
       if (root) root.classList.remove('print-hidden');
     }, 1000);
 
-    showToast('Ini-print ang dokumento...', 'success');
+    showToast('Printing document...', 'success');
   };
 
   const getSelectedSenior = (id: string) => seniors.find(s => s.id === id);
@@ -158,7 +158,7 @@ export default function ReportsPage() {
       id: 'osca-transmittal' as DocumentType,
       title: 'OSCA Transmittal',
       subtitle: 'Office of the Senior Citizen Affairs',
-      description: 'Transmittal letter para sa NCSC Regional Office — pagpapadala ng accomplished forms at signatures.',
+      description: 'Transmittal letter for NCSC Regional Office — submission of accomplished forms and signatures.',
       icon: Send,
       color: 'teal',
     },
@@ -166,15 +166,15 @@ export default function ReportsPage() {
       id: 'mswdo-transmittal' as DocumentType,
       title: 'MSWDO Transmittal',
       subtitle: 'Municipal Social Welfare & Development Office',
-      description: 'Transmittal letter para sa NCSC — ECA application forms, masterlist, at pertinent documents.',
+      description: 'Transmittal letter for NCSC — ECA application forms, masterlist, and pertinent documents.',
       icon: FileText,
       color: 'blue',
     },
     {
       id: 'certificate-transfer' as DocumentType,
       title: 'Certificate of Transfer',
-      subtitle: 'Certification ng Paglipat ng Tirahan',
-      description: 'Sertipiko para sa senior citizen na lumipat ng residence sa ibang municipality.',
+      subtitle: 'Transfer of Residence Certification',
+      description: 'Certificate for senior citizens who transferred residence to another municipality.',
       icon: ArrowRightLeft,
       color: 'amber',
     },
@@ -182,7 +182,7 @@ export default function ReportsPage() {
       id: 'certification' as DocumentType,
       title: 'Certification',
       subtitle: 'DSWD Social Pension Certification',
-      description: 'Sertipiko na ang senior citizen ay bona fide pensioner ng DSWD Social Pension Program.',
+      description: 'Certificate that the senior citizen is a bona fide pensioner of the DSWD Social Pension Program.',
       icon: Award,
       color: 'purple',
     },
@@ -190,7 +190,7 @@ export default function ReportsPage() {
       id: 'masterlist' as DocumentType,
       title: 'Masterlist (Octogenarian/Nonagenarian/Centenarian)',
       subtitle: 'NCSC Validated Seniors List',
-      description: 'Masterlist ng validated na Octogenarian, Nonagenarian, at Centenarian kasama ang kanilang attachment checklist.',
+      description: 'Masterlist of validated Octogenarian, Nonagenarian, and Centenarian seniors with their attachment checklist.',
       icon: ClipboardList,
       color: 'green',
     },
@@ -210,7 +210,7 @@ export default function ReportsPage() {
       {/* Page Title */}
       <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm">
         <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base">Reports & Certificates Generator</h4>
-        <p className="text-[11px] text-slate-400">Pumili ng uri ng dokumento upang ma-generate ang report o certificate.</p>
+        <p className="text-[11px] text-slate-400">Select a document type to generate the report or certificate.</p>
       </div>
 
       {/* Document Type Cards */}
@@ -265,7 +265,7 @@ export default function ReportsPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 <Save size={13} />
-                <span>I-save Signatories</span>
+                <span>Save Signatories</span>
               </button>
               <button
                 type="button"
@@ -273,7 +273,7 @@ export default function ReportsPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 <Printer size={13} />
-                <span>I-print</span>
+                <span>Print</span>
               </button>
             </div>
           </div>
@@ -283,7 +283,7 @@ export default function ReportsPage() {
             {/* LEFT: Document Preview */}
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sticky top-4 self-start overflow-auto" style={{ maxHeight: '85vh' }}>
               <h6 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
-                Preview ng Dokumento
+                Document Preview
               </h6>
               <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview">
 
@@ -297,7 +297,6 @@ export default function ReportsPage() {
                 </div>
                 <img src="/Bagong_Pilipinas_Logo.svg.webp" alt="Bagong Pilipinas" />
               </div>
-
 
               {/* OSCA TRANSMITTAL */}
               {activeDoc === 'osca-transmittal' && (
@@ -509,7 +508,6 @@ export default function ReportsPage() {
                 );
               })()}
 
-
               </div>
             </div>
 
@@ -518,7 +516,7 @@ export default function ReportsPage() {
             {activeDoc === 'osca-transmittal' && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Petsa (Date)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Date</label>
                   <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1.5">
@@ -527,13 +525,13 @@ export default function ReportsPage() {
                 </div>
                 {/* Signatories */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Mga Pipirma</h6>
+                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
                   {/* Receiver */}
                   <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Receiver (Tatanggap)</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.recipient.name} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -551,7 +549,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sender (Nagpadala)</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -565,7 +563,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Noted By</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.notedBy.name} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -583,7 +581,7 @@ export default function ReportsPage() {
                     className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-left cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                   >
                     <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                      Listahan ng Barangay at Bilang ng Pirma ({barangayRows.length} barangay, {barangayRows.reduce((sum, r) => sum + r.count, 0)} total)
+                      List of Barangays and Signature Count ({barangayRows.length} barangay, {barangayRows.reduce((sum, r) => sum + r.count, 0)} total)
                     </span>
                     <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${barangayTableOpen ? 'rotate-180' : ''}`} />
                   </button>
@@ -610,7 +608,7 @@ export default function ReportsPage() {
                       </tr>
                       </tbody>
                     </table>
-                  <p className="text-[9px] text-slate-400 italic">* Awtomatikong kinukuha mula sa seniors table (Approved na seniors bawat barangay)</p>
+                  <p className="text-[9px] text-slate-400 italic">* Automatically retrieved from the seniors table (Approved seniors per barangay)</p>
                   </>)}
                 </div>
               </div>
@@ -620,21 +618,21 @@ export default function ReportsPage() {
             {activeDoc === 'mswdo-transmittal' && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Petsa</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Date</label>
                   <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Nilalaman ng Transmittal (Body)</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Transmittal Content (Body)</label>
                   <textarea value={formData.mswdoBody} onChange={(e) => setFormData({...formData, mswdoBody: e.target.value})} rows={5} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none" />
                 </div>
                 {/* Signatories */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Mga Pipirma</h6>
+                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
                   <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Receiver (Tatanggap)</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.recipient.name} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -651,7 +649,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sender (Nagpadala / MSWDO Head)</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.mswdoHead.name} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -664,7 +662,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Noted By</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.notedBy.name} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -681,9 +679,9 @@ export default function ReportsPage() {
             {activeDoc === 'certificate-transfer' && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Piliin ang Senior Citizen</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select Senior Citizen</label>
                   <select value={formData.transferSeniorId} onChange={(e) => setFormData({...formData, transferSeniorId: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
-                    <option value="">-- Pumili ng Senior --</option>
+                    <option value="">-- Select a Senior --</option>
                     {seniors.filter(s => s.status === 'Approved').map((s) => (
                       <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
                     ))}
@@ -695,18 +693,18 @@ export default function ReportsPage() {
                     <input type="text" value={formData.transferTo} onChange={(e) => setFormData({...formData, transferTo: e.target.value})} placeholder="e.g. Barangay Nato, Gubat, Sorsogon" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Simula Noong (Since Year)</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Since Year</label>
                     <input type="text" value={formData.transferSince} onChange={(e) => setFormData({...formData, transferSince: e.target.value})} placeholder="e.g. 2022" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                   </div>
                 </div>
                 {/* Signatories */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Mga Pipirma</h6>
+                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
                   <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">OSCA Head</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -719,7 +717,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MSWDO Head</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.mswdoHead.name} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -736,9 +734,9 @@ export default function ReportsPage() {
             {activeDoc === 'certification' && (
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Piliin ang Senior Citizen</label>
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select Senior Citizen</label>
                   <select value={formData.certSeniorId} onChange={(e) => setFormData({...formData, certSeniorId: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
-                    <option value="">-- Pumili ng Senior --</option>
+                    <option value="">-- Select a Senior --</option>
                     {seniors.filter(s => s.status === 'Approved').map((s) => (
                       <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
                     ))}
@@ -746,22 +744,22 @@ export default function ReportsPage() {
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Program / Sertipikasyon Para Sa</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Program / Certification For</label>
                     <input type="text" value={formData.certProgram} onChange={(e) => setFormData({...formData, certProgram: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Petsa ng Pag-issue</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Date of Issue</label>
                     <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                   </div>
                 </div>
                 {/* Signatories */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Mga Pipirma</h6>
+                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
                   <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">OSCA Head</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -774,7 +772,7 @@ export default function ReportsPage() {
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">MSWDO Head</span>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Pangalan</label>
+                        <label className="text-[9px] font-bold text-slate-500">Name</label>
                         <input type="text" value={sigs.mswdoHead.name} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                       <div className="space-y-1">
@@ -792,7 +790,7 @@ export default function ReportsPage() {
             {activeDoc === 'masterlist' && (
               <div className="space-y-4">
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-3 rounded-xl">
-                  Awtomatikong kinukuha ang mga senior na edad <strong>80 pataas</strong> (Octogenarian, Nonagenarian, Centenarian) mula sa database.
+                  Automatically retrieves seniors aged <strong>80 pataas</strong> (Octogenarian, Nonagenarian, Centenarian) from the database.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
@@ -804,9 +802,9 @@ export default function ReportsPage() {
                     <input type="text" value="Sorsogon" readOnly className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:outline-none" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Bilang ng Qualified</label>
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Qualified Count</label>
                     <div className="px-4 py-2 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-700 rounded-xl text-xs font-bold text-green-700 dark:text-green-300">
-                      {seniors.filter(s => { const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970); return age >= 80 && s.status === 'Approved'; }).length} na senior
+                      {seniors.filter(s => { const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970); return age >= 80 && s.status === 'Approved'; }).length} seniors
                     </div>
                   </div>
                 </div>

@@ -30,7 +30,7 @@ class FaceCaptureErrorBoundary extends React.Component<
     console.error('[FaceCapture Modal Crash]', error.message);
     if (this.props && typeof this.props.onError === 'function') {
       this.props.onError(
-        'Face Capture module crashed. Posibleng kulang ang AI models sa deployment.'
+        'Face Capture module crashed. AI models may be missing from deployment.'
       );
     }
   }
@@ -42,7 +42,7 @@ class FaceCaptureErrorBoundary extends React.Component<
           <div className="space-y-2">
             <p className="text-amber-400 text-xs font-bold">⚠️ Face Capture Module Error</p>
             <p className="text-slate-400 text-[10px]">
-              Hindi ma-load ang AI face detection models sa deployment na ito.
+              Unable to load AI face detection models in this deployment.
             </p>
           </div>
         </div>
@@ -51,8 +51,6 @@ class FaceCaptureErrorBoundary extends React.Component<
     return this.props?.children || null;
   }
 }
-
-
 
 interface FaceCaptureModalProps {
   onCapture: (base64Img: string) => void;
@@ -63,7 +61,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [detectionStatus, setDetectionStatus] = useState('Nilo-load ang AI Biometric Face Sensor...');
+  const [detectionStatus, setDetectionStatus] = useState('Loading AI Biometric Face Sensor...');
 
   const handleSuccess = (payload: any) => {
     // payload.img contains the base64-encoded string
@@ -72,16 +70,16 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
       imgData = `data:image/jpeg;base64,${imgData}`;
     }
     setCapturedPhoto(imgData);
-    setDetectionStatus('Larawan ay matagumpay na nakuha!');
+    setDetectionStatus('Photo captured successfully!');
   };
 
   const handleError = (error: any) => {
     console.error('Yoti Face Capture Error:', error);
-    let errorMsg = 'Hindi ma-load ang Face Capture. Pakisuri kung may camera at pinayagan ang permission.';
+    let errorMsg = 'Cannot load Face Capture. Please check if a camera is available and permission is granted.';
     if (error === 'NO_CAMERA_PERMISSION') {
-      errorMsg = 'Walang pahintulot sa camera. Mangyaring payagan ito sa iyong browser.';
+      errorMsg = 'Camera permission denied. Please allow it in your browser.';
     } else if (error === 'NO_CAMERA') {
-      errorMsg = 'Walang nakitang camera sa iyong device.';
+      errorMsg = 'No camera found on your device.';
     }
     setCameraError(errorMsg);
     setDetectionStatus('May error sa sensor');
@@ -90,7 +88,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
   const handleRetake = () => {
     setCapturedPhoto(null);
     setIsReady(false);
-    setDetectionStatus('Nilo-load muli ang AI Biometric Face Sensor...');
+    setDetectionStatus('Reloading AI Biometric Face Sensor...');
   };
 
   const handleSave = () => {
@@ -142,7 +140,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
               {!isReady && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/90 z-20 gap-3 text-slate-400" id="camera-loading-spinner">
                   <Loader2 className="animate-spin text-teal-500" size={32} />
-                  <span className="text-xs font-semibold">Nilo-load ang Face Detection...</span>
+                  <span className="text-xs font-semibold">Loading Face Detection...</span>
                 </div>
               )}
               <div className="w-full h-full [&_video]:object-cover [&_video]:w-full [&_video]:h-full" id="yoti-component-container">
@@ -180,7 +178,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
                   id="yoti-retake-btn"
                 >
                   <RefreshCw size={13} />
-                  <span>Kuhang Muli (Retake)</span>
+                  <span>Retake</span>
                 </button>
                 <button
                   type="button"
@@ -189,7 +187,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
                   id="yoti-save-btn"
                 >
                   <Check size={13} />
-                  <span>Gamitin ang Larawan</span>
+                  <span>Use this Photo</span>
                 </button>
               </>
             ) : (
@@ -199,7 +197,7 @@ export default function FaceCaptureModal({ onCapture, onClose }: FaceCaptureModa
                 className="px-4 py-2.5 rounded-xl border border-slate-700 hover:border-slate-500 text-xs font-semibold text-slate-400 hover:text-white transition-all"
                 id="yoti-cancel-btn"
               >
-                Bumalik
+                Back
               </button>
             )}
           </div>

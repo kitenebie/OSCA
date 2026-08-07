@@ -1,27 +1,149 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService } from '../../services/supabaseService';
 import { useBarangays } from '../../hooks/useBarangays';
-import { Send, FileText, Users, MapPin, Sparkles, MessageSquare } from 'lucide-react';
+import { Send, FileText, Users, MapPin, Sparkles, MessageSquare, Search, ChevronDown, X } from 'lucide-react';
+
+/* ─── Searchable Select Component ─── */
+interface SearchableSelectOption {
+  value: string;
+  label: string;
+}
+
+interface SearchableSelectProps {
+  id: string;
+  options: SearchableSelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  required?: boolean;
+}
+
+function SearchableSelect({ id, options, value, onChange, placeholder = '-- Select --', required }: SearchableSelectProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredOptions = options.filter((opt) =>
+    opt.label.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const selectedLabel = options.find((opt) => opt.value === value)?.label || '';
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        setSearch('');
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Focus search input when dropdown opens
+  useEffect(() => {
+    if (isOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  return (
+    <div ref={containerRef} className="relative w-full" id={id}>
+      {/* Trigger Button */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none flex items-center justify-between gap-2 text-left transition-all ${isOpen ? 'ring-1 ring-teal-500 border-teal-300' : ''}`}
+      >
+        <span className={selectedLabel ? 'text-slate-800' : 'text-slate-400'}>
+          {selectedLabel || placeholder}
+        </span>
+        <div className="flex items-center gap-1">
+          {value && (
+            <span
+              onClick={(e) => { e.stopPropagation(); onChange(''); setSearch(''); }}
+              className="p-0.5 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X size={12} />
+            </span>
+          )}
+          <ChevronDown size={13} className={`text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </button>
+
+      {/* Hidden native input for form required validation */}
+      {required && <input type="text" value={value} required className="sr-only" tabIndex={-1} readOnly />}
+
+      {/* Dropdown */}
+      {isOpen && (
+        <div className="absolute z-50 mt-1.5 w-full bg-white border border-slate-200 rounded-xl shadow-lg shadow-slate-200/50 overflow-hidden animate-fadeIn">
+          {/* Search Input */}
+          <div className="p-2 border-b border-slate-100">
+            <div className="relative">
+              <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search here..."
+                className="w-full pl-8 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          {/* Options List */}
+          <div className="max-h-52 overflow-y-auto overscroll-contain">
+            {filteredOptions.length === 0 ? (
+              <div className="px-4 py-6 text-center text-slate-400 text-[11px] font-medium">
+                No results found
+              </div>
+            ) : (
+              filteredOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                    setSearch('');
+                  }}
+                  className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors hover:bg-teal-50/60 ${
+                    opt.value === value ? 'bg-teal-50 text-teal-700 font-bold' : 'text-slate-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const SMS_TEMPLATES = [
   {
-    title: 'Pension Distribution Notice',
-    text: 'Magandang araw [name]! Nais naming ipaalala na ang pamamahagi ng inyong Social Pension para sa buwang ito ay gaganapin sa [barangay] Barangay Hall sa darating na Hulyo 25, 2026, 9:00 AM. Magdala ng inyong OSCA ID at sariling ballpen. Salamat mula sa LGU Juban MSWDO.'
+    title: 'Paalala sa Pamimigay ng Pension',
+    text: 'Magandang araw [name]! Nais po naming ipaalala na ang pamimigay ng inyong Social Pension ngayong buwan ay gaganapin sa [barangay] Barangay Hall sa darating na Hulyo 25, 2026, 9:00 AM. Mangyaring dalhin ang inyong OSCA ID at sariling ballpen. Salamat po mula sa LGU Juban MSWDO.'
   },
   {
-    title: 'Quarterly Medicine Subsidy Notice',
-    text: 'Magandang araw [name]! May libreng Hypertension maintenance medicine subsidy na ipamamahagi sa [barangay] Barangay Hall o Health Center sa Martes, Hulyo 21, 2026. Mangyaring pumunta para makuha ang inyong quarterly supply. Salamat mula sa Juban Municipal Health Office.'
+    title: 'Paalala sa Libreng Gamot (Quarterly)',
+    text: 'Magandang araw [name]! May libreng maintenance medicine para sa Hypertension na ipamamahagi sa [barangay] Barangay Hall o Health Center sa Martes, Hulyo 21, 2026. Mangyaring pumunta upang makuha ang inyong quarterly supply. Salamat po mula sa Juban Municipal Health Office.'
   },
   {
-    title: 'ID Card Approved & Ready',
-    text: 'Magandang araw [name]! Ang inyong aplikasyon para sa Senior Citizen ID ay APRUBADO na. Maaari ninyong makuha ang inyong physical NFC ID card sa OSCA Office, Juban Municipal Hall simula Lunes. Magdala ng kopya ng inyong registration form. Salamat!'
+    title: 'Aprubado na ang Senior Citizen ID',
+    text: 'Magandang araw [name]! Ang inyong aplikasyon para sa Senior Citizen ID ay APRUBADO na. Maaari na po ninyong kunin ang inyong physical NFC ID card sa OSCA Office, Juban Municipal Hall simula Lunes. Mangyaring magdala ng kopya ng inyong registration form. Salamat po!'
   },
   {
-    title: 'LGU Birthday Cash Voucher Notice',
-    text: 'Magandang araw [name]! Ang inyong Barangay Birthday Cash Voucher na nagkakahalagang Php 500.00 ay maaari niyo nang i-claim sa inyong barangay hall simula bukas. Maligayang Kaarawan! Mula sa [barangay] Barangay Council.'
+    title: 'Paalala sa Birthday Cash Voucher',
+    text: 'Magandang araw [name]! Ang inyong Barangay Birthday Cash Voucher na nagkakahalaga ng Php 500.00 ay maaari na po ninyong i-claim sa inyong barangay hall simula bukas. Maligayang Kaarawan po! Mula sa [barangay] Barangay Council.'
   }
 ];
 
@@ -64,7 +186,7 @@ export default function SMSComposer() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!message.trim()) {
-      showToast('Walang isinulat na mensahe.', 'error');
+      showToast('No message entered.', 'error');
       return;
     }
     if (!currentUser) return;
@@ -75,13 +197,13 @@ export default function SMSComposer() {
       if (recipientType === 'individual') {
         const targetSenior = seniors.find((s) => s.id === selectedSeniorId);
         if (!targetSenior) {
-          showToast('Mangyaring pumili ng senior citizen recipient.', 'error');
+          showToast('Please select a senior citizen recipient.', 'error');
           setIsSending(false);
           return;
         }
 
         if (!targetSenior.contactNumber) {
-          showToast(`Walang mobile contact number si ${targetSenior.firstName}.`, 'error');
+          showToast(`No mobile contact number for ${targetSenior.firstName}.`, 'error');
           setIsSending(false);
           return;
         }
@@ -100,7 +222,7 @@ export default function SMSComposer() {
         );
 
         if (success) {
-          showToast(`SMS matagumpay na naipadala kay ${targetSenior.firstName}!`, 'success');
+          showToast(`SMS successfully sent to ${targetSenior.firstName}!`, 'success');
 
           // Notify all users
           auditLogsService.log({
@@ -121,7 +243,7 @@ export default function SMSComposer() {
         const count = await sendBatchSMS(targetBrgyName, message, currentUser.fullName);
         
         if (count > 0) {
-          showToast(`Broadcast sent! Matagumpay na naikalat ang SMS sa ${count} na Senior Citizens.`, 'success');
+          showToast(`Broadcast sent! SMS successfully sent to ${count} Senior Citizens.`, 'success');
 
           // Notify all users
           auditLogsService.log({
@@ -134,12 +256,12 @@ export default function SMSComposer() {
           });
           setMessage('');
         } else {
-          showToast('Walang nahanap na valid recipient na may contact number sa barangay na pinili.', 'warning');
+          showToast('No valid recipients with contact numbers found in the selected barangay.', 'warning');
         }
       }
     } catch (err) {
       console.error(err);
-      showToast('Nagkaroon ng aberya sa pagsend ng SMS.', 'error');
+      showToast('An error occurred while sending the SMS.', 'error');
     } finally {
       setIsSending(false);
     }
@@ -161,7 +283,7 @@ export default function SMSComposer() {
 
           {/* Select Recipient Categories */}
           <div className="space-y-2">
-            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Pumili ng Recipient (Receivers)</label>
+            <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Select Recipient (Receivers)</label>
             <div className="grid grid-cols-3 gap-2 bg-slate-100/80 p-1 rounded-xl">
               <button
                 type="button"
@@ -172,7 +294,7 @@ export default function SMSComposer() {
                     : 'text-slate-500 hover:text-slate-800'}`}
               >
                 <Users size={13} />
-                <span>Isang Senior</span>
+                <span>Single Senior</span>
               </button>
               <button
                 type="button"
@@ -194,7 +316,7 @@ export default function SMSComposer() {
                     : 'text-slate-500 hover:text-slate-800'}`}
               >
                 <Sparkles size={13} />
-                <span>Lahat (Bulk)</span>
+                <span>All (Bulk)</span>
               </button>
             </div>
           </div>
@@ -202,41 +324,38 @@ export default function SMSComposer() {
           {/* Contextual Recipient Selectors */}
           {recipientType === 'individual' && (
             <div className="space-y-2">
-              <label htmlFor="senior-select" className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Pumili ng Senior Citizen</label>
-              <select
+              <label htmlFor="senior-select" className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Select Senior Citizen</label>
+              <SearchableSelect
                 id="senior-select"
                 value={selectedSeniorId}
-                onChange={(e) => setSelectedSeniorId(e.target.value)}
+                onChange={(val) => setSelectedSeniorId(val)}
+                placeholder="-- Select from registry --"
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none"
-              >
-                <option value="">-- Pumili mula sa rehistro --</option>
-                {seniorsWithContact.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.firstName} {s.lastName} ({s.contactNumber} - {s.barangay})
-                  </option>
-                ))}
-              </select>
+                options={seniorsWithContact.map((s) => ({
+                  value: s.id,
+                  label: `${s.firstName} ${s.lastName} (${s.contactNumber} - ${s.barangay})`
+                }))}
+              />
             </div>
           )}
 
           {recipientType === 'barangay' && (
             <div className="space-y-2 animate-fadeIn">
-              <label htmlFor="barangay-select" className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Pumili ng Barangay</label>
-              <select
+              <label htmlFor="barangay-select" className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Select Barangay</label>
+              <SearchableSelect
                 id="barangay-select"
                 value={selectedBarangay}
-                onChange={(e) => setSelectedBarangay(e.target.value)}
+                onChange={(val) => setSelectedBarangay(val)}
+                placeholder="All Barangays (LGU Juban)"
                 required
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none"
-              >
-                <option value="All">Lahat ng Barangay (LGU Juban)</option>
-                {barangaysData.map((b) => (
-                  <option key={b.id} value={b.name}>
-                    {b.name} (Est. {b.seniorCount} seniors)
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: 'All', label: 'All Barangays (LGU Juban)' },
+                  ...barangaysData.map((b) => ({
+                    value: b.name,
+                    label: `${b.name} (Est. ${b.seniorCount} seniors)`
+                  }))
+                ]}
+              />
             </div>
           )}
 
@@ -252,13 +371,13 @@ export default function SMSComposer() {
               id="sms-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Isulat dito ang mensahe... Pwede gumamit ng [name] at [barangay] tokens para sa auto-replace."
+              placeholder="Type your message here... You can use [name] and [barangay] tokens for auto-replace."
               rows={6}
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none leading-relaxed"
             />
             <p className="text-[9.5px] text-slate-400 font-medium leading-relaxed">
-              💡 <strong>Tagubilin:</strong> Ang variables na <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[name]</code> at <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[barangay]</code> ay kusa na naming papalitan ng pangalan at tirahan ng senior bago i-send.
+              💡 <strong>Note:</strong> The variables <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[name]</code> and <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[barangay]</code> will be automatically replaced with the senior's name and address before sending.
             </p>
           </div>
 
@@ -268,7 +387,7 @@ export default function SMSComposer() {
             className="w-full py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-300 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all duration-150 active:scale-98 flex items-center justify-center gap-2"
           >
             <Send size={13} className={isSending ? 'animate-bounce' : ''} />
-            <span>{isSending ? 'Ipinapadala ang mga SMS (Sending...)' : 'Ipadala ang Mensahe (Send Broadcast)'}</span>
+            <span>{isSending ? 'Sending SMS...' : 'Send Message (Send Broadcast)'}</span>
           </button>
         </form>
       </div>
@@ -278,9 +397,9 @@ export default function SMSComposer() {
         <div className="border-b border-slate-100 pb-3 mb-4">
           <div className="flex items-center gap-2 text-teal-600">
             <FileText size={16} />
-            <h4 className="font-bold text-xs uppercase tracking-wide text-teal-700">LGU Preset Templates</h4>
+            <h4 className="font-bold text-xs uppercase tracking-wide text-teal-700">Mga Handa nang Sulat (LGU Preset)</h4>
           </div>
-          <p className="text-[10px] text-slate-400 mt-1">Official communication presets for quick layouts selection</p>
+          <p className="text-[10px] text-slate-400 mt-1">Mga opisyal na template ng mensahe para sa mabilis na pagpili</p>
         </div>
 
         <div className="flex-1 overflow-y-auto space-y-3.5 pr-1">

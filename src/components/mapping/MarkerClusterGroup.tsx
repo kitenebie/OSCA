@@ -106,7 +106,7 @@ export default function MarkerClusterGroup({
             <div><span class="text-slate-400">Status:</span> <strong class="${senior.status === 'Approved' ? 'text-teal-600' : 'text-amber-500'}">${senior.status}</strong></div>
             ${senior.inRiskArea === 'yes' ? `
               <div>
-                <span class="text-slate-400">Panganib:</span>
+                <span class="text-slate-400">Risk:</span>
                 <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider
                   ${senior.riskSeverity === 'critical' ? 'bg-red-50 text-red-600 border border-red-100' : ''}
                   ${senior.riskSeverity === 'high' ? 'bg-orange-50 text-orange-600 border border-orange-100' : ''}
@@ -119,7 +119,7 @@ export default function MarkerClusterGroup({
             ` : ''}
           </div>
           <button id="btn-popup-${senior.id}" class="mt-3 w-full py-1.5 bg-teal-600 text-white text-[9px] font-bold rounded-lg hover:bg-teal-700 transition-colors cursor-pointer text-center">
-            Tingnan ang Profile
+            View Profile
           </button>
         </div>
       `);

@@ -75,15 +75,15 @@ export default function CentenarianHonoringPage() {
   const handleSubmit = () => {
     // Validation
     if (!form.hasApplicationForm || !form.hasFullBodyPhoto || !form.hasBirthCertificate) {
-      showToast('Kulang ang mga requirements. Pakisuyong kumpletuhin ang checklist.', 'warning');
+      showToast('Requirements incomplete. Please complete the checklist.', 'warning');
       return;
     }
     if (form.applicantType === 'Posthumous' && !form.hasDeathCertificate) {
-      showToast('Kailangan ang Death Certificate para sa Posthumous application.', 'warning');
+      showToast('Death Certificate is required for Posthumous application.', 'warning');
       return;
     }
 
-    showToast(`Application para sa ${senior?.firstName} ${senior?.lastName} ay matagumpay na na-submit para sa endorsement!`, 'success');
+    showToast(`Application for ${senior?.firstName} ${senior?.lastName} has been successfully submitted for endorsement!`, 'success');
     setSelectedSenior(null);
     setViewMode('list');
   };
@@ -115,28 +115,28 @@ export default function CentenarianHonoringPage() {
             <div className="bg-white/80 border border-amber-100 rounded-xl p-3 text-center">
               <span className="block text-[9px] text-amber-500 font-bold uppercase">Octogenarian</span>
               <span className="block text-lg font-black text-amber-700">₱10,000</span>
-              <span className="text-[9px] text-slate-400">sa 80 & 85 taong gulang</span>
+              <span className="text-[9px] text-slate-400">at 80 & 85 years old</span>
             </div>
             <div className="bg-white/80 border border-amber-100 rounded-xl p-3 text-center">
               <span className="block text-[9px] text-amber-500 font-bold uppercase">Nonagenarian</span>
               <span className="block text-lg font-black text-amber-700">₱10,000</span>
-              <span className="text-[9px] text-slate-400">sa 90 & 95 taong gulang</span>
+              <span className="text-[9px] text-slate-400">at 90 & 95 years old</span>
             </div>
             <div className="bg-white/80 border border-amber-100 rounded-xl p-3 text-center">
               <span className="block text-[9px] text-red-500 font-bold uppercase">Centenarian</span>
               <span className="block text-lg font-black text-red-600">₱100,000</span>
-              <span className="text-[9px] text-slate-400">sa 100+ taong gulang + Letter of Felicitation</span>
+              <span className="text-[9px] text-slate-400">at 100+ years old + Letter of Felicitation</span>
             </div>
           </div>
           <p className="text-[9px] text-amber-600 italic">
-            * Kailangan i-claim ang cash gift sa loob ng 1 taon mula pag-abot ng milestone age. Endorsement letter mula sa Local Chief Executive ay required.
+            * Cash gift must be claimed within 1 year of reaching the milestone age. An endorsement letter from the Local Chief Executive is required.
           </p>
         </div>
 
         {/* Eligible Seniors */}
         <div className="bg-white border border-slate-200 rounded-2xl p-4">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-bold text-slate-700">Mga Eligible na Senior (80+ taong gulang)</h3>
+            <h3 className="text-xs font-bold text-slate-700">Eligible Seniors (80+ years old)</h3>
             <span className="text-[10px] font-mono text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">{eligibleSeniors.length} eligible</span>
           </div>
 
@@ -144,7 +144,7 @@ export default function CentenarianHonoringPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Hanapin ang senior (pangalan o OSCA number)..."
+              placeholder="Search for senior (name or OSCA number)..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-300"
@@ -155,7 +155,7 @@ export default function CentenarianHonoringPage() {
             {filteredSeniors.length === 0 ? (
               <div className="text-center py-8 text-slate-400">
                 <AlertCircle size={24} className="mx-auto mb-2 text-slate-300" />
-                <p className="text-xs font-medium">Walang nahanap na eligible senior citizen (80+ years old).</p>
+                <p className="text-xs font-medium">No eligible senior citizens found (80+ years old).</p>
               </div>
             ) : (
               filteredSeniors.map(s => {
@@ -181,7 +181,7 @@ export default function CentenarianHonoringPage() {
                       </p>
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[10px] text-slate-400 font-mono">{s.oscaNumber}</span>
-                        <span className="text-[10px] font-bold text-amber-600">• {s.age} taong gulang</span>
+                        <span className="text-[10px] font-bold text-amber-600">• {s.age} years old</span>
                         {highestMilestone && (
                           <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
                             highestMilestone.age >= 100 ? 'bg-red-100 text-red-600' : 'bg-amber-100 text-amber-600'
@@ -217,7 +217,7 @@ export default function CentenarianHonoringPage() {
           <div>
             <h1 className="font-black text-base text-slate-800 uppercase tracking-tight">Application for Honoring</h1>
             <p className="text-[10px] text-slate-400">
-              {senior?.firstName} {senior?.lastName} • {senior?.age} taong gulang
+              {senior?.firstName} {senior?.lastName} • {senior?.age} years old
               {senior?.isDeceased && ' • DECEASED (Posthumous Application)'}
             </p>
           </div>
@@ -228,7 +228,7 @@ export default function CentenarianHonoringPage() {
         {/* Milestone Selection */}
         <div className="space-y-3">
           <h3 className="font-bold text-sm text-slate-700 flex items-center gap-2">
-            <Star size={14} className="text-amber-500" /> Piliin ang Milestone
+            <Star size={14} className="text-amber-500" /> Select Milestone
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {MILESTONES.filter(m => (senior?.age || 0) >= m.age).map(m => (
@@ -250,7 +250,7 @@ export default function CentenarianHonoringPage() {
         {/* Applicant Type */}
         <div className="space-y-3">
           <h3 className="font-bold text-sm text-slate-700 flex items-center gap-2">
-            <User size={14} className="text-indigo-500" /> Uri ng Aplikante
+            <User size={14} className="text-indigo-500" /> Applicant Type
           </h3>
           <div className="flex gap-2">
             {(['Self', 'Representative', 'Posthumous'] as const).map(type => (
@@ -262,8 +262,8 @@ export default function CentenarianHonoringPage() {
                     ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
                     : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'}`}
               >
-                {type === 'Self' && 'Sarili (Self)'}
-                {type === 'Representative' && 'Kinatawan (Representative)'}
+                {type === 'Self' && 'Self'}
+                {type === 'Representative' && 'Representative'}
                 {type === 'Posthumous' && 'Posthumous (Deceased)'}
               </button>
             ))}
@@ -272,7 +272,7 @@ export default function CentenarianHonoringPage() {
           {(form.applicantType === 'Representative' || form.applicantType === 'Posthumous') && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Pangalan ng Kinatawan</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Representative Name</label>
                 <input
                   type="text"
                   value={form.representativeName}
@@ -281,7 +281,7 @@ export default function CentenarianHonoringPage() {
                 />
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Relasyon sa Senior</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Relationship to Senior</label>
                 <input
                   type="text"
                   value={form.representativeRelationship}
@@ -316,7 +316,7 @@ export default function CentenarianHonoringPage() {
             </label>
             <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-teal-50 hover:border-teal-200 transition-all">
               <input type="checkbox" checked={form.hasFullBodyPhoto} onChange={(e) => setForm({ ...form, hasFullBodyPhoto: e.target.checked })} className="w-4 h-4 rounded border-slate-300 text-teal-600" />
-              <span className="text-xs text-slate-700">Full-body Photo ng Aplikante</span>
+              <span className="text-xs text-slate-700">Full-body Photo of Applicant</span>
             </label>
             <label className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-xl cursor-pointer hover:bg-teal-50 hover:border-teal-200 transition-all">
               <input type="checkbox" checked={form.hasEndorsementLetter} onChange={(e) => setForm({ ...form, hasEndorsementLetter: e.target.checked })} className="w-4 h-4 rounded border-slate-300 text-teal-600" />
@@ -343,19 +343,19 @@ export default function CentenarianHonoringPage() {
         <div className="bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-start gap-2">
           <Clock size={14} className="text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="text-[10px] text-amber-800 font-bold">Paalala sa Deadline:</p>
-            <p className="text-[10px] text-amber-700">Ang cash gift ay kailangang i-claim sa loob ng <strong>1 taon</strong> mula pag-abot ng milestone age. Pagkatapos ng 1 taon, mag-e-expire ang claim.</p>
+            <p className="text-[10px] text-amber-800 font-bold">Deadline Reminder:</p>
+            <p className="text-[10px] text-amber-700">The cash gift must be claimed within <strong>1 year</strong> from reaching the milestone age. After 1 year, the claim expires.</p>
           </div>
         </div>
 
         {/* Remarks */}
         <div>
-          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Remarks / Notes (opsyonal)</label>
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Remarks / Notes (optional)</label>
           <textarea
             value={form.remarks}
             onChange={(e) => setForm({ ...form, remarks: e.target.value })}
             rows={3}
-            placeholder="Karagdagang impormasyon..."
+            placeholder="Additional information..."
             className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/20 resize-none"
           />
         </div>
@@ -366,7 +366,7 @@ export default function CentenarianHonoringPage() {
           className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-md hover:shadow-lg transition-all cursor-pointer active:scale-[0.98] flex items-center justify-center gap-2"
         >
           <Award size={14} />
-          I-submit para sa LCE Endorsement
+          Submit for LCE Endorsement
         </button>
       </div>
     </div>

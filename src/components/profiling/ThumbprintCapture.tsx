@@ -18,7 +18,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
   const startWebAuthnScan = async () => {
     setIsScanning(true);
     setScanProgress(20);
-    setScanStatus('Inilulunsad ang Windows Hello / USB Biometric login...');
+    setScanStatus('Launching Windows Hello / USB Biometric login...');
 
     try {
       await new Promise((r) => setTimeout(r, 400));
@@ -51,16 +51,16 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
       setIsScanning(false);
 
       if (credential) {
-        setScanStatus('Matagumpay na nai-scan ang biometrics mula sa USB device!');
+        setScanStatus('Biometrics successfully scanned from USB device!');
         onChange('Biometric Locked (WebAuthn Credential ID: ' + credential.id + ')');
       } else {
-        throw new Error('Walang credential na naibalik.');
+        throw new Error('No credential returned.');
       }
     } catch (err: any) {
       console.error(err);
       setIsScanning(false);
       setScanProgress(0);
-      setScanStatus('Failed or Cancelled: ' + (err.message || 'Kanselado ang pag-verify.'));
+      setScanStatus('Failed or Cancelled: ' + (err.message || 'Verification cancelled.'));
     }
   };
 
@@ -99,7 +99,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
       console.warn('Local Web SDK service not found on port 8000:', err);
       setIsScanning(false);
       setScanProgress(0);
-      setScanStatus('Hindi mahanap ang scanner software sa localhost. Paki-run ang SecuGen/DigitalPersona local agent o gamitin ang Simulator.');
+      setScanStatus('Scanner software not found on localhost. Please run the SecuGen/DigitalPersona local agent or use the Simulator.');
     }
   };
 
@@ -107,7 +107,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
   const triggerSimulatorScan = async () => {
     setIsScanning(true);
     setScanProgress(0);
-    setScanStatus('I-dikit ang hinlalaki ng senior sa scanner glass...');
+    setScanStatus("Place the senior's thumb on the scanner glass...");
 
     const interval = setInterval(() => {
       setScanProgress((prev) => {
@@ -215,17 +215,17 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
             <div className="text-center px-4">
               <h5 className="font-semibold text-xs text-slate-700">
                 {isScanning 
-                  ? (scanMode === 'webauthn' ? 'Kumukuha ng biometric credentials...' : 'I-dikit ang hinlalaki sa scanner glass')
+                  ? (scanMode === 'webauthn' ? 'Capturing biometric credentials...' : 'Place thumb on the scanner glass')
                   : (scanMode === 'webauthn' ? 'USB Fingerprint Hardware Ready' : 'Place thumb on scanner glass')}
               </h5>
               <p className="text-[10px] text-slate-400 mt-1 max-w-xs leading-normal">
                 {isScanning 
                   ? 'Scan in progress: ' + scanProgress + '%'
                   : (scanMode === 'webauthn' 
-                      ? 'I-click ang scanner icon para simulan ang Windows Hello / USB biometric verification' 
+                      ? 'Click the scanner icon to start Windows Hello / USB biometric verification' 
                       : (scanMode === 'localsdk' 
-                          ? 'I-click ang icon para kumonekta sa SecuGen/DigitalPersona local agent'
-                          : 'I-click ang icon para simulan ang pag-scan gamit ang simulator'))}
+                          ? 'Click the icon to connect to SecuGen/DigitalPersona local agent'
+                          : 'Click the icon to start scanning with the simulator'))}
               </p>
             </div>
           </div>
@@ -255,7 +255,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
             className="text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1 hover:underline shrink-0"
           >
             <RefreshCw size={11} />
-            <span>Kuhang Muli</span>
+            <span>Retake</span>
           </button>
         )}
       </div>
@@ -266,15 +266,15 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
         <div>
           {scanMode === 'webauthn' ? (
             <p>
-              <strong>WebAuthn Mode:</strong> Naka-sync sa browser biometrics API ng inyong Windows PC. Gumagana ito sa anumang desktop USB biometric scanner na rehistrado sa Windows Hello.
+              <strong>WebAuthn Mode:</strong> Synced with your Windows PC's browser biometrics API. Works with any desktop USB biometric scanner registered with Windows Hello.
             </p>
           ) : scanMode === 'localsdk' ? (
             <p>
-              <strong>Local Loopback Service Mode:</strong> Ginagamit ang default na local background service ng SecuGen / DigitalPersona (Port 8000) para makuha ang fingerprint template ng direkta mula sa driver ng card scanner.
+              <strong>Local Loopback Service Mode:</strong> Uses the default local background service of SecuGen / DigitalPersona (Port 8000) to capture the fingerprint template directly from the card scanner driver.
             </p>
           ) : (
             <p>
-              <strong>Simulator Mode:</strong> Nagpapakita ng visual flow ng biometric scanning at nagge-generate ng mock template string para sa evaluation purposes lamang.
+              <strong>Simulator Mode:</strong> Displays the visual flow of biometric scanning and generates a mock template string for evaluation purposes only.
             </p>
           )}
         </div>
