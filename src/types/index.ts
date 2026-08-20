@@ -51,6 +51,86 @@ export interface SeniorCitizen {
   riskDetails?: string;
   riskSeverity?: "low" | "medium" | "high" | "critical";
 
+  // NCSC-aligned fields (Identifying Information)
+  placeOfBirth?: string;
+  ethnicOrigin?: string;
+  languageSpoken?: string;
+  scAssocOrgId?: string;
+  otherGovtId?: string;
+  capabilityToTravel?: boolean;
+  serviceBusinessEmployment?: string;
+
+  // Family Composition
+  spouseLastName?: string;
+  spouseFirstName?: string;
+  spouseMiddleName?: string;
+  spouseExtension?: string;
+  fatherLastName?: string;
+  fatherFirstName?: string;
+  fatherMiddleName?: string;
+  fatherExtension?: string;
+  motherLastName?: string;
+  motherFirstName?: string;
+  motherMiddleName?: string;
+  children?: { name: string; occupation: string; income: string; age: string; workingStatus: string }[];
+  dependents?: { name: string; occupation: string; income: string; age: string; workingStatus: string }[];
+
+  // III. Education / HR Profile
+  specializations?: string[];
+  specOthersText?: string;
+  shareSkills?: string[];
+  communityServices?: string[];
+  commOthersText?: string;
+
+  // IV. Dependency Profile
+  livingWith?: string[];
+  livingOthersText?: string;
+  householdCondition?: string[];
+  householdOthersText?: string;
+
+  // V. Economic Profile
+  incomeSources?: string[];
+  incomeOthersText?: string;
+  realProperties?: string[];
+  realPropOthersText?: string;
+  movableProperties?: string[];
+  movablePropOthersText?: string;
+  monthlyIncomeRange?: string;
+  problemsNeeds?: string[];
+  problemsSkillsText?: string;
+  problemsLivelihoodText?: string;
+  problemsOthersText?: string;
+
+  // VI. Health Profile
+  physicalDisability?: boolean;
+  physicalDisabilityText?: string;
+  medicalConcerns?: string[];
+  medicalOthersText?: string;
+  dentalConcerns?: string[];
+  dentalOthersText?: string;
+  opticalConcerns?: string[];
+  opticalOthersText?: string;
+  hearingConcerns?: string[];
+  hearingOthersText?: string;
+  socialEmotional?: string[];
+  socialEmotionalOthersText?: string;
+  areaDifficulty?: string[];
+  areaDifficultyOthersText?: string;
+  checkupFrequency?: string;
+  medicines?: { name: string; dosage: string; notes: string }[];
+  scheduledCheckup?: string;
+
+  // IX. Assisting Person
+  assistingPerson1Name?: string;
+  assistingPerson1Relationship?: string;
+  assistingPerson2Name?: string;
+  assistingPerson2Relationship?: string;
+  interviewerName?: string;
+  interviewerOrganization?: string;
+  interviewDate?: string;
+  ncscReferenceCode?: string;
+
+
   // Deceased / Vital Status
   isDeceased?: boolean;
   dateOfDeath?: string;

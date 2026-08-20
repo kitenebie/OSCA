@@ -51,6 +51,79 @@ function mapSeniorFromDB(row: any): SeniorCitizen {
     riskType: row.risk_type,
     riskDetails: row.risk_details,
     riskSeverity: row.risk_severity,
+    // NCSC-aligned fields
+    placeOfBirth: row.place_of_birth || '',
+    ethnicOrigin: row.ethnic_origin || '',
+    languageSpoken: row.language_spoken || '',
+    scAssocOrgId: row.sc_assoc_org_id || '',
+    otherGovtId: row.other_govt_id || '',
+    capabilityToTravel: row.capability_to_travel ?? true,
+    serviceBusinessEmployment: row.service_business_employment || '',
+    // Family Composition
+    spouseLastName: row.spouse_last_name || '',
+    spouseFirstName: row.spouse_first_name || '',
+    spouseMiddleName: row.spouse_middle_name || '',
+    spouseExtension: row.spouse_extension || '',
+    fatherLastName: row.father_last_name || '',
+    fatherFirstName: row.father_first_name || '',
+    fatherMiddleName: row.father_middle_name || '',
+    fatherExtension: row.father_extension || '',
+    motherLastName: row.mother_last_name || '',
+    motherFirstName: row.mother_first_name || '',
+    motherMiddleName: row.mother_middle_name || '',
+    children: row.children || [],
+    dependents: row.dependents || [],
+    // III. Education / HR Profile
+    specializations: row.specializations || [],
+    specOthersText: row.spec_others_text || '',
+    shareSkills: row.share_skills || ['', '', ''],
+    communityServices: row.community_services || [],
+    commOthersText: row.comm_others_text || '',
+    // IV. Dependency Profile
+    livingWith: row.living_with || [],
+    livingOthersText: row.living_others_text || '',
+    householdCondition: row.household_condition || [],
+    householdOthersText: row.household_others_text || '',
+    // V. Economic Profile
+    incomeSources: row.income_sources || [],
+    incomeOthersText: row.income_others_text || '',
+    realProperties: row.real_properties || [],
+    realPropOthersText: row.real_prop_others_text || '',
+    movableProperties: row.movable_properties || [],
+    movablePropOthersText: row.movable_prop_others_text || '',
+    monthlyIncomeRange: row.monthly_income_range || '',
+    problemsNeeds: row.problems_needs || [],
+    problemsSkillsText: row.problems_skills_text || '',
+    problemsLivelihoodText: row.problems_livelihood_text || '',
+    problemsOthersText: row.problems_others_text || '',
+    // VI. Health Profile
+    physicalDisability: row.physical_disability || false,
+    physicalDisabilityText: row.physical_disability_text || '',
+    medicalConcerns: row.medical_concerns || [],
+    medicalOthersText: row.medical_others_text || '',
+    dentalConcerns: row.dental_concerns || [],
+    dentalOthersText: row.dental_others_text || '',
+    opticalConcerns: row.optical_concerns || [],
+    opticalOthersText: row.optical_others_text || '',
+    hearingConcerns: row.hearing_concerns || [],
+    hearingOthersText: row.hearing_others_text || '',
+    socialEmotional: row.social_emotional || [],
+    socialEmotionalOthersText: row.social_emotional_others_text || '',
+    areaDifficulty: row.area_difficulty || [],
+    areaDifficultyOthersText: row.area_difficulty_others_text || '',
+    checkupFrequency: row.checkup_frequency || '',
+    medicines: row.medicines || [{ name: '', dosage: '', notes: '' }, { name: '', dosage: '', notes: '' }, { name: '', dosage: '', notes: '' }],
+    scheduledCheckup: row.scheduled_checkup || '',
+    // IX. Assisting Person
+    assistingPerson1Name: row.assisting_person1_name || '',
+    assistingPerson1Relationship: row.assisting_person1_relationship || '',
+    assistingPerson2Name: row.assisting_person2_name || '',
+    assistingPerson2Relationship: row.assisting_person2_relationship || '',
+    interviewerName: row.interviewer_name || '',
+    interviewerOrganization: row.interviewer_organization || '',
+    interviewDate: row.interview_date || '',
+    ncscReferenceCode: row.ncsc_reference_code || '',
+
     // Deceased / Vital Status
     isDeceased: row.is_deceased || false,
     dateOfDeath: row.date_of_death || '',
@@ -107,6 +180,79 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.riskType !== undefined) mapped.risk_type = senior.riskType;
   if (senior.riskDetails !== undefined) mapped.risk_details = senior.riskDetails;
   if (senior.riskSeverity !== undefined) mapped.risk_severity = senior.riskSeverity;
+  // NCSC-aligned fields
+  if (senior.placeOfBirth !== undefined) mapped.place_of_birth = senior.placeOfBirth;
+  if (senior.ethnicOrigin !== undefined) mapped.ethnic_origin = senior.ethnicOrigin;
+  if (senior.languageSpoken !== undefined) mapped.language_spoken = senior.languageSpoken;
+  if (senior.scAssocOrgId !== undefined) mapped.sc_assoc_org_id = senior.scAssocOrgId;
+  if (senior.otherGovtId !== undefined) mapped.other_govt_id = senior.otherGovtId;
+  if (senior.capabilityToTravel !== undefined) mapped.capability_to_travel = senior.capabilityToTravel;
+  if (senior.serviceBusinessEmployment !== undefined) mapped.service_business_employment = senior.serviceBusinessEmployment;
+  // Family Composition
+  if (senior.spouseLastName !== undefined) mapped.spouse_last_name = senior.spouseLastName;
+  if (senior.spouseFirstName !== undefined) mapped.spouse_first_name = senior.spouseFirstName;
+  if (senior.spouseMiddleName !== undefined) mapped.spouse_middle_name = senior.spouseMiddleName;
+  if (senior.spouseExtension !== undefined) mapped.spouse_extension = senior.spouseExtension;
+  if (senior.fatherLastName !== undefined) mapped.father_last_name = senior.fatherLastName;
+  if (senior.fatherFirstName !== undefined) mapped.father_first_name = senior.fatherFirstName;
+  if (senior.fatherMiddleName !== undefined) mapped.father_middle_name = senior.fatherMiddleName;
+  if (senior.fatherExtension !== undefined) mapped.father_extension = senior.fatherExtension;
+  if (senior.motherLastName !== undefined) mapped.mother_last_name = senior.motherLastName;
+  if (senior.motherFirstName !== undefined) mapped.mother_first_name = senior.motherFirstName;
+  if (senior.motherMiddleName !== undefined) mapped.mother_middle_name = senior.motherMiddleName;
+  if (senior.children !== undefined) mapped.children = senior.children;
+  if (senior.dependents !== undefined) mapped.dependents = senior.dependents;
+  // III. Education / HR Profile
+  if (senior.specializations !== undefined) mapped.specializations = senior.specializations;
+  if (senior.specOthersText !== undefined) mapped.spec_others_text = senior.specOthersText;
+  if (senior.shareSkills !== undefined) mapped.share_skills = senior.shareSkills;
+  if (senior.communityServices !== undefined) mapped.community_services = senior.communityServices;
+  if (senior.commOthersText !== undefined) mapped.comm_others_text = senior.commOthersText;
+  // IV. Dependency Profile
+  if (senior.livingWith !== undefined) mapped.living_with = senior.livingWith;
+  if (senior.livingOthersText !== undefined) mapped.living_others_text = senior.livingOthersText;
+  if (senior.householdCondition !== undefined) mapped.household_condition = senior.householdCondition;
+  if (senior.householdOthersText !== undefined) mapped.household_others_text = senior.householdOthersText;
+  // V. Economic Profile
+  if (senior.incomeSources !== undefined) mapped.income_sources = senior.incomeSources;
+  if (senior.incomeOthersText !== undefined) mapped.income_others_text = senior.incomeOthersText;
+  if (senior.realProperties !== undefined) mapped.real_properties = senior.realProperties;
+  if (senior.realPropOthersText !== undefined) mapped.real_prop_others_text = senior.realPropOthersText;
+  if (senior.movableProperties !== undefined) mapped.movable_properties = senior.movableProperties;
+  if (senior.movablePropOthersText !== undefined) mapped.movable_prop_others_text = senior.movablePropOthersText;
+  if (senior.monthlyIncomeRange !== undefined) mapped.monthly_income_range = senior.monthlyIncomeRange;
+  if (senior.problemsNeeds !== undefined) mapped.problems_needs = senior.problemsNeeds;
+  if (senior.problemsSkillsText !== undefined) mapped.problems_skills_text = senior.problemsSkillsText;
+  if (senior.problemsLivelihoodText !== undefined) mapped.problems_livelihood_text = senior.problemsLivelihoodText;
+  if (senior.problemsOthersText !== undefined) mapped.problems_others_text = senior.problemsOthersText;
+  // VI. Health Profile
+  if (senior.physicalDisability !== undefined) mapped.physical_disability = senior.physicalDisability;
+  if (senior.physicalDisabilityText !== undefined) mapped.physical_disability_text = senior.physicalDisabilityText;
+  if (senior.medicalConcerns !== undefined) mapped.medical_concerns = senior.medicalConcerns;
+  if (senior.medicalOthersText !== undefined) mapped.medical_others_text = senior.medicalOthersText;
+  if (senior.dentalConcerns !== undefined) mapped.dental_concerns = senior.dentalConcerns;
+  if (senior.dentalOthersText !== undefined) mapped.dental_others_text = senior.dentalOthersText;
+  if (senior.opticalConcerns !== undefined) mapped.optical_concerns = senior.opticalConcerns;
+  if (senior.opticalOthersText !== undefined) mapped.optical_others_text = senior.opticalOthersText;
+  if (senior.hearingConcerns !== undefined) mapped.hearing_concerns = senior.hearingConcerns;
+  if (senior.hearingOthersText !== undefined) mapped.hearing_others_text = senior.hearingOthersText;
+  if (senior.socialEmotional !== undefined) mapped.social_emotional = senior.socialEmotional;
+  if (senior.socialEmotionalOthersText !== undefined) mapped.social_emotional_others_text = senior.socialEmotionalOthersText;
+  if (senior.areaDifficulty !== undefined) mapped.area_difficulty = senior.areaDifficulty;
+  if (senior.areaDifficultyOthersText !== undefined) mapped.area_difficulty_others_text = senior.areaDifficultyOthersText;
+  if (senior.checkupFrequency !== undefined) mapped.checkup_frequency = senior.checkupFrequency;
+  if (senior.medicines !== undefined) mapped.medicines = senior.medicines;
+  if (senior.scheduledCheckup !== undefined) mapped.scheduled_checkup = senior.scheduledCheckup;
+  // IX. Assisting Person
+  if (senior.assistingPerson1Name !== undefined) mapped.assisting_person1_name = senior.assistingPerson1Name;
+  if (senior.assistingPerson1Relationship !== undefined) mapped.assisting_person1_relationship = senior.assistingPerson1Relationship;
+  if (senior.assistingPerson2Name !== undefined) mapped.assisting_person2_name = senior.assistingPerson2Name;
+  if (senior.assistingPerson2Relationship !== undefined) mapped.assisting_person2_relationship = senior.assistingPerson2Relationship;
+  if (senior.interviewerName !== undefined) mapped.interviewer_name = senior.interviewerName;
+  if (senior.interviewerOrganization !== undefined) mapped.interviewer_organization = senior.interviewerOrganization;
+  if (senior.interviewDate !== undefined) mapped.interview_date = senior.interviewDate;
+  if (senior.ncscReferenceCode !== undefined) mapped.ncsc_reference_code = senior.ncscReferenceCode;
+
   if (senior.isDeceased !== undefined) mapped.is_deceased = senior.isDeceased;
   if (senior.dateOfDeath !== undefined) mapped.date_of_death = senior.dateOfDeath;
   if (senior.causeOfDeath !== undefined) mapped.cause_of_death = senior.causeOfDeath;

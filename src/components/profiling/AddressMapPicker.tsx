@@ -67,7 +67,7 @@ export default function AddressMapPicker({ value, onChange, defaultBarangayCoord
   };
 
   return (
-    <div className="relative border border-slate-200 rounded-xl overflow-hidden shadow-inner h-80 bg-slate-100 flex flex-col">
+    <div className="relative border border-slate-200 rounded-xl overflow-hidden shadow-inner h-full bg-slate-100 flex flex-col">
       {/* Mini Controls overlay */}
       <div className="absolute top-2.5 right-2.5 z-[500] flex flex-col gap-1.5">
         <button

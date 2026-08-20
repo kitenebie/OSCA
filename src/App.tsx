@@ -15,7 +15,6 @@ import UserManagementPage from './pages/UserManagementPage';
 import FindUserPage from './pages/FindUserPage';
 import ConfigurationPage from './pages/ConfigurationPage';
 import MappingPage from './pages/MappingPage';
-import NCSCInterviewPage from './pages/NCSCInterviewPage';
 import CentenarianHonoringPage from './pages/CentenarianHonoringPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
@@ -74,8 +73,6 @@ export default function App() {
         return <ConfigurationPage />;
       case 'Mapping':
         return <MappingPage />;
-      case 'NCSCInterview':
-        return <NCSCInterviewPage />;
       case 'CentenarianHonoring':
         return <CentenarianHonoringPage />;
       default:

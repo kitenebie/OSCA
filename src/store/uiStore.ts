@@ -11,7 +11,6 @@ export type AppPages =
   | 'FindUser'
   | 'Configuration'
   | 'Mapping'
-  | 'NCSCInterview'
   | 'CentenarianHonoring';
 
 interface Toast {
