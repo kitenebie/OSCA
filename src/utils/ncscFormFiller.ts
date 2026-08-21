@@ -1,696 +1,1508 @@
 // ============================================================
 
+
+
 // NCSC Senior Citizen Data Form (NCSC-SCDF v. 4.0b3) Filler
+
+
 
 // ============================================================
 
+
+
 // Client-side PDF form filler using pdf-lib.
+
+
 
 // Replaces the PHP/pdftk approach — runs entirely in the browser.
 
+
+
 //
+
+
 
 // REQUIREMENT: npm install pdf-lib
 
+
+
 //
+
+
 
 // Usage:
 
+
+
 //   import { NcscFormFiller } from '../utils/ncscFormFiller';
+
+
 
 //   const filler = new NcscFormFiller();
 
+
+
 //   await filler.loadPdf('/docs/1d227f_d71595eadc864e58bbccfd1c755f2381.pdf');
+
+
 
 //   filler.setValue('last_name', 'Dela Cruz');
 
+
+
 //   filler.checkBox('educ_college_graduate');
+
+
 
 //   filler.setDateOfBirth('1958-03-14');
 
+
+
 //   const pdfBytes = await filler.save();       // Uint8Array
+
+
 
 //   const blob = await filler.saveAsBlob();     // Blob for download
 
+
+
 //   await filler.downloadPdf('filled_form.pdf'); // triggers browser download
 
-import { PDFDocument, rgb } from "pdf-lib";
+
+
+import { PDFDocument } from "pdf-lib";
+
+
 
 // ─────────────────────────────────────────────────────────────
+
+
 
 // FIELD MAP: friendly_name => actual PDF AcroForm field_id
 
+
+
 // ─────────────────────────────────────────────────────────────
 
+
+
 export const NCSC_FIELD_MAP: Record<string, string> = {
+
   // ===== Reference Code (NCSC use only) =====
+
+
 
   ref_code_1: "Text Field0",
 
+
+
   ref_code_2: "Text Field1",
+
+
 
   ref_code_3: "Text Field2",
 
+
+
   ref_code_4: "Text Field3",
+
+
 
   ref_code_5: "Text Field4",
 
+
+
   // ===== I. IDENTIFYING INFORMATION =====
+
+
 
   // 1. Name of Senior Citizen
 
+
+
   last_name: "Text Field5",
+
+
 
   first_name: "Text Field6",
 
+
+
   middle_name: "Text Field7",
+
+
 
   name_extension: "Text Field8",
 
+
+
   // 2. Address
+
+
 
   region: "Text Field9",
 
+
+
   province: "Text Field10",
+
+
 
   city_municipality: "Text Field11",
 
+
+
   barangay: "Text Field12",
+
+
 
   house_no_zone: "Text Field13",
 
+
+
   street: "Text Field14",
+
+
 
   // 3. Date of Birth (mm-dd-yy, one char per box)
 
+
+
   dob_m1: "Text Field15",
+
+
 
   dob_m2: "Text Field16",
 
+
+
   dob_d1: "Text Field17",
+
+
 
   dob_d2: "Text Field18",
 
+
+
   dob_y1: "Text Field19",
+
+
 
   dob_y2: "Text Field20",
 
+
+
   place_of_birth: "Text Field21",
+
+
 
   marital_status: "Text Field22",
 
+
+
   gender_sex: "Text Field23",
+
+
 
   contact_number: "Text Field24",
 
+
+
   email_address: "Text Field25",
+
+
 
   religion: "Text Field26",
 
+
+
   ethnic_origin: "Text Field27",
+
+
 
   language_spoken: "Text Field28",
 
+
+
   osca_id_number: "Text Field29",
+
+
 
   gsis_sss: "Text Field30",
 
+
+
   tin: "Text Field31",
+
+
 
   philhealth: "Text Field32",
 
+
+
   sc_assoc_org_id: "Text Field33",
+
+
 
   other_govt_id: "Text Field34",
 
+
+
   // 18. Capability to Travel
+
+
 
   travel_yes: "Check Box0",
 
+
+
   travel_no: "Check Box1",
+
+
 
   service_business_employment: "Text Field35",
 
+
+
   current_pension: "Text Field36",
+
+
 
   // ===== II. FAMILY COMPOSITION =====
 
+
+
   // 21. Name of Spouse
+
+
 
   spouse_last_name: "Text Field37",
 
+
+
   spouse_first_name: "Text Field38",
+
+
 
   spouse_middle_name: "Text Field39",
 
+
+
   spouse_extension: "Text Field40",
+
+
 
   // 22. Father's Name
 
+
+
   father_last_name: "Text Field41",
+
+
 
   father_first_name: "Text Field42",
 
+
+
   father_middle_name: "Text Field43",
+
+
 
   father_extension: "Text Field44",
 
+
+
   // 23. Mother's Maiden Name
+
+
 
   mother_last_name: "Text Field45",
 
+
+
   mother_first_name: "Text Field46",
+
+
 
   mother_middle_name: "Text Field47",
 
+
+
   // 24. Children - 5 rows x [name, occupation, income, age, working]
 
+
+
   child_1_name: "Text Field48",
+
   child_1_occupation: "Text Field49",
 
+
+
   child_1_income: "Text Field50",
+
   child_1_age: "Text Field51",
+
+
 
   child_1_working: "Text Field52",
 
+
+
   child_2_name: "Text Field53",
+
   child_2_occupation: "Text Field54",
 
+
+
   child_2_income: "Text Field55",
+
   child_2_age: "Text Field56",
+
+
 
   child_2_working: "Text Field57",
 
+
+
   child_3_name: "Text Field58",
+
   child_3_occupation: "Text Field59",
 
+
+
   child_3_income: "Text Field60",
+
   child_3_age: "Text Field61",
+
+
 
   child_3_working: "Text Field62",
 
+
+
   child_4_name: "Text Field63",
+
   child_4_occupation: "Text Field64",
 
+
+
   child_4_income: "Text Field65",
+
   child_4_age: "Text Field66",
+
+
 
   child_4_working: "Text Field67",
 
-  child_5_name: "Text Field68",
-  child_5_occupation: "Text Field69",
 
-  child_5_income: "Text Field70",
-  child_5_age: "Text Field71",
 
-  child_5_working: "Text Field72",
+  dependent_1_name: "Text Field68",
+
+  dependent_1_occupation: "Text Field69",
+
+
+
+  dependent_1_income: "Text Field70",
+
+  dependent_1_age: "Text Field71",
+
+
+
+  dependent_1_working: "Text Field72",
+
+
 
   // 25. Other Dependents - 2 rows
 
-  dependent_1_name: "Text Field73",
-  dependent_1_occupation: "Text Field74",
 
-  dependent_1_income: "Text Field75",
-  dependent_1_age: "Text Field76",
 
-  dependent_1_working: "Text Field77",
+  dependent_2_name: "Text Field73",
 
-  dependent_2_name: "Text Field78",
-  dependent_2_occupation: "Text Field79",
+  dependent_2_occupation: "Text Field74",
 
-  dependent_2_income: "Text Field80",
-  dependent_2_age: "Text Field81",
 
-  dependent_2_working: "Text Field82",
+
+  dependent_2_income: "Text Field75",
+
+  dependent_2_age: "Text Field76",
+
+
+
+  dependent_2_working: "Text Field77",
+
+
+
+  dependent_3_name: "Text Field78",
+
+  dependent_3_occupation: "Text Field79",
+
+
+
+  dependent_3_income: "Text Field80",
+
+  dependent_3_age: "Text Field81",
+
+
+
+  dependent_3_working: "Text Field82",
+
+
 
   // ===== III. EDUCATION / HR PROFILE =====
 
+
+
   // 26. Educational Attainment
+
+
 
   educ_elementary_level: "Check Box2",
 
+
+
   educ_hs_graduate: "Check Box4",
+
+
 
   educ_post_graduate: "Check Box3",
 
+
+
   educ_elementary_graduate: "Check Box5",
+
+
 
   educ_college_level: "Check Box6",
 
+
+
   educ_vocational: "Check Box7",
+
+
 
   educ_hs_level: "Check Box8",
 
+
+
   educ_college_graduate: "Check Box9",
+
+
 
   educ_not_attended_school: "Check Box10",
 
+
+
   // 27. Areas of Specialization / Technical Skills
+
+
 
   spec_medical: "Check Box11",
 
+
+
   spec_dental: "Check Box12",
+
+
 
   spec_fishing: "Check Box13",
 
+
+
   spec_engineering: "Check Box14",
+
+
 
   spec_barber: "Check Box15",
 
+
+
   spec_evangelization: "Check Box16",
+
+
 
   spec_millwright: "Check Box17",
 
+
+
   spec_teaching: "Check Box18",
+
+
 
   spec_counseling: "Check Box19",
 
+
+
   spec_cooking: "Check Box20",
+
+
 
   spec_carpenter: "Check Box21",
 
+
+
   spec_mason: "Check Box22",
+
+
 
   spec_tailor: "Check Box23",
 
+
+
   spec_others_flag: "Check Box24",
+
+
 
   spec_others_text: "Text Field86",
 
+
+
   spec_legal_services: "Check Box25",
+
+
 
   spec_farming: "Check Box26",
 
+
+
   spec_arts: "Check Box27",
+
+
 
   spec_plumber: "Check Box28",
 
+
+
   spec_sapatero: "Check Box29",
+
+
 
   spec_chef_cook: "Check Box30",
 
+
+
   // 28. Share Skill - 3 checkbox+text pairs
 
+
+
   share_skill_1_check: "Check Box31",
+
   share_skill_1_text: "Text Field83",
 
+
+
   share_skill_2_check: "Check Box32",
+
   share_skill_2_text: "Text Field84",
 
+
+
   share_skill_3_check: "Check Box33",
+
   share_skill_3_text: "Text Field85",
+
+
 
   // 29. Community Service and Involvement
 
+
+
   comm_medical: "Check Box34",
+
+
 
   comm_org_leader: "Check Box35",
 
+
+
   comm_neighborhood_support: "Check Box36",
+
+
 
   comm_counseling_referral: "Check Box37",
 
+
+
   comm_resource_volunteer: "Check Box38",
+
+
 
   comm_dental: "Check Box39",
 
+
+
   comm_legal_services: "Check Box40",
+
+
 
   comm_sponsorship: "Check Box41",
 
+
+
   comm_beautification: "Check Box42",
+
+
 
   comm_friendly_visits: "Check Box43",
 
+
+
   comm_religious: "Check Box44",
+
+
 
   comm_others_flag: "Check Box45",
 
+
+
   comm_others_text: "Text Field87",
+
+
 
   // ===== IV. DEPENDENCY PROFILE =====
 
+
+
   // 30. Living/Residing with
+
+
 
   living_alone: "Check Box125",
 
+
+
   living_spouse: "Check Box126",
+
+
 
   living_children: "Check Box127",
 
+
+
   living_others_flag: "Check Box128",
+
+
 
   living_others_text: "Text Field130",
 
+
+
   living_grandchildren: "Check Box129",
+
+
 
   living_inlaws: "Check Box130",
 
+
+
   living_relatives: "Check Box131",
+
+
 
   living_common_law_spouse: "Check Box132",
 
+
+
   living_care_institution: "Check Box133",
+
+
 
   living_friends: "Check Box134",
 
+
+
   // 31. Household Condition
+
+
 
   household_no_privacy: "Check Box135",
 
+
+
   household_informal_settler: "Check Box136",
+
+
 
   household_high_cost_rent: "Check Box137",
 
+
+
   household_others_flag: "Check Box138",
+
+
 
   household_others_text: "Text Field131",
 
+
+
   household_overcrowded: "Check Box139",
+
+
 
   household_no_permanent_house: "Check Box140",
 
+
+
   household_longing_independent: "Check Box141",
+
+
 
   // ===== V. ECONOMIC PROFILE =====
 
+
+
   // 32. Source of Income and Assistance
+
+
 
   income_own_earnings: "Check Box142",
 
+
+
   income_dependent_on_children: "Check Box143",
+
+
 
   income_spouse_pension: "Check Box144",
 
+
+
   income_livestock_farm: "Check Box145",
+
+
 
   income_own_pension: "Check Box146",
 
+
+
   income_spouse_salary: "Check Box147",
+
+
 
   income_rentals_sharecrops: "Check Box148",
 
+
+
   income_fishing: "Check Box149",
+
+
 
   income_stocks_dividends: "Check Box150",
 
+
+
   income_insurance: "Check Box151",
+
+
 
   income_savings: "Check Box152",
 
+
+
   income_other_flag: "Check Box153",
+
+
 
   income_other_text: "Text Field132",
 
+
+
   // 33. Assets: Real and Immovable Properties
+
+
 
   asset_house: "Check Box154",
 
+
+
   asset_lot_farmland: "Check Box155",
+
+
 
   asset_house_and_lot: "Check Box156",
 
+
+
   asset_commercial_building: "Check Box157",
+
+
 
   asset_fishpond_resort: "Check Box158",
 
+
+
   asset_real_others_flag: "Check Box159",
+
+
 
   asset_real_others_text: "Text Field133",
 
+
+
   // 34. Assets: Personal and Movable Properties
+
+
 
   asset_automobile: "Check Box160",
 
+
+
   asset_heavy_equipment: "Check Box161",
+
+
 
   asset_motorcycle: "Check Box162",
 
+
+
   asset_personal_computer: "Check Box163",
+
+
 
   asset_laptops: "Check Box164",
 
+
+
   asset_mobile_phones: "Check Box165",
+
+
 
   asset_boats: "Check Box166",
 
+
+
   asset_drones: "Check Box167",
+
+
 
   asset_movable_specify_flag: "Check Box168",
 
+
+
   asset_movable_specify_text: "Text Field134",
+
+
 
   // 35. Monthly Income (PHP) - select one
 
+
+
   monthly_income_60k_above: "Check Box169",
+
+
 
   monthly_income_30k_40k: "Check Box170",
 
+
+
   monthly_income_5k_10k: "Check Box171",
+
+
 
   monthly_income_50k_60k: "Check Box172",
 
+
+
   monthly_income_20k_30k: "Check Box173",
+
+
 
   monthly_income_1k_5k: "Check Box174",
 
+
+
   monthly_income_40k_50k: "Check Box175",
+
+
 
   monthly_income_10k_20k: "Check Box176",
 
+
+
   monthly_income_below_1k: "Check Box177",
+
+
 
   // 36. Problems / Needs
 
+
+
   problem_lack_income: "Check Box178",
+
+
 
   problem_loss_income: "Check Box179",
 
+
+
   problem_skills_training_flag: "Check Box180",
+
+
 
   problem_skills_training_text: "Text Field136",
 
+
+
   problem_livelihood_flag: "Check Box181",
+
+
 
   problem_livelihood_text: "Text Field137",
 
+
+
   problem_others_flag: "Check Box182",
+
+
 
   problem_others_text: "Text Field138",
 
+
+
   // ===== VI. HEALTH PROFILE =====
+
+
 
   // 37. Medical Concern
 
+
+
   blood_type_o: "Check Box184",
+
+
 
   blood_type_a: "Check Box185",
 
+
+
   blood_type_b: "Check Box186",
+
+
 
   blood_type_ab: "Check Box187",
 
+
+
   blood_type_dont_know: "Check Box188",
+
+
 
   physical_disability_flag: "Check Box189",
 
+
+
   physical_disability_text: "Text Field139",
+
+
 
   health_problems_ailments: "Check Box190",
 
+
+
   health_hypertension: "Check Box191",
+
+
 
   health_diabetes: "Check Box192",
 
+
+
   health_alzheimers_dementia: "Check Box193",
+
+
 
   health_copd: "Check Box194",
 
+
+
   health_others_flag: "Check Box195",
+
+
 
   health_others_text: "Text Field141",
 
+
+
   health_arthritis_gout: "Check Box196",
+
+
 
   health_chronic_kidney_disease: "Check Box197",
 
+
+
   health_coronary_heart_disease: "Check Box198",
+
+
 
   // 38. Dental Concern
 
+
+
   dental_needs_care: "Check Box207",
+
+
 
   dental_others_flag: "Check Box208",
 
+
+
   dental_others_text: "Text Field143",
+
+
 
   // 39. Optical
 
+
+
   optical_eye_impairment: "Check Box209",
+
+
 
   optical_needs_eye_care: "Check Box210",
 
+
+
   optical_others_flag: "Check Box211",
+
+
 
   optical_others_text: "Text Field144",
 
+
+
   // 40. Hearing
+
+
 
   hearing_aural_impairment: "Check Box199",
 
+
+
   hearing_others_flag: "Check Box200",
+
+
 
   hearing_others_text: "Text Field140",
 
+
+
   // 41. Social / Emotional
+
+
 
   social_feeling_neglect: "Check Box201",
 
+
+
   social_feeling_helplessness: "Check Box202",
+
+
 
   social_feeling_loneliness: "Check Box203",
 
+
+
   social_lack_leisure: "Check Box204",
+
+
 
   social_lack_sc_friendly_env: "Check Box205",
 
+
+
   social_others_flag: "Check Box206",
+
+
 
   social_others_text: "Text Field142",
 
+
+
   // 42. Area / Difficulty
+
+
 
   difficulty_high_cost_medicines: "Check Box212",
 
+
+
   difficulty_lack_medicines: "Check Box213",
+
+
 
   difficulty_lack_medical_attention: "Check Box214",
 
+
+
   difficulty_others_flag: "Check Box215",
+
+
 
   difficulty_others_text: "Text Field145",
 
+
+
   // 43. List of Medicines (4 rows x 3 columns)
 
+
+
   medicine_1_col1: "Text Field146",
+
   medicine_1_col2: "Text Field150",
+
   medicine_1_col3: "Text Field154",
 
+
+
   medicine_2_col1: "Text Field147",
+
   medicine_2_col2: "Text Field151",
+
   medicine_2_col3: "Text Field155",
 
+
+
   medicine_3_col1: "Text Field148",
+
   medicine_3_col2: "Text Field152",
+
   medicine_3_col3: "Text Field156",
 
+
+
   medicine_4_col1: "Text Field149",
+
   medicine_4_col2: "Text Field153",
+
   medicine_4_col3: "Text Field157",
+
+
 
   // 44. Scheduled medical/physical check-up?
 
+
+
   checkup_yes: "Check Box216",
+
+
 
   checkup_no: "Check Box217",
 
+
+
   // 45. If Yes, when?
+
+
 
   checkup_yearly: "Check Box218",
 
+
+
   checkup_every_6_months: "Check Box219",
+
+
 
   checkup_others: "Check Box220",
 
+
+
   // ===== Signature Block =====
+
+
 
   sig_senior_citizen: "Text Field158",
 
+
+
   sig_assisting_person_1: "Text Field159",
+
+
 
   sig_assisting_person_1_relationship: "Text Field162",
 
+
+
   sig_assisting_person_2: "Text Field160",
+
+
 
   sig_assisting_person_2_relationship: "Text Field163",
 
+
+
   sig_interviewer_verifier: "Text Field161",
+
+
 
   sig_organization_office: "Text Field164",
 
+
+
   interview_date: "Text Field165",
 
+
+
   interview_place: "Text Field166",
+
 };
 
+
+
 // ─────────────────────────────────────────────────────────────
+
+
 
 // EXCLUSIVE GROUPS: radio-button-like behavior for checkboxes
 
+
+
 // ─────────────────────────────────────────────────────────────
 
+
+
 export const NCSC_EXCLUSIVE_GROUPS: Record<string, string[]> = {
+
   travel: ["travel_yes", "travel_no"],
 
+
+
   educational_attainment: [
+
     "educ_elementary_level",
+
     "educ_elementary_graduate",
+
     "educ_hs_level",
 
+
+
     "educ_hs_graduate",
+
     "educ_college_level",
+
     "educ_college_graduate",
 
+
+
     "educ_post_graduate",
+
     "educ_vocational",
+
     "educ_not_attended_school",
+
   ],
+
+
 
   monthly_income: [
+
     "monthly_income_60k_above",
+
     "monthly_income_50k_60k",
+
     "monthly_income_40k_50k",
 
+
+
     "monthly_income_30k_40k",
+
     "monthly_income_20k_30k",
+
     "monthly_income_10k_20k",
 
+
+
     "monthly_income_5k_10k",
+
     "monthly_income_1k_5k",
+
     "monthly_income_below_1k",
+
   ],
 
+
+
   blood_type: [
+
     "blood_type_o",
+
     "blood_type_a",
+
     "blood_type_b",
+
     "blood_type_ab",
+
     "blood_type_dont_know",
+
   ],
+
+
 
   checkup_scheduled: ["checkup_yes", "checkup_no"],
 
+
+
   checkup_frequency: [
+
     "checkup_yearly",
+
     "checkup_every_6_months",
+
     "checkup_others",
+
   ],
+
 };
 
+
+
 // ─────────────────────────────────────────────────────────────
+
+
 
 // NCSC FORM FILLER CLASS
 
+
+
 // ─────────────────────────────────────────────────────────────
 
+
+
 export class NcscFormFiller {
+
   private pdfDoc: PDFDocument | null = null;
+
+
 
   private textValues: Map<string, string> = new Map();
 
+
+
   private checkboxValues: Map<string, boolean> = new Map();
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -930,7 +1742,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * In React, pass the public folder path: '/docs/1d227f_...pdf'
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1052,21 +2104,157 @@ export class NcscFormFiller {
 
    */
 
+
+
   async loadPdf(pdfUrlOrPath: string): Promise<void> {
+
     const response = await fetch(pdfUrlOrPath);
 
+
+
     if (!response.ok) {
+
       throw new Error(
+
         `Failed to fetch PDF: ${response.status} ${response.statusText}`,
+
       );
+
     }
+
+
 
     const pdfBytes = await response.arrayBuffer();
 
+
+
     this.pdfDoc = await PDFDocument.load(pdfBytes);
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1306,7 +2494,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * e.g. from Supabase Storage or a file input).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1428,11 +2856,137 @@ export class NcscFormFiller {
 
    */
 
+
+
   async loadPdfFromBytes(pdfBytes: ArrayBuffer | Uint8Array): Promise<void> {
+
     this.pdfDoc = await PDFDocument.load(pdfBytes);
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1672,17 +3226,267 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   setValue(friendlyName: string, value: string): this {
+
     const fieldId = this.resolveFieldId(friendlyName);
+
+
 
     this.textValues.set(fieldId, value);
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1922,7 +3726,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * all siblings will be automatically unchecked.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2044,33 +4088,181 @@ export class NcscFormFiller {
 
    */
 
+
+
   checkBox(friendlyName: string, checked = true): this {
+
     const fieldId = this.resolveFieldId(friendlyName);
+
+
 
     this.checkboxValues.set(fieldId, checked);
 
+
+
     // Handle exclusive groups (radio-like behavior)
 
+
+
     if (checked) {
+
       for (const group of Object.values(NCSC_EXCLUSIVE_GROUPS)) {
+
         if (group.includes(friendlyName)) {
+
           for (const sibling of group) {
+
             if (sibling !== friendlyName) {
+
               const siblingFieldId = NCSC_FIELD_MAP[sibling];
 
+
+
               if (siblingFieldId) {
+
                 this.checkboxValues.set(siblingFieldId, false);
+
               }
+
             }
+
           }
+
         }
+
       }
+
     }
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2310,7 +4502,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * Splits into individual digit boxes (dob_m1, dob_m2, dob_d1, dob_d2, dob_y1, dob_y2).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2432,31 +4864,177 @@ export class NcscFormFiller {
 
    */
 
+
+
   setDateOfBirth(date: string | Date): this {
+
     const d = typeof date === "string" ? new Date(date) : date;
+
+
 
     const mm = String(d.getMonth() + 1).padStart(2, "0");
 
+
+
     const dd = String(d.getDate()).padStart(2, "0");
+
+
 
     const yy = String(d.getFullYear()).slice(-2);
 
+
+
     this.setValue("dob_m1", mm[0]);
+
+
 
     this.setValue("dob_m2", mm[1]);
 
+
+
     this.setValue("dob_d1", dd[0]);
+
+
 
     this.setValue("dob_d2", dd[1]);
 
+
+
     this.setValue("dob_y1", yy[0]);
+
+
 
     this.setValue("dob_y2", yy[1]);
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2696,39 +5274,311 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   setChild(
+
     rowNumber: number,
+
+
 
     fullName: string,
 
+
+
     occupation = "",
+
+
 
     income = "",
 
+
+
     age = "",
 
+
+
     workingStatus = "",
+
   ): this {
-    if (rowNumber < 1 || rowNumber > 5) {
-      throw new Error("Child row must be between 1 and 5");
+
+    if (rowNumber < 1 || rowNumber > 4) {
+
+      throw new Error("Child row must be between 1 and 4");
+
     }
+
+
 
     this.setValue(`child_${rowNumber}_name`, fullName);
 
+
+
     this.setValue(`child_${rowNumber}_occupation`, occupation);
+
+
 
     this.setValue(`child_${rowNumber}_income`, income);
 
+
+
     this.setValue(`child_${rowNumber}_age`, age);
+
+
 
     this.setValue(`child_${rowNumber}_working`, workingStatus);
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -2968,39 +5818,311 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   setDependent(
+
     rowNumber: number,
+
+
 
     fullName: string,
 
+
+
     occupation = "",
+
+
 
     income = "",
 
+
+
     age = "",
 
+
+
     workingStatus = "",
+
   ): this {
-    if (rowNumber < 1 || rowNumber > 2) {
-      throw new Error("Dependent row must be between 1 and 2");
+
+    if (rowNumber < 1 || rowNumber > 3) {
+
+      throw new Error("Dependent row must be between 1 and 3");
+
     }
+
+
 
     this.setValue(`dependent_${rowNumber}_name`, fullName);
 
+
+
     this.setValue(`dependent_${rowNumber}_occupation`, occupation);
+
+
 
     this.setValue(`dependent_${rowNumber}_income`, income);
 
+
+
     this.setValue(`dependent_${rowNumber}_age`, age);
+
+
 
     this.setValue(`dependent_${rowNumber}_working`, workingStatus);
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3240,23 +6362,279 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   setMedicine(rowNumber: number, col1 = "", col2 = "", col3 = ""): this {
+
     if (rowNumber < 1 || rowNumber > 4) {
+
       throw new Error("Medicine row must be between 1 and 4");
+
     }
+
+
 
     this.setValue(`medicine_${rowNumber}_col1`, col1);
 
+
+
     this.setValue(`medicine_${rowNumber}_col2`, col2);
+
+
 
     this.setValue(`medicine_${rowNumber}_col3`, col3);
 
+
+
     return this;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3496,7 +6874,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * @param flatten If true, form fields become non-editable (printed look).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3618,53 +7236,221 @@ export class NcscFormFiller {
 
    */
 
+
+
   async save(flatten = false): Promise<Uint8Array> {
+
     if (!this.pdfDoc) {
+
       throw new Error(
+
         "No PDF loaded. Call loadPdf() or loadPdfFromBytes() first.",
+
       );
+
     }
+
+
 
     const form = this.pdfDoc.getForm();
 
+
+
     // Apply text field values
 
+
+
     for (const [fieldId, value] of this.textValues) {
+
       try {
+
         const field = form.getTextField(fieldId);
 
+
+
         field.setText(value);
+
       } catch (e) {
+
         console.warn(`[NcscFormFiller] Text field not found: "${fieldId}"`, e);
+
       }
+
     }
+
+
 
     // Apply checkbox values
 
+
+
     for (const [fieldId, checked] of this.checkboxValues) {
+
       try {
+
         const field = form.getCheckBox(fieldId);
 
+
+
         if (checked) {
+
           field.check();
+
         } else {
+
           field.uncheck();
+
         }
+
       } catch (e) {
+
         console.warn(`[NcscFormFiller] Checkbox not found: "${fieldId}"`, e);
+
       }
+
     }
+
+
 
     // Flatten if requested (makes fields non-editable)
 
+
+
     if (flatten) {
+
       form.flatten();
+
     }
 
+
+
     return await this.pdfDoc.save();
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3904,15 +7690,263 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   async saveAsBlob(flatten = false): Promise<Blob> {
+
     const bytes = await this.save(flatten);
 
+
+
     return new Blob([bytes], { type: "application/pdf" });
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4152,32 +8186,297 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   async downloadPdf(
+
     filename = "NCSC_Filled_Form.pdf",
+
     flatten = false,
+
   ): Promise<void> {
+
     const blob = await this.saveAsBlob(flatten);
+
+
 
     const url = URL.createObjectURL(blob);
 
+
+
     const link = document.createElement("a");
+
+
 
     link.href = url;
 
+
+
     link.download = filename;
+
+
 
     document.body.appendChild(link);
 
+
+
     link.click();
+
+
 
     document.body.removeChild(link);
 
+
+
     URL.revokeObjectURL(url);
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4417,15 +8716,263 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   async getPreviewUrl(flatten = false): Promise<string> {
+
     const blob = await this.saveAsBlob(flatten);
 
+
+
     return URL.createObjectURL(blob);
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4665,7 +9212,247 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    * Note: you must call loadPdf() again after reset since the PDF doc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -4905,21 +9692,300 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
+
+
+
+  /**
+   * Apply all stored text and checkbox values to the PDF form fields.
+   * Call this before manually accessing the PDF document (e.g., for image embedding).
+   */
+  applyValues(): void {
+    if (!this.pdfDoc) return;
+    const form = this.pdfDoc.getForm();
+
+    for (const [fieldId, value] of this.textValues) {
+      try {
+        const field = form.getTextField(fieldId);
+        field.setText(value);
+      } catch (e) {
+        console.warn(`[NcscFormFiller] Text field not found: "${fieldId}"`, e);
+      }
+    }
+
+    for (const [fieldId, checked] of this.checkboxValues) {
+      try {
+        const field = form.getCheckBox(fieldId);
+        if (checked) { field.check(); } else { field.uncheck(); }
+      } catch (e) {
+        console.warn(`[NcscFormFiller] Checkbox not found: "${fieldId}"`, e);
+      }
+    }
+  }
+
+
 
   getPdfDocument(): PDFDocument | null {
     return this.pdfDoc;
   }
 
   reset(): void {
+
     this.textValues.clear();
+
+
 
     this.checkboxValues.clear();
 
+
+
     this.pdfDoc = null;
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5159,13 +10225,259 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   static availableFields(): string[] {
+
     return Object.keys(NCSC_FIELD_MAP);
+
   }
 
+
+
   /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5405,49 +10717,331 @@ export class NcscFormFiller {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
    */
 
+
+
   private resolveFieldId(friendlyName: string): string {
+
     const fieldId = NCSC_FIELD_MAP[friendlyName];
 
+
+
     if (!fieldId) {
+
       throw new Error(
+
         `Unknown NCSC field: "${friendlyName}". ` +
+
           `Use NcscFormFiller.availableFields() to see valid field names.`,
+
       );
+
     }
 
+
+
     return fieldId;
+
   }
+
 }
 
+
+
 // ─────────────────────────────────────────────────────────────
+
+
 
 // HELPER: Fill NCSC form from a SeniorCitizen record
 
+
+
 // ─────────────────────────────────────────────────────────────
+
+
 
 // This maps your existing SeniorCitizen type fields to the NCSC form.
 
+
+
 // Extend as needed when you have the full NCSCDataForm data.
+
+
 
 import type { SeniorCitizen, NCSCDataForm } from "../types";
 
+
+
 export interface NcscFillOptions {
+
   senior: SeniorCitizen;
+
+
 
   formData?: Partial<NCSCDataForm>;
 
+
+
   interviewerName?: string;
+
+
 
   interviewDate?: string;
 
+
+
   interviewPlace?: string;
 
+
+
   flatten?: boolean;
+
 }
 
+
+
 /**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5687,7 +11281,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  * Returns a Blob ready for download or preview.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -5927,7 +11761,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  * @example
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6167,7 +12241,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  *   senior: seniorRecord,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6407,7 +12721,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  *   interviewerName: currentUser.fullName,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6647,7 +13201,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  *   interviewPlace: 'OSCA Office, Juban',
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -6887,7 +13681,247 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  * // Download it
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -7127,872 +14161,1750 @@ export interface NcscFillOptions {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
  */
 
+
+
 export async function fillNcscForm(options: NcscFillOptions): Promise<Blob> {
+
   const {
+
     senior,
+
     formData,
+
     interviewerName,
+
     interviewDate,
+
     interviewPlace,
+
     flatten = false,
+
   } = options;
+
+
 
   const filler = new NcscFormFiller();
 
+
+
   await filler.loadPdf("/docs/1d227f_d71595eadc864e58bbccfd1c755f2381.pdf");
+
+
 
   // ===== I. IDENTIFYING INFORMATION =====
 
+
+
   // Reference Code (5 digits split into individual fields)
+
   if (senior.ncscReferenceCode) {
+
     const code = senior.ncscReferenceCode.padEnd(5, " ");
+
     filler.setValue("ref_code_1", code[0] || "");
+
     filler.setValue("ref_code_2", code[1] || "");
+
     filler.setValue("ref_code_3", code[2] || "");
+
     filler.setValue("ref_code_4", code[3] || "");
+
     filler.setValue("ref_code_5", code[4] || "");
+
   }
+
+
 
   filler.setValue("last_name", senior.lastName || "");
 
+
+
   filler.setValue("first_name", senior.firstName || "");
+
+
 
   filler.setValue("middle_name", senior.middleName || "");
 
+
+
   filler.setValue("name_extension", senior.suffix || "");
+
+
 
   // Address
 
+
+
   filler.setValue("region", senior.region || "");
+
+
 
   filler.setValue("province", senior.province || "");
 
+
+
   filler.setValue("city_municipality", senior.cityTown || "");
+
+
 
   filler.setValue("barangay", senior.barangay || "");
 
+
+
   filler.setValue("street", senior.address || "");
+
+
 
   filler.setValue("house_no_zone", senior.address || "");
 
+
+
   // Date of Birth
 
+
+
   if (senior.birthdate) {
+
     filler.setDateOfBirth(senior.birthdate);
+
   }
+
+
 
   // Personal info
 
+
+
   filler.setValue("marital_status", senior.civilStatus || "");
+
+
 
   filler.setValue("gender_sex", senior.sex || "");
 
+
+
   filler.setValue("contact_number", senior.contactNumber || "");
+
+
 
   filler.setValue("email_address", senior.emailAddress || "");
 
+
+
   filler.setValue("religion", senior.religion || "");
+
+
 
   filler.setValue("osca_id_number", senior.oscaNumber || "");
 
+
+
   filler.setValue("gsis_sss", senior.gsis || senior.sss || "");
+
+
 
   filler.setValue("tin", senior.tin || "");
 
+
+
   filler.setValue("philhealth", senior.philHealth || "");
+
+
 
   filler.setValue("ethnic_origin", senior.ethnicOrigin || "");
 
+
+
   filler.setValue("language_spoken", senior.languageSpoken || "");
+
+
 
   filler.setValue("sc_assoc_org_id", senior.scAssocOrgId || "");
 
+
+
   filler.setValue("other_govt_id", senior.otherGovtId || "");
+
+
 
   // Blood type
 
+
+
   if (senior.bloodType) {
+
     const btMap: Record<string, string> = {
+
       O: "blood_type_o",
+
       A: "blood_type_a",
 
+
+
       B: "blood_type_b",
+
       AB: "blood_type_ab",
+
     };
+
+
 
     const btField = btMap[senior.bloodType.toUpperCase()];
 
+
+
     if (btField) filler.checkBox(btField);
+
   }
+
+
 
   // ===== From NCSCDataForm interview data =====
 
+
+
   // Capability to Travel (from registration data)
 
+
+
   if (senior.capabilityToTravel === true) {
+
     filler.checkBox("travel_yes");
+
   } else if (senior.capabilityToTravel === false) {
+
     filler.checkBox("travel_no");
+
   }
+
+
 
   // Service / Business / Employment & Pension
 
+
+
   filler.setValue(
+
     "service_business_employment",
+
     senior.serviceBusinessEmployment || senior.employmentStatus || "",
+
   );
+
+
 
   filler.setValue("current_pension", senior.monthlyPension || "");
 
+
+
   filler.setValue("place_of_birth", senior.placeOfBirth || "");
+
+
 
   // ===== Family Composition =====
 
+
+
   filler.setValue("spouse_last_name", senior.spouseLastName || "");
+
+
 
   filler.setValue("spouse_first_name", senior.spouseFirstName || "");
 
+
+
   filler.setValue("spouse_middle_name", senior.spouseMiddleName || "");
+
+
 
   filler.setValue("spouse_extension", senior.spouseExtension || "");
 
+
+
   filler.setValue("father_last_name", senior.fatherLastName || "");
+
+
 
   filler.setValue("father_first_name", senior.fatherFirstName || "");
 
+
+
   filler.setValue("father_middle_name", senior.fatherMiddleName || "");
+
+
 
   filler.setValue("father_extension", senior.fatherExtension || "");
 
+
+
   filler.setValue("mother_last_name", senior.motherLastName || "");
+
+
 
   filler.setValue("mother_first_name", senior.motherFirstName || "");
 
+
+
   filler.setValue("mother_middle_name", senior.motherMiddleName || "");
+
+
 
   // Children & Dependents
 
+
+
   if (senior.children) {
-    senior.children.forEach((child, idx) => {
-      if (idx < 5)
+
+    const validChildren = senior.children.filter((c: any) => c.name?.trim());
+
+    validChildren.forEach((child: any, idx: number) => {
+
+      if (idx < 4)
+
         filler.setChild(
+
           idx + 1,
+
           child.name,
+
           child.occupation,
+
           child.income,
+
           child.age,
+
           child.workingStatus,
+
         );
+
     });
+
   }
 
+
+
   if (senior.dependents) {
-    senior.dependents.forEach((dep, idx) => {
-      if (idx < 2)
+
+    const validDeps = senior.dependents.filter((d: any) => d.name?.trim());
+
+    validDeps.forEach((dep: any, idx: number) => {
+
+      if (idx < 3)
         filler.setDependent(
+
           idx + 1,
+
           dep.name,
+
           dep.occupation,
+
           dep.income,
+
           dep.age,
+
           dep.workingStatus,
+
         );
+
     });
+
   }
+
+
 
   // ===== III. EDUCATION / HR PROFILE =====
 
+
+
   // 26. Educational Attainment (checkbox — exclusive group)
+
   if (senior.highestEducationalAttainment) {
+
     const educMap: Record<string, string> = {
+
       "Elementary Level": "educ_elementary_level",
+
       "Elementary Graduate": "educ_elementary_graduate",
+
       "High School Level": "educ_hs_level",
+
       "High School Graduate": "educ_hs_graduate",
+
       "College Level": "educ_college_level",
+
       "College Graduate": "educ_college_graduate",
+
       "Post Graduate": "educ_post_graduate",
+
       Vocational: "educ_vocational",
+
       "Vocational / Technical": "educ_vocational",
+
       "Not Attended School": "educ_not_attended_school",
+
     };
+
     const educField = educMap[senior.highestEducationalAttainment];
+
     if (educField) filler.checkBox(educField);
+
   }
+
+
 
   // 27. Areas of Specialization / Technical Skills (checkboxes)
+
   if (senior.specializations && senior.specializations.length > 0) {
+
     const specMap: Record<string, string> = {
+
       Medical: "spec_medical",
+
       Dental: "spec_dental",
+
       Fishing: "spec_fishing",
+
       Engineering: "spec_engineering",
+
       Barber: "spec_barber",
+
       Evangelization: "spec_evangelization",
+
       Millwright: "spec_millwright",
+
       Teaching: "spec_teaching",
+
       Counseling: "spec_counseling",
+
       Cooking: "spec_cooking",
+
       Carpenter: "spec_carpenter",
+
       Mason: "spec_mason",
+
       Tailor: "spec_tailor",
+
       "Legal Services": "spec_legal_services",
+
       Farming: "spec_farming",
+
       Arts: "spec_arts",
+
       Plumber: "spec_plumber",
+
       Sapatero: "spec_sapatero",
+
       "Chef/Cook": "spec_chef_cook",
+
     };
+
     let hasOther = false;
+
     for (const spec of senior.specializations) {
+
       const field = specMap[spec];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Others (Specify) for specializations
+
   if (senior.specOthersText) {
+
     filler.checkBox("spec_others_flag");
+
     filler.setValue("spec_others_text", senior.specOthersText);
+
   }
+
+
 
   // 28. Skills willing to share with community (up to 3 text fields)
+
   if (senior.shareSkills && senior.shareSkills.length > 0) {
+
     senior.shareSkills.forEach((skill: string, idx: number) => {
+
       if (idx < 3 && skill.trim()) {
+
         filler.checkBox(`share_skill_${idx + 1}_check`);
+
         filler.setValue(`share_skill_${idx + 1}_text`, skill);
+
       }
+
     });
+
   }
+
+
 
   // 29. Community Service and Involvement (checkboxes)
+
   if (senior.communityServices && senior.communityServices.length > 0) {
+
     const commMap: Record<string, string> = {
+
       Medical: "comm_medical",
+
       "Community/Org Leader": "comm_org_leader",
+
       "Neighborhood Support": "comm_neighborhood_support",
+
       "Counseling/Referral": "comm_counseling_referral",
+
       "Resource Volunteer": "comm_resource_volunteer",
+
       Dental: "comm_dental",
+
       "Legal Services": "comm_legal_services",
+
       Sponsorship: "comm_sponsorship",
+
       "Community Beautification": "comm_beautification",
+
       "Friendly Visits": "comm_friendly_visits",
+
       Religious: "comm_religious",
+
     };
+
     let hasOther = false;
+
     for (const svc of senior.communityServices) {
+
       const field = commMap[svc];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
 
+
+
   // Others (Specify) for community services
+
   if (senior.commOthersText) {
+
     filler.checkBox("comm_others_flag");
+
     filler.setValue("comm_others_text", senior.commOthersText);
+
   }
+
+
 
   // ===== IV. DEPENDENCY PROFILE =====
 
+
+
   // 30. Living/Residing With (checkboxes)
+
   if (senior.livingWith && senior.livingWith.length > 0) {
+
     const livingMap: Record<string, string> = {
+
       Alone: "living_alone",
+
       Spouse: "living_spouse",
+
       "Child(ren)": "living_children",
+
       "Grand Child(ren)": "living_grandchildren",
+
       "In-law(s)": "living_inlaws",
+
       "Relative(s)": "living_relatives",
+
       "Common Law Spouse": "living_common_law_spouse",
+
       "Care Institution": "living_care_institution",
+
       "Friend(s)": "living_friends",
+
     };
+
     for (const item of senior.livingWith) {
+
       const field = livingMap[item];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Others (Specify) for living arrangement
+
   if (senior.livingOthersText) {
+
     filler.checkBox("living_others_flag");
+
     filler.setValue("living_others_text", senior.livingOthersText);
+
   }
+
+
 
   // 31. Household Condition (checkboxes)
+
   if (senior.householdCondition && senior.householdCondition.length > 0) {
+
     const householdMap: Record<string, string> = {
+
       "No privacy": "household_no_privacy",
+
       "Informal Settler": "household_informal_settler",
+
       "High cost of rent": "household_high_cost_rent",
+
       "Overcrowded in home": "household_overcrowded",
+
       "No permanent house": "household_no_permanent_house",
+
       "Longing for independent living": "household_longing_independent",
+
     };
+
     for (const item of senior.householdCondition) {
+
       const field = householdMap[item];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
 
+
+
   // Others (Specify) for household condition
+
   if (senior.householdOthersText) {
+
     filler.checkBox("household_others_flag");
+
     filler.setValue("household_others_text", senior.householdOthersText);
+
   }
+
+
 
   // ===== V. ECONOMIC PROFILE =====
 
+
+
   // 32. Source of Income and Assistance (checkboxes)
+
   if (senior.incomeSources && senior.incomeSources.length > 0) {
+
     const incomeMap: Record<string, string> = {
+
       "Own earnings/salary": "income_own_earnings",
+
       "Dependent on children/relatives": "income_dependent_on_children",
+
       "Spouse's Pension": "income_spouse_pension",
+
       "Livestock/orchard/farm": "income_livestock_farm",
+
       "Own Pension": "income_own_pension",
+
       "Spouse's salary": "income_spouse_salary",
+
       "Rentals/sharecrops": "income_rentals_sharecrops",
+
       Fishing: "income_fishing",
+
       "Stocks/Dividends": "income_stocks_dividends",
+
       Insurance: "income_insurance",
+
       Savings: "income_savings",
+
     };
+
     for (const src of senior.incomeSources) {
+
       const field = incomeMap[src];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Others (Specify) for income source
+
   if (senior.incomeOthersText) {
+
     filler.checkBox("income_other_flag");
+
     filler.setValue("income_other_text", senior.incomeOthersText);
+
   }
+
+
 
   // 34. Assets: Real and Immovable Properties (checkboxes)
+
   if (senior.realProperties && senior.realProperties.length > 0) {
+
     const realMap: Record<string, string> = {
+
       House: "asset_house",
+
       "Lot/Farmland": "asset_lot_farmland",
+
       "House & Lot": "asset_house_and_lot",
+
       "Commercial Building": "asset_commercial_building",
+
       "Fishpond/Resort": "asset_fishpond_resort",
+
     };
+
     for (const prop of senior.realProperties) {
+
       const field = realMap[prop];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Others (Specify) for real properties
+
   if (senior.realPropOthersText) {
+
     filler.checkBox("asset_real_others_flag");
+
     filler.setValue("asset_real_others_text", senior.realPropOthersText);
+
   }
+
+
 
   // 35. Assets: Personal and Movable Properties (checkboxes)
+
   if (senior.movableProperties && senior.movableProperties.length > 0) {
+
     const movableMap: Record<string, string> = {
+
       Automobile: "asset_automobile",
+
       "Heavy Equipment": "asset_heavy_equipment",
+
       Motorcycle: "asset_motorcycle",
+
       "Personal Computer": "asset_personal_computer",
+
       Laptops: "asset_laptops",
+
       "Mobile Phones": "asset_mobile_phones",
+
       Boats: "asset_boats",
+
       Drones: "asset_drones",
+
     };
+
     for (const prop of senior.movableProperties) {
+
       const field = movableMap[prop];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Others (Specify) for movable properties
+
   if (senior.movablePropOthersText) {
+
     filler.checkBox("asset_movable_specify_flag");
+
     filler.setValue("asset_movable_specify_text", senior.movablePropOthersText);
+
   }
+
+
 
   // 37. Problems / Needs Commonly Encountered (checkboxes)
+
   if (senior.problemsNeeds && senior.problemsNeeds.length > 0) {
+
     const problemsMap: Record<string, string> = {
+
       "Lack of income/resources": "problem_lack_income",
+
       "Loss of income/resources": "problem_loss_income",
+
       "Skills/capability training": "problem_skills_training_flag",
+
       "Livelihood opportunities": "problem_livelihood_flag",
+
     };
+
     for (const prob of senior.problemsNeeds) {
+
       const field = problemsMap[prob];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
   }
+
+
 
   // Specify text for Skills training and Livelihood
+
   if (senior.problemsSkillsText) {
+
     filler.setValue("problem_skills_training_text", senior.problemsSkillsText);
+
   }
+
   if (senior.problemsLivelihoodText) {
+
     filler.setValue("problem_livelihood_text", senior.problemsLivelihoodText);
+
   }
+
   // Others (Specify) for problems/needs
+
   if (senior.problemsOthersText) {
+
     filler.checkBox("problem_others_flag");
+
     filler.setValue("problem_others_text", senior.problemsOthersText);
+
   }
+
+
 
   // 33. Estimated Monthly Income (bracket checkboxes)
+
   if (senior.monthlyIncomeRange) {
+
     const bracketMap: Record<string, string> = {
+
       "Below ₱1,000": "monthly_income_below_1k",
+
       "₱1,000–5,000": "monthly_income_1k_5k",
+
       "₱5,000–10,000": "monthly_income_5k_10k",
+
       "₱10,000–20,000": "monthly_income_10k_20k",
+
       "₱20,000–30,000": "monthly_income_20k_30k",
+
       "₱30,000–40,000": "monthly_income_30k_40k",
+
       "₱40,000–50,000": "monthly_income_40k_50k",
+
       "₱50,000–60,000": "monthly_income_50k_60k",
+
       "₱60,000 above": "monthly_income_60k_above",
+
     };
+
     const bracketField = bracketMap[senior.monthlyIncomeRange];
+
     if (bracketField) filler.checkBox(bracketField);
+
   }
 
+
+
   // 36. Physical Disability
+
   if (senior.physicalDisability) {
+
     filler.checkBox("physical_disability_flag");
+
     if (senior.physicalDisabilityText) {
+
       filler.setValue(
+
         "physical_disability_text",
+
         senior.physicalDisabilityText,
+
       );
+
     }
+
   }
+
+
 
   // ===== VI. HEALTH PROFILE =====
 
+
+
   // 37. Medical Concerns (checkboxes)
+
   if (senior.medicalConcerns && senior.medicalConcerns.length > 0) {
+
     const medMap: Record<string, string> = {
+
       Hypertension: "health_hypertension",
+
       Diabetes: "health_diabetes",
+
       "Alzheimer's/Dementia": "health_alzheimers_dementia",
+
       COPD: "health_copd",
+
       "Arthritis/Gout": "health_arthritis_gout",
+
       "Chronic Kidney Disease": "health_chronic_kidney_disease",
+
       "Coronary Heart Disease": "health_coronary_heart_disease",
+
     };
+
     for (const concern of senior.medicalConcerns) {
+
       const field = medMap[concern];
+
       if (field) {
+
         filler.checkBox(field);
+
       }
+
     }
+
     // Check the master "has problems/ailments" flag
+
     filler.checkBox("health_problems_ailments");
+
   }
+
+
 
   // Others (Specify) for medical concerns
+
   if (senior.medicalOthersText) {
+
     filler.checkBox("health_others_flag");
+
     filler.setValue("health_others_text", senior.medicalOthersText);
+
   }
+
+
 
   // 38. Dental Concern (checkboxes)
+
   if (senior.dentalConcerns && senior.dentalConcerns.length > 0) {
+
     const dentalMap: Record<string, string> = {
+
       "Needs Dental Care": "dental_needs_care",
+
     };
+
     for (const item of senior.dentalConcerns) {
+
       const field = dentalMap[item];
+
       if (field) filler.checkBox(field);
+
     }
+
   }
+
   if (senior.dentalOthersText) {
+
     filler.checkBox("dental_others_flag");
+
     filler.setValue("dental_others_text", senior.dentalOthersText);
+
   }
+
+
 
   // 39. Optical (checkboxes)
+
   if (senior.opticalConcerns && senior.opticalConcerns.length > 0) {
+
     const opticalMap: Record<string, string> = {
+
       "Eye impairment": "optical_eye_impairment",
+
       "Needs eye care": "optical_needs_eye_care",
+
     };
+
     for (const item of senior.opticalConcerns) {
+
       const field = opticalMap[item];
+
       if (field) filler.checkBox(field);
+
     }
+
   }
+
   if (senior.opticalOthersText) {
+
     filler.checkBox("optical_others_flag");
+
     filler.setValue("optical_others_text", senior.opticalOthersText);
+
   }
+
+
 
   // 40. Hearing (checkboxes)
+
   if (senior.hearingConcerns && senior.hearingConcerns.length > 0) {
+
     const hearingMap: Record<string, string> = {
+
       "Aural/Hearing impairment": "hearing_aural_impairment",
+
     };
+
     for (const item of senior.hearingConcerns) {
+
       const field = hearingMap[item];
+
       if (field) filler.checkBox(field);
+
     }
+
   }
+
   if (senior.hearingOthersText) {
+
     filler.checkBox("hearing_others_flag");
+
     filler.setValue("hearing_others_text", senior.hearingOthersText);
+
   }
+
+
 
   // 41. Social / Emotional (checkboxes)
+
   if (senior.socialEmotional && senior.socialEmotional.length > 0) {
+
     const socialMap: Record<string, string> = {
+
       "Feeling neglect/rejection": "social_feeling_neglect",
+
       "Feeling helplessness": "social_feeling_helplessness",
+
       "Feeling loneliness/isolate": "social_feeling_loneliness",
+
       "Lack leisure/recreational": "social_lack_leisure",
+
       "Lack SC friendly environment": "social_lack_sc_friendly_env",
+
     };
+
     for (const item of senior.socialEmotional) {
+
       const field = socialMap[item];
+
       if (field) filler.checkBox(field);
+
     }
+
   }
+
   if (senior.socialEmotionalOthersText) {
+
     filler.checkBox("social_others_flag");
+
     filler.setValue("social_others_text", senior.socialEmotionalOthersText);
+
   }
+
+
 
   // 42. Area / Difficulty (checkboxes)
+
   if (senior.areaDifficulty && senior.areaDifficulty.length > 0) {
+
     const diffMap: Record<string, string> = {
+
       "High cost of medicines": "difficulty_high_cost_medicines",
+
       "Lack of medicines": "difficulty_lack_medicines",
+
       "Lack of medical attention": "difficulty_lack_medical_attention",
+
     };
+
     for (const item of senior.areaDifficulty) {
+
       const field = diffMap[item];
+
       if (field) filler.checkBox(field);
+
     }
+
   }
+
   if (senior.areaDifficultyOthersText) {
+
     filler.checkBox("difficulty_others_flag");
+
     filler.setValue("difficulty_others_text", senior.areaDifficultyOthersText);
+
   }
+
+
 
   // 43. List of Medicines for Maintenance (up to 4 rows)
+
   if (senior.medicines && senior.medicines.length > 0) {
+
     senior.medicines.forEach((med: any, idx: number) => {
+
       if (idx < 4) {
+
         const name = typeof med === "string" ? med : med.name || "";
+
         const dosage = typeof med === "string" ? "" : med.dosage || "";
+
         const notes = typeof med === "string" ? "" : med.notes || "";
+
         filler.setMedicine(idx + 1, name, dosage, notes);
+
       }
+
     });
+
   }
+
+
 
   // 44/45. Scheduled Checkup + Frequency
+
   if (senior.scheduledCheckup === "yes") {
+
     filler.checkBox("checkup_yes");
+
     if (senior.checkupFrequency) {
+
       const freqMap: Record<string, string> = {
+
         Yearly: "checkup_yearly",
+
         "Every 6 months": "checkup_every_6_months",
+
         Others: "checkup_others",
+
       };
+
       const freqField = freqMap[senior.checkupFrequency];
+
       if (freqField) filler.checkBox(freqField);
+
     }
+
   } else if (senior.scheduledCheckup === "no") {
+
     filler.checkBox("checkup_no");
+
   }
+
+
 
   // ===== IX. ASSISTING PERSON =====
+
   if (senior.assistingPerson1Name) {
+
     filler.setValue("sig_assisting_person_1", senior.assistingPerson1Name);
+
   }
+
   if (senior.assistingPerson1Relationship) {
+
     filler.setValue(
+
       "sig_assisting_person_1_relationship",
+
       senior.assistingPerson1Relationship,
+
     );
+
   }
+
   if (senior.assistingPerson2Name) {
+
     filler.setValue("sig_assisting_person_2", senior.assistingPerson2Name);
+
   }
+
   if (senior.assistingPerson2Relationship) {
+
     filler.setValue(
+
       "sig_assisting_person_2_relationship",
+
       senior.assistingPerson2Relationship,
+
     );
+
   }
+
   if (senior.interviewerOrganization) {
+
     filler.setValue("sig_organization_office", senior.interviewerOrganization);
+
   }
+
+
 
   if (formData) {
+
     // Economic Profile
 
+
+
     if (formData.receivingPension) {
+
       filler.checkBox("income_own_pension");
+
     }
+
+
 
     // Monthly income mapping
 
+
+
     if (formData.estimatedMonthlyIncome) {
+
       const income = parseFloat(
+
         formData.estimatedMonthlyIncome.replace(/[^0-9.]/g, ""),
+
       );
 
+
+
       if (income >= 60000) filler.checkBox("monthly_income_60k_above");
+
       else if (income >= 50000) filler.checkBox("monthly_income_50k_60k");
+
       else if (income >= 40000) filler.checkBox("monthly_income_40k_50k");
+
       else if (income >= 30000) filler.checkBox("monthly_income_30k_40k");
+
       else if (income >= 20000) filler.checkBox("monthly_income_20k_30k");
+
       else if (income >= 10000) filler.checkBox("monthly_income_10k_20k");
+
       else if (income >= 5000) filler.checkBox("monthly_income_5k_10k");
+
       else if (income >= 1000) filler.checkBox("monthly_income_1k_5k");
+
       else filler.checkBox("monthly_income_below_1k");
+
     }
+
+
 
     // Health conditions
 
+
+
     if (formData.existingIllnesses) {
+
       const illnessMap: Record<string, string> = {
+
         Hypertension: "health_hypertension",
+
+
 
         Diabetes: "health_diabetes",
 
+
+
         Arthritis: "health_arthritis_gout",
+
+
 
         "Heart Disease": "health_coronary_heart_disease",
 
+
+
         "Asthma/COPD": "health_copd",
+
+
 
         "Kidney Disease": "health_chronic_kidney_disease",
 
+
+
         "Alzheimer's/Dementia": "health_alzheimers_dementia",
+
       };
 
+
+
       for (const illness of formData.existingIllnesses) {
+
         const field = illnessMap[illness];
 
+
+
         if (field) filler.checkBox(field);
+
       }
 
+
+
       if (formData.existingIllnesses.length > 0) {
+
         filler.checkBox("health_problems_ailments");
+
       }
+
     }
+
+
 
     // Medications
 
+
+
     if (formData.medications) {
+
       formData.medications.forEach((med, idx) => {
+
         if (idx < 4) {
+
           filler.setMedicine(idx + 1, med);
+
         }
+
       });
+
     }
+
+
 
     // Living arrangement mapping
 
+
+
     if (formData.livingArrangement) {
+
       const livingMap: Record<string, string> = {
+
         Alone: "living_alone",
+
+
 
         "With Spouse": "living_spouse",
 
+
+
         "With Children": "living_children",
+
+
 
         "With Relatives": "living_relatives",
 
+
+
         Institution: "living_care_institution",
+
       };
+
+
 
       const field = livingMap[formData.livingArrangement];
 
+
+
       if (field) filler.checkBox(field);
+
     }
+
+
 
     // Mobility → travel capability
 
+
+
     // (handled above from senior.capabilityToTravel)
+
+
 
     // Checkup
 
+
+
     if (formData.lastCheckupDate) {
+
       filler.checkBox("checkup_yes");
+
     }
+
+
 
     // Housing
 
+
+
     if (formData.ownsProperty) {
+
       filler.checkBox("asset_house_and_lot");
+
     }
+
+
 
     // Dental
 
+
+
     if (formData.existingIllnesses?.includes("Eye/Vision Problems")) {
+
       filler.checkBox("optical_needs_eye_care");
+
     }
 
+
+
     if (formData.existingIllnesses?.includes("Hearing Problems")) {
+
       filler.checkBox("hearing_aural_impairment");
+
     }
+
+
 
     // Primary Needs mapping
 
+
+
     if (formData.primaryNeeds) {
+
       if (formData.primaryNeeds.includes("Financial Aid")) {
+
         filler.checkBox("problem_lack_income");
+
       }
+
+
 
       if (formData.primaryNeeds.includes("Livelihood Opportunities")) {
+
         filler.checkBox("problem_livelihood_flag");
+
       }
 
+
+
       if (formData.primaryNeeds.includes("Medical Assistance")) {
+
         filler.checkBox("difficulty_high_cost_medicines");
+
       }
+
     }
+
+
 
     // PhilHealth
 
+
+
     if (formData.hasPhilHealth && senior.philHealth) {
+
       filler.setValue("philhealth", senior.philHealth);
+
     }
+
   }
+
+
 
   // ===== Signature Block =====
 
+
+
   filler.setValue(
+
     "sig_senior_citizen",
+
     `${senior.firstName} ${senior.lastName}`,
+
   );
 
+
+
   if (interviewerName)
+
     filler.setValue("sig_interviewer_verifier", interviewerName);
+
+
 
   if (interviewDate) filler.setValue("interview_date", interviewDate);
 
+
+
   if (interviewPlace) filler.setValue("interview_place", interviewPlace);
 
-  // ===== EMBED IMAGES (Profile Photo + Thumbprint) =====
+
+
+  // ===== EMBED IMAGES (Profile Photo, Thumbprint, Signatures) =====
   const pdfDoc = filler.getPdfDocument();
   if (pdfDoc) {
-    // Flatten form fields FIRST so images draw ON TOP
+    const pdfForm = pdfDoc.getForm();
+
+    // Apply all stored field values to the PDF form (must happen BEFORE flatten)
+    filler.applyValues();
+
+    // Remove image button fields (they cause flatten errors; we draw directly on pages instead)
+    try { pdfForm.removeField(pdfForm.getButton('Image Field0')); } catch {}
+    try { pdfForm.removeField(pdfForm.getButton('Image Field2')); } catch {}
+
+    // Flatten all remaining form fields (text + checkboxes become static)
     if (flatten) {
-      const form = pdfDoc.getForm();
-      form.flatten();
+      try { pdfForm.flatten(); } catch (e) { console.warn('[NCSC PDF] Flatten warning:', e); }
     }
+
+    // Helper: load image from base64 or URL
+    const loadImg = async (src: string) => {
+      let bytes: Uint8Array; let isPng = false;
+      if (src.startsWith('data:image')) {
+        bytes = Uint8Array.from(atob(src.split(',')[1]), c => c.charCodeAt(0));
+        isPng = src.includes('image/png');
+      } else {
+        const r = await fetch(src); bytes = new Uint8Array(await r.arrayBuffer());
+        isPng = (r.headers.get('content-type') || '').includes('png') || src.toLowerCase().includes('.png');
+      }
+      try { return isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes); }
+      catch { return isPng ? await pdfDoc.embedJpg(bytes) : await pdfDoc.embedPng(bytes); }
+    };
 
     const pages = pdfDoc.getPages();
+    const page1 = pages[0];
+    const page2 = pages.length > 1 ? pages[1] : pages[0];
 
-    // Profile Photo — top-right of page 1 (LATEST 2 X 2 PICTURE box)
+    // Profile Photo — page 1, 2x2 picture area
     if (senior.profilePhoto) {
-      try {
-        let photoBytes: Uint8Array;
-        let isPng = false;
-        if (senior.profilePhoto.startsWith("data:image")) {
-          const photoData = senior.profilePhoto.split(",")[1];
-          photoBytes = Uint8Array.from(atob(photoData), (c) => c.charCodeAt(0));
-          isPng = senior.profilePhoto.includes("image/png");
-        } else {
-          // Fetch from URL
-          const resp = await fetch(senior.profilePhoto);
-          const buf = await resp.arrayBuffer();
-          photoBytes = new Uint8Array(buf);
-          isPng = senior.profilePhoto.toLowerCase().includes(".png");
-        }
-        let img;
-        if (isPng) {
-          img = await pdfDoc.embedPng(photoBytes);
-        } else {
-          img = await pdfDoc.embedJpg(photoBytes);
-        }
-        const page1 = pages[0];
-        const { height } = page1.getSize();
-        // Draw white rectangle to cover the placeholder icon
-        page1.drawRectangle({
-          x: 590,
-          y: height - 275,
-          width: 150,
-          height: 150,
-          color: rgb(1, 1, 1),
-        });
-        // Draw profile photo on top
-        page1.drawImage(img, {
-          x: 590,
-          y: height - 275,
-          width: 150,
-          height: 150,
-        });
-      } catch (e) {
-        console.warn("[NCSC PDF] Could not embed profile photo:", e);
-      }
+      try { const img = await loadImg(senior.profilePhoto); page1.drawImage(img, { x: 585, y: 940, width: 126, height: 120 }); }
+      catch (e) { console.warn('[NCSC PDF] Photo:', e); }
     }
 
-    // Right Thumb Print — page 2, bottom-right area
-    if (senior.thumbprintData) {
-      try {
-        let thumbBytes: Uint8Array;
-        let isPng = false;
-        if (senior.thumbprintData.startsWith("data:image")) {
-          const thumbData = senior.thumbprintData.split(",")[1];
-          thumbBytes = Uint8Array.from(atob(thumbData), (c) => c.charCodeAt(0));
-          isPng = senior.thumbprintData.includes("image/png");
-        } else if (senior.thumbprintData.startsWith("http")) {
-          const resp = await fetch(senior.thumbprintData);
-          const buf = await resp.arrayBuffer();
-          thumbBytes = new Uint8Array(buf);
-          isPng = senior.thumbprintData.toLowerCase().includes(".png");
-        } else {
-          throw new Error("Not an image");
-        }
-        let img;
-        if (isPng) {
-          img = await pdfDoc.embedPng(thumbBytes);
-        } else {
-          img = await pdfDoc.embedJpg(thumbBytes);
-        }
-        const page2 = pages.length > 1 ? pages[1] : pages[0];
-        page2.drawImage(img, {
-          x: 430,
-          y: 30,
-          width: 70,
-          height: 85,
-        });
-      } catch (e) {
-        console.warn("[NCSC PDF] Could not embed thumbprint:", e);
-      }
+    // Thumbprint — page 2
+    if (senior.thumbprintData && (senior.thumbprintData.startsWith('data:image') || senior.thumbprintData.startsWith('http'))) {
+      try { const img = await loadImg(senior.thumbprintData); page2.drawImage(img, { x: 337, y: 236, width: 135, height: 76 }); }
+      catch (e) { console.warn('[NCSC PDF] Thumb:', e); }
     }
+
+    // Senior Citizen Signature — page 2, above name line
+    if (senior.signatureData) {
+      try { const img = await loadImg(senior.signatureData); page2.drawImage(img, { x: 90, y: 280, width: 140, height: 40 }); }
+      catch (e) { console.warn('[NCSC PDF] Signature:', e); }
+    }
+
+    // Assisting Person 1 Signature (lowered by 5)
+    if (senior.assistingPerson1Signature) {
+      try { const img = await loadImg(senior.assistingPerson1Signature); page2.drawImage(img, { x: 90, y: 202, width: 140, height: 35 }); }
+      catch (e) { console.warn('[NCSC PDF] AP1 sig:', e); }
+    }
+
+    // Assisting Person 2 Signature (lowered by 5)
+    if (senior.assistingPerson2Signature) {
+      try { const img = await loadImg(senior.assistingPerson2Signature); page2.drawImage(img, { x: 90, y: 160, width: 140, height: 35 }); }
+      catch (e) { console.warn('[NCSC PDF] AP2 sig:', e); }
+    }
+
+    // Interviewer Signature (lowered by 5)
+    if (senior.interviewerSignature) {
+      try { const img = await loadImg(senior.interviewerSignature); page2.drawImage(img, { x: 90, y: 118, width: 140, height: 35 }); }
+      catch (e) { console.warn('[NCSC PDF] Interviewer sig:', e); }
+    }
+
+    // Values already applied + flattened; save directly
+    return new Blob([await pdfDoc.save()], { type: 'application/pdf' });
   }
 
-  // If pdfDoc existed and we handled flatten above, save without re-flattening.
-  // If pdfDoc was null (shouldn't happen), fall back to normal saveAsBlob.
-  const alreadyFlattened = pdfDoc && flatten;
-  return await filler.saveAsBlob(alreadyFlattened ? false : flatten);
+  return await filler.saveAsBlob(flatten);
 }
+

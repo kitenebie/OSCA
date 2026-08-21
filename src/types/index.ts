@@ -125,6 +125,9 @@ export interface SeniorCitizen {
   assistingPerson1Relationship?: string;
   assistingPerson2Name?: string;
   assistingPerson2Relationship?: string;
+  assistingPerson1Signature?: string;
+  assistingPerson2Signature?: string;
+  interviewerSignature?: string;
   interviewerName?: string;
   interviewerOrganization?: string;
   interviewDate?: string;

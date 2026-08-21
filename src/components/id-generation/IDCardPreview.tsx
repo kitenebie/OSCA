@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { SeniorCitizen } from '../../types';
 import { exportSeniorIDCardPDF } from '../../utils/pdfExport';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
-import { auditLogsService } from '../../services/supabaseService';
+import { auditLogsService, signatoriesService, DocumentSignatory } from '../../services/supabaseService';
 import { FileDown, Radio, ShieldCheck, Printer, Layers, Sparkles, CreditCard } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
@@ -28,6 +28,19 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
     setInternalVariant(v);
     onVariantChange?.(v);
   };
+
+  // Fetch signatories from database
+  const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
+  const [mayor, setMayor] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
+
+  useEffect(() => {
+    signatoriesService.getByDocumentType('id_card').then((data) => {
+      const oscaEntry = data.find((s) => s.roleKey === 'osca_head');
+      const mayorEntry = data.find((s) => s.roleKey === 'municipal_mayor');
+      if (oscaEntry) setOscaHead({ fullName: oscaEntry.fullName, signatureData: oscaEntry.signatureData });
+      if (mayorEntry) setMayor({ fullName: mayorEntry.fullName, signatureData: mayorEntry.signatureData });
+    }).catch((err) => console.error('Failed to load signatories:', err));
+  }, []);
 
   // Secure QR code API using direct CDN generator
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=02A952&data=${encodeURIComponent(
@@ -1404,6 +1417,11 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               paddingTop: 4,
             }}>
               <div style={{ textAlign: 'center' }}>
+                {oscaHead.signatureData && (
+                  <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                    <img src={oscaHead.signatureData} alt="" style={{ maxHeight: '100%', maxWidth: 60, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+                  </div>
+                )}
                 <div style={{
                   borderTop: '1px solid rgba(254,254,254,0.5)',
                   paddingTop: 2,
@@ -1414,7 +1432,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                     color: C.white,
                     lineHeight: 1,
                     textTransform: 'uppercase',
-                  }}>Marciana G. Olondriz</div>
+                  }}>{oscaHead.fullName || 'OSCA Head'}</div>
                   <div style={{
                     fontSize: 4.5,
                     fontWeight: 500,
@@ -1425,6 +1443,11 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
+                {mayor.signatureData && (
+                  <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                    <img src={mayor.signatureData} alt="" style={{ maxHeight: '100%', maxWidth: 60, objectFit: 'contain', filter: 'brightness(0) invert(1)', opacity: 0.9 }} />
+                  </div>
+                )}
                 <div style={{
                   borderTop: '1px solid rgba(254,254,254,0.5)',
                   paddingTop: 2,
@@ -1435,7 +1458,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                     color: C.white,
                     lineHeight: 1,
                     textTransform: 'uppercase',
-                  }}>Rogel "Botox" B. Fulleros</div>
+                  }}>{mayor.fullName || 'Municipal Mayor'}</div>
                   <div style={{
                     fontSize: 4.5,
                     fontWeight: 500,
@@ -1526,14 +1549,24 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               width: '100%',
             }}>
               <div style={{ textAlign: 'center', width: 105 }}>
+                {oscaHead.signatureData && (
+                  <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                    <img src={oscaHead.signatureData} alt="" style={{ maxHeight: '100%', maxWidth: 70, objectFit: 'contain', filter: 'brightness(0)' }} />
+                  </div>
+                )}
                 <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
-                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>Marciana G. Olondriz</div>
+                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>{oscaHead.fullName || 'OSCA Head'}</div>
                   <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>OSCA Head</div>
                 </div>
               </div>
               <div style={{ textAlign: 'center', width: 105 }}>
+                {mayor.signatureData && (
+                  <div style={{ height: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 2 }}>
+                    <img src={mayor.signatureData} alt="" style={{ maxHeight: '100%', maxWidth: 70, objectFit: 'contain', filter: 'brightness(0)' }} />
+                  </div>
+                )}
                 <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
-                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>Rogel "Botox" B. Fulleros</div>
+                  <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>{mayor.fullName || 'Municipal Mayor'}</div>
                   <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>Municipal Mayor</div>
                 </div>
               </div>

@@ -8,9 +8,9 @@ import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidg
 import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { seniors } = useSeniorsStore();
+  const { seniors, setSelectedStatus, setSelectedPension } = useSeniorsStore();
   const { currentUser } = useAuthStore();
-  const { nfcEnabled } = useUIStore();
+  const { nfcEnabled, setCurrentPage } = useUIStore();
 
   const totalSeniors = seniors.length;
   const pensionSeniors = seniors.filter((s) => s.pensionBeneficiary).length;
@@ -18,6 +18,31 @@ export default function DashboardPage() {
     (s) => s.status === 'Pending' || s.status === 'For Verification'
   ).length;
   const approvedSeniors = seniors.filter((s) => s.status === 'Approved').length;
+
+  // Navigation handlers for stat cards
+  const handleTotalClick = () => {
+    setSelectedStatus('All');
+    setSelectedPension('All');
+    setCurrentPage('SeniorsList');
+  };
+
+  const handlePensionClick = () => {
+    setSelectedStatus('All');
+    setSelectedPension('Pensioner');
+    setCurrentPage('SeniorsList');
+  };
+
+  const handlePendingClick = () => {
+    setSelectedStatus('Pending');
+    setSelectedPension('All');
+    setCurrentPage('SeniorsList');
+  };
+
+  const handleApprovedClick = () => {
+    setSelectedStatus('Approved');
+    setSelectedPension('All');
+    setCurrentPage('SeniorsList');
+  };
 
   const getGreeting = () => {
     const hr = new Date().getHours();
@@ -71,6 +96,7 @@ export default function DashboardPage() {
           icon={Users}
           bgColor="bg-emerald-50"
           iconColor="text-teal-600"
+          onClick={handleTotalClick}
         />
         <StatCard
           title="Social Pensioners (SocPen)"
@@ -81,6 +107,7 @@ export default function DashboardPage() {
           icon={CreditCard}
           bgColor="bg-blue-50"
           iconColor="text-teal-700"
+          onClick={handlePensionClick}
         />
         <StatCard
           title="Pending Approvals"
@@ -91,6 +118,7 @@ export default function DashboardPage() {
           icon={Clock}
           bgColor="bg-red-50"
           iconColor="text-[#FD0000]"
+          onClick={handlePendingClick}
         />
         <StatCard
           title="Active Approved"
@@ -101,6 +129,7 @@ export default function DashboardPage() {
           icon={Landmark}
           bgColor="bg-emerald-50"
           iconColor="text-teal-600"
+          onClick={handleApprovedClick}
         />
       </div>
 

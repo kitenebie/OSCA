@@ -7,14 +7,13 @@ import { Search, MapPin, Filter, Plus, ChevronLeft, ChevronRight, CheckCircle2, 
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
-  const { seniors, selectedStatus, setSelectedStatus, updateSenior, deleteSenior } = useSeniorsStore();
+  const { seniors, selectedStatus, setSelectedStatus, selectedPension, setSelectedPension, updateSenior, deleteSenior } = useSeniorsStore();
   const { currentUser, hasPermission } = useAuthStore();
   const { setCurrentPage } = useUIStore();
   const showToast = useUIStore((state) => state.showToast);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBarangay, setFilterBarangay] = useState('All');
-  const [filterPension, setFilterPension] = useState('All');
 
   // Pagination states
   const [currentRecordsPage, setCurrentRecordsPage] = useState(1);
@@ -23,7 +22,7 @@ export default function SeniorsListPage() {
   // Reset pagination to first page when any filters change
   useEffect(() => {
     setCurrentRecordsPage(1);
-  }, [searchTerm, filterBarangay, selectedStatus, filterPension]);
+  }, [searchTerm, filterBarangay, selectedStatus, selectedPension]);
 
   // RBAC permissions checks
   const canRegister = hasPermission('canCreateSenior');
@@ -48,9 +47,9 @@ export default function SeniorsListPage() {
 
     // 4. Pension check
     const matchesPension = 
-      filterPension === 'All' || 
-      (filterPension === 'Pensioner' && senior.pensionBeneficiary) ||
-      (filterPension === 'Non-Pensioner' && !senior.pensionBeneficiary);
+      selectedPension === 'All' || 
+      (selectedPension === 'Pensioner' && senior.pensionBeneficiary) ||
+      (selectedPension === 'Non-Pensioner' && !senior.pensionBeneficiary);
 
     return matchesSearch && matchesBarangay && matchesStatus && matchesPension;
   });
@@ -230,8 +229,8 @@ export default function SeniorsListPage() {
           <label htmlFor="pension" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Pension Program</label>
           <select
             id="pension"
-            value={filterPension}
-            onChange={(e) => setFilterPension(e.target.value)}
+            value={selectedPension}
+            onChange={(e) => setSelectedPension(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
             <option value="All">All (Pensioner/Non)</option>

@@ -32,14 +32,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Main Content Area */}
       <div 
-        className={`flex-1 flex flex-col min-h-screen transition-all duration-300
+        className={`flex-1 flex flex-col min-h-screen min-w-0 transition-all duration-300
           ${sidebarOpen ? 'lg:pl-64' : 'lg:pl-20'}`}
       >
         {/* Topbar navigation header */}
         <Topbar />
 
         {/* Dynamic page container */}
-        <main className="p-4 md:p-6 lg:p-8 max-w-screen w-full mx-auto">
+        <main className="p-4 md:p-6 lg:p-8 w-full mx-auto overflow-x-hidden">
           {children}
         </main>
       </div>

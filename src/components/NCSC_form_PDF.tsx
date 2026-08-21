@@ -71,20 +71,6 @@ export default function NCSCFormPDF({
 
                 <div className="flex items-center gap-2">
                   <button
-                    onClick={() => handleDownloadPdf(false)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] rounded-lg transition-all cursor-pointer"
-                  >
-                    <FileDown size={12} /> Editable
-                  </button>
-
-                  <button
-                    onClick={() => handleDownloadPdf(true)}
-                    className="flex items-center gap-1.5 px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] rounded-lg shadow-sm transition-all cursor-pointer"
-                  >
-                    <FileDown size={12} /> Final PDF
-                  </button>
-
-                  <button
                     onClick={() => {
                       setShowPdfDrawer(false);
                       if (pdfPreviewUrl) {

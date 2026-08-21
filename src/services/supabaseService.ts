@@ -119,6 +119,9 @@ function mapSeniorFromDB(row: any): SeniorCitizen {
     assistingPerson1Relationship: row.assisting_person1_relationship || '',
     assistingPerson2Name: row.assisting_person2_name || '',
     assistingPerson2Relationship: row.assisting_person2_relationship || '',
+    assistingPerson1Signature: row.assisting_person1_signature || '',
+    assistingPerson2Signature: row.assisting_person2_signature || '',
+    interviewerSignature: row.interviewer_signature || '',
     interviewerName: row.interviewer_name || '',
     interviewerOrganization: row.interviewer_organization || '',
     interviewDate: row.interview_date || '',
@@ -248,6 +251,9 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.assistingPerson1Relationship !== undefined) mapped.assisting_person1_relationship = senior.assistingPerson1Relationship;
   if (senior.assistingPerson2Name !== undefined) mapped.assisting_person2_name = senior.assistingPerson2Name;
   if (senior.assistingPerson2Relationship !== undefined) mapped.assisting_person2_relationship = senior.assistingPerson2Relationship;
+  if (senior.assistingPerson1Signature !== undefined) mapped.assisting_person1_signature = senior.assistingPerson1Signature;
+  if (senior.assistingPerson2Signature !== undefined) mapped.assisting_person2_signature = senior.assistingPerson2Signature;
+  if (senior.interviewerSignature !== undefined) mapped.interviewer_signature = senior.interviewerSignature;
   if (senior.interviewerName !== undefined) mapped.interviewer_name = senior.interviewerName;
   if (senior.interviewerOrganization !== undefined) mapped.interviewer_organization = senior.interviewerOrganization;
   if (senior.interviewDate !== undefined) mapped.interview_date = senior.interviewDate;
@@ -881,6 +887,7 @@ export interface DocumentSignatory {
   designation: string;
   licenseNo: string;
   address: string;
+  signatureData: string;
   isDefault: boolean;
 }
 
@@ -894,6 +901,7 @@ function mapSignatoryFromDB(row: any): DocumentSignatory {
     designation: row.designation || '',
     licenseNo: row.license_no || '',
     address: row.address || '',
+    signatureData: row.signature_data || '',
     isDefault: row.is_default ?? true,
   };
 }
@@ -924,6 +932,7 @@ export const signatoriesService = {
     if (signatory.designation !== undefined) dbFields.designation = signatory.designation;
     if (signatory.licenseNo !== undefined) dbFields.license_no = signatory.licenseNo;
     if (signatory.address !== undefined) dbFields.address = signatory.address;
+    if (signatory.signatureData !== undefined) dbFields.signature_data = signatory.signatureData;
     if (signatory.id) dbFields.id = signatory.id;
 
     const { error } = await supabase
@@ -939,6 +948,7 @@ export const signatoriesService = {
     if (fields.designation !== undefined) dbFields.designation = fields.designation;
     if (fields.licenseNo !== undefined) dbFields.license_no = fields.licenseNo;
     if (fields.address !== undefined) dbFields.address = fields.address;
+    if (fields.signatureData !== undefined) dbFields.signature_data = fields.signatureData;
 
     const { error } = await supabase.from('document_signatories').update(dbFields).eq('id', id);
     if (error) throw error;
@@ -1177,3 +1187,45 @@ export const centenarianService = {
     if (error) throw error;
   },
 };
+
+// ==================== Interviewers Service ====================
+export interface Interviewer {
+  id?: string;
+  name: string;
+  organization: string;
+  place: string;
+  signature: string;
+}
+
+export const interviewerService = {
+  async search(query: string): Promise<Interviewer[]> {
+    const { data, error } = await supabase
+      .from('interviewers')
+      .select('*')
+      .ilike('name', `%${query}%`)
+      .order('name')
+      .limit(10);
+    if (error) throw error;
+    return data || [];
+  },
+
+  async upsert(interviewer: Interviewer): Promise<Interviewer> {
+    const { data, error } = await supabase
+      .from('interviewers')
+      .upsert(
+        {
+          name: interviewer.name,
+          organization: interviewer.organization,
+          place: interviewer.place,
+          signature: interviewer.signature,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'name' }
+      )
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+};
+

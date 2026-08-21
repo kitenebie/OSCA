@@ -31,6 +31,20 @@ const TagList = ({ items }: { items: string[] }) => (
   ) : <span className="text-xs text-slate-400 italic">None</span>
 );
 
+/** Signature display helper — removes white background with mix-blend-mode */
+const SignaturePreview = ({ src, alt }: { src: string | null | undefined; alt: string }) => (
+  src ? (
+    <img
+      src={src}
+      alt={alt}
+      className="h-10 border border-slate-200 rounded-lg p-1"
+      style={{ mixBlendMode: 'darken', background: 'transparent' }}
+    />
+  ) : (
+    <span className="text-xs text-slate-400 italic">No signature</span>
+  )
+);
+
 export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepProps) {
   return (
     <div className="space-y-6 max-w-full animate-fadeIn">
@@ -226,18 +240,21 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             )}
             <div className="flex-1 space-y-2">
               <div>
-                <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Signature</span>
-                {form.signatureData ? (
-                  <img src={form.signatureData} alt="Signature" className="h-10 bg-white border border-slate-200 rounded-lg p-1" />
-                ) : (
-                  <span className="text-xs text-slate-400 italic">No signature</span>
-                )}
+                <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Senior Citizen Signature</span>
+                <SignaturePreview src={form.signatureData} alt="Signature" />
               </div>
-              <div className="flex items-center gap-1.5">
-                <Fingerprint size={12} className="text-teal-600" />
-                <span className="text-xs font-bold text-slate-600">
-                  {form.fingerprintTemplate ? 'Fingerprint Enrolled ✓' : 'No Fingerprint'}
-                </span>
+              <div>
+                <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Thumbprint</span>
+                {form.fingerprintTemplate && (form.fingerprintTemplate.startsWith('data:') || form.fingerprintTemplate.startsWith('http')) ? (
+                  <img src={form.fingerprintTemplate} alt="Thumbprint" className="h-14 w-14 object-contain border border-slate-200 rounded-lg p-0.5" />
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <Fingerprint size={12} className="text-teal-600" />
+                    <span className="text-xs font-bold text-slate-600">
+                      {form.fingerprintTemplate ? 'Fingerprint Enrolled ✓' : 'No Fingerprint'}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -256,6 +273,21 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             <ReviewField label="Relationship" value={form.assistingPerson1Relationship} />
             <ReviewField label="Person 2" value={form.assistingPerson2Name} />
             <ReviewField label="Relationship" value={form.assistingPerson2Relationship} />
+          </div>
+          {/* Signatures */}
+          <div className="grid grid-cols-3 gap-3 pt-2 border-t border-slate-200">
+            <div>
+              <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">AP1 Signature</span>
+              <SignaturePreview src={form.assistingPerson1Signature} alt="AP1 Signature" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">AP2 Signature</span>
+              <SignaturePreview src={form.assistingPerson2Signature} alt="AP2 Signature" />
+            </div>
+            <div>
+              <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Interviewer Signature</span>
+              <SignaturePreview src={form.interviewerSignature} alt="Interviewer Signature" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
             <ReviewField label="Interviewer" value={form.interviewerName} />

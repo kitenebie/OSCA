@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { RolePermission } from '../types';
-import { rolesService, userSettingsService } from '../services/supabaseService';
+import { rolesService, userSettingsService, signatoriesService, DocumentSignatory } from '../services/supabaseService';
 import { supabase } from '../../utils/supabase';
 import { applySystemTheme, DEFAULT_THEME, getStoredTheme } from '../utils/theme';
 import { 
@@ -10,11 +10,11 @@ import {
   Users, Eye, UserPlus, FileEdit, CheckSquare, FileBarChart, 
   MessageSquare, X, Pencil, Palette, Type, RotateCcw, CheckCircle2, Sun, Moon,
   BellRing, LayoutDashboard, Scan, MapPin, UserRoundCog, MonitorCog, ShieldCheck, FileCheck, UserX, Trash,
-  Camera, FileText, Fingerprint
+  Camera, FileText, Fingerprint, Usb, Stamp, PenTool, Landmark
 } from 'lucide-react';
 import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 import SignaturePad from '../components/profiling/SignaturePad';
-import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
+import { UsbSignaturePadProvider } from '../contexts/UsbSignaturePadContext';
 
 // Default roles configuration with notifications, CRUD, and page access control
 const DEFAULT_ROLES: RolePermission[] = [
@@ -287,6 +287,133 @@ const PERMISSION_LABELS: { key: keyof RolePermission['permissions']; label: stri
   { key: 'canAccessConfiguration', label: 'Page: System Config', group: 'Pages Access', icon: MonitorCog },
 ];
 
+// ── USB Fingerprint Scanner Test Component ──────────────────────────────────
+function FingerprintScannerTest() {
+  const [status, setStatus] = React.useState<'idle' | 'connecting' | 'scanning' | 'success' | 'error'>('idle');
+  const [message, setMessage] = React.useState('');
+  const [capturedImage, setCapturedImage] = React.useState<string | null>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  const startTestScan = async () => {
+    setStatus('connecting');
+    setMessage('Connecting to USB fingerprint scanner...');
+    setCapturedImage(null);
+
+    try {
+      const device = await navigator.usb.requestDevice({
+        filters: [
+          { vendorId: 0x1162 }, // SecuGen
+          { vendorId: 0x147e }, // Upek/AuthenTec
+          { vendorId: 0x04f3 }, // Elan Microelectronics
+          { vendorId: 0x1c7a }, // LighTuning
+          { vendorId: 0x05ba }, // DigitalPersona
+          { vendorId: 0x2109 }, // Generic HID fingerprint
+        ],
+      });
+
+      await device.open();
+      if (device.configuration === null) await device.selectConfiguration(1);
+      await device.claimInterface(0);
+
+      setStatus('scanning');
+      setMessage('Place your thumb on the scanner...');
+
+      const scanCommand = new Uint8Array([0x40, 0x01, 0x00, 0x00]);
+      const outEp = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(ep => ep.direction === 'out');
+      const inEp = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(ep => ep.direction === 'in');
+
+      if (outEp) await device.transferOut(outEp.endpointNumber, scanCommand);
+
+      let rawData: Uint8Array | null = null;
+      if (inEp) {
+        const result = await device.transferIn(inEp.endpointNumber, 64000);
+        if (result.data && result.data.byteLength > 0) rawData = new Uint8Array(result.data.buffer);
+      } else {
+        const result = await device.controlTransferIn(
+          { requestType: 'vendor', recipient: 'interface', request: 0x01, value: 0, index: 0 }, 64000
+        );
+        if (result.data && result.data.byteLength > 0) rawData = new Uint8Array(result.data.buffer);
+      }
+
+      await device.close();
+
+      if (rawData) {
+        const canvas = canvasRef.current!;
+        canvas.width = 256; canvas.height = 288;
+        const ctx = canvas.getContext('2d')!;
+        const imageData = ctx.createImageData(256, 288);
+        for (let i = 0; i < 256 * 288; i++) {
+          const val = rawData[i] || 0;
+          imageData.data[i * 4] = val;
+          imageData.data[i * 4 + 1] = val;
+          imageData.data[i * 4 + 2] = val;
+          imageData.data[i * 4 + 3] = 255;
+        }
+        ctx.putImageData(imageData, 0, 0);
+        setCapturedImage(canvas.toDataURL('image/png'));
+        setStatus('success');
+        setMessage('✓ Fingerprint captured successfully! Scanner is working.');
+      } else {
+        throw new Error('No data received from scanner.');
+      }
+    } catch (err: any) {
+      setStatus('error');
+      if (err.name === 'NotFoundError') setMessage('No scanner selected. Connect your USB fingerprint scanner and try again.');
+      else if (err.name === 'SecurityError') setMessage('USB access denied. Allow USB access in browser settings.');
+      else setMessage(err.message || 'Failed to capture fingerprint.');
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-center gap-4">
+      {/* Canvas preview */}
+      <div className={`relative rounded-xl overflow-hidden flex items-center justify-center border-2 ${
+        capturedImage ? 'border-amber-400 bg-slate-900' : 'border-dashed border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800'
+      }`} style={{ width: 180, height: 200 }}>
+        <canvas ref={canvasRef} className={`w-full h-full object-contain ${capturedImage ? 'opacity-100' : 'opacity-0'}`} width={256} height={288} />
+        {!capturedImage && status === 'idle' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-1">
+            <Fingerprint size={40} strokeWidth={1.2} />
+            <span className="text-[10px] font-medium">No scan yet</span>
+          </div>
+        )}
+        {status === 'connecting' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 gap-1">
+            <Usb size={28} className="animate-pulse text-amber-500" />
+            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">Connecting...</span>
+          </div>
+        )}
+        {status === 'scanning' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 gap-1">
+            <Fingerprint size={32} className="animate-pulse text-amber-500" />
+            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">Place thumb...</span>
+          </div>
+        )}
+      </div>
+
+      {/* Status */}
+      {message && (
+        <p className={`text-xs font-medium text-center max-w-xs ${
+          status === 'success' ? 'text-green-600 dark:text-green-400' :
+          status === 'error' ? 'text-red-500 dark:text-red-400' :
+          'text-amber-600 dark:text-amber-400'
+        }`}>{message}</p>
+      )}
+
+      {/* Action */}
+      <button
+        type="button"
+        onClick={startTestScan}
+        disabled={status === 'connecting' || status === 'scanning'}
+        className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 shadow-md shadow-amber-200 dark:shadow-amber-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <Usb size={14} />
+        {status === 'error' ? 'Retry Scan' : status === 'success' ? 'Scan Again' : 'Test Scan'}
+      </button>
+    </div>
+  );
+}
+
 export default function ConfigurationPage() {
   const { nfcEnabled, setNfcEnabled, showToast } = useUIStore();
   const { hasPermission, currentUser } = useAuthStore();
@@ -456,6 +583,13 @@ const COLOR_PALETTES_DARK = [
   const [activePermGroup, setActivePermGroup] = useState('All');
   const [viewMode, setViewMode] = useState<'roles' | 'matrix'>('roles');
   const [selectedRoleTab, setSelectedRoleTab] = useState<string>('super-admin');
+  const [activeConfigTab, setActiveConfigTab] = useState<'roles' | 'signatories' | 'nfc' | 'appearance' | 'biometrics'>('roles');
+
+  // ID Signatories state
+  const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
+  const [mayor, setMayor] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
+  const [signatoryLoading, setSignatoryLoading] = useState(false);
+  const [signatorySaving, setSignatorySaving] = useState(false);
 
   const togglePermissionByRole = (roleName: string, permKey: keyof RolePermission['permissions']) => {
     if (roleName === 'super-admin') return;
@@ -490,7 +624,35 @@ const COLOR_PALETTES_DARK = [
   // Load roles from Supabase
   useEffect(() => {
     loadRoles();
+    loadSignatories();
   }, []);
+
+  const loadSignatories = async () => {
+    setSignatoryLoading(true);
+    try {
+      const data = await signatoriesService.getByDocumentType('id_card');
+      const oscaEntry = data.find((s) => s.roleKey === 'osca_head');
+      const mayorEntry = data.find((s) => s.roleKey === 'municipal_mayor');
+      if (oscaEntry) setOscaHead({ fullName: oscaEntry.fullName, signatureData: oscaEntry.signatureData });
+      if (mayorEntry) setMayor({ fullName: mayorEntry.fullName, signatureData: mayorEntry.signatureData });
+    } catch (err) {
+      console.error('Failed to load signatories:', err);
+    }
+    setSignatoryLoading(false);
+  };
+
+  const handleSaveSignatories = async () => {
+    setSignatorySaving(true);
+    try {
+      await signatoriesService.upsert({ documentType: 'id_card', roleKey: 'osca_head', fullName: oscaHead.fullName, signatureData: oscaHead.signatureData });
+      await signatoriesService.upsert({ documentType: 'id_card', roleKey: 'municipal_mayor', fullName: mayor.fullName, signatureData: mayor.signatureData });
+      showToast('ID Signatories saved successfully!', 'success');
+    } catch (err) {
+      console.error('Failed to save signatories:', err);
+      showToast('Failed to save signatories.', 'error');
+    }
+    setSignatorySaving(false);
+  };
 
   const loadRoles = async () => {
     setIsLoading(true);
@@ -653,13 +815,44 @@ const COLOR_PALETTES_DARK = [
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
       
-      {/* Page Title */}
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
-        <h4 className="font-bold text-slate-800 text-sm md:text-base">System Configuration & Settings</h4>
-        <p className="text-[11px] text-slate-400">Configure user roles, permissions, and hardware parameters</p>
+      {/* Page Title & Tab Navigation */}
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-slate-100 dark:border-slate-700">
+          <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm md:text-base">System Configuration & Settings</h4>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500">Configure user roles, permissions, hardware parameters, and system appearance</p>
+        </div>
+        
+        {/* Tab Bar */}
+        <div className="flex overflow-x-auto px-4 py-2 gap-1 bg-slate-50/50 dark:bg-slate-900/50">
+          {([
+            { id: 'roles' as const, label: 'Roles & Permissions', icon: Shield },
+            { id: 'signatories' as const, label: 'ID Signatories', icon: Stamp },
+            { id: 'nfc' as const, label: 'Hardware & NFC', icon: Sliders },
+            { id: 'appearance' as const, label: 'Appearance & Theme', icon: Palette },
+            { id: 'biometrics' as const, label: 'Biometric Testing', icon: Fingerprint },
+          ]).map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeConfigTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveConfigTab(tab.id)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 shadow-sm border border-slate-200 dark:border-slate-600'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                }`}
+              >
+                <Icon size={14} className={isActive ? 'text-teal-600 dark:text-teal-400' : ''} />
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* ====== ROLE CONFIGURATION SECTION ====== */}
+      {/* ====== TAB: ROLE CONFIGURATION ====== */}
+      {activeConfigTab === 'roles' && (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
@@ -711,7 +904,7 @@ const COLOR_PALETTES_DARK = [
           </div>
         </div>
 
-        <div className="p-5 space-y-5">
+        <div className="p-5 space-y-5 min-w-0 overflow-hidden">
           
           {/* Add New Role Bar */}
           <div className="flex items-center gap-2">
@@ -905,8 +1098,8 @@ const COLOR_PALETTES_DARK = [
                 ))}
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
+              <div className="overflow-x-auto -mx-5 px-5">
+                <table className="min-w-full text-xs">
                   <thead>
                     <tr className="border-b border-slate-200">
                       <th className="py-3 px-3 text-left text-[10px] font-bold text-slate-500 uppercase tracking-wider w-44">Role</th>
@@ -981,8 +1174,141 @@ const COLOR_PALETTES_DARK = [
 
         </div>
       </div>
+      )}
 
-      {/* ====== NFC CONFIGURATION SECTION ====== */}
+      {/* ====== TAB: ID SIGNATORIES ====== */}
+      {activeConfigTab === 'signatories' && (
+      <UsbSignaturePadProvider>
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <Stamp size={16} className="text-teal-600" />
+            <h5 className="font-bold text-slate-800 text-xs md:text-sm">ID Card Signatories</h5>
+          </div>
+          <button
+            onClick={handleSaveSignatories}
+            disabled={signatorySaving}
+            className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+          >
+            <Save size={11} />
+            {signatorySaving ? 'Saving...' : 'Save Signatories'}
+          </button>
+        </div>
+
+        <div className="p-5 space-y-6">
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Configure the names and signatures for the OSCA Head and Municipal Mayor. These will appear on generated ID Cards (Variant 1 and Variant 2).
+          </p>
+
+          {signatoryLoading ? (
+            <div className="text-center py-8 text-slate-400 text-xs">Loading signatories...</div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+              {/* OSCA Head Card */}
+              <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-200/80 space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
+                    <ShieldCheck size={16} className="text-teal-600" />
+                  </div>
+                  <div>
+                    <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">OSCA Head</h6>
+                    <p className="text-[10px] text-slate-400">Office for Senior Citizens Affairs</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Full Name</label>
+                  <input
+                    type="text"
+                    value={oscaHead.fullName}
+                    onChange={(e) => setOscaHead((prev) => ({ ...prev, fullName: e.target.value }))}
+                    placeholder="e.g. Juan Dela Cruz"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Signature</label>
+                  <div className="w-full">
+                    <SignaturePad
+                      value={oscaHead.signatureData || null}
+                      onChange={(sig) => setOscaHead((prev) => ({ ...prev, signatureData: sig || '' }))}
+                      fieldId="signatory-osca-head"
+                      showUsbButton={true}
+                    />
+                  </div>
+                  {oscaHead.signatureData && (
+                    <button
+                      type="button"
+                      onClick={() => setOscaHead((prev) => ({ ...prev, signatureData: '' }))}
+                      className="text-[10px] font-bold text-red-500 hover:text-red-700 flex items-center gap-1 mt-1 cursor-pointer"
+                    >
+                      <X size={10} /> Clear Signature
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Municipal Mayor Card */}
+              <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-200/80 space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-200/60 pb-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                    <Landmark size={16} className="text-blue-600" />
+                  </div>
+                  <div>
+                    <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">Municipal Mayor</h6>
+                    <p className="text-[10px] text-slate-400">Local Chief Executive</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Full Name</label>
+                  <input
+                    type="text"
+                    value={mayor.fullName}
+                    onChange={(e) => setMayor((prev) => ({ ...prev, fullName: e.target.value }))}
+                    placeholder="e.g. Maria Santos"
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Signature</label>
+                  <div className="w-full">
+                    <SignaturePad
+                      value={mayor.signatureData || null}
+                      onChange={(sig) => setMayor((prev) => ({ ...prev, signatureData: sig || '' }))}
+                      fieldId="signatory-mayor"
+                      showUsbButton={true}
+                    />
+                  </div>
+                  {mayor.signatureData && (
+                    <button
+                      type="button"
+                      onClick={() => setMayor((prev) => ({ ...prev, signatureData: '' }))}
+                      className="text-[10px] font-bold text-red-500 hover:text-red-700 flex items-center gap-1 mt-1 cursor-pointer"
+                    >
+                      <X size={10} /> Clear Signature
+                    </button>
+                  )}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          <div className="flex items-start gap-2.5 p-3 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium leading-relaxed">
+            <HelpCircle size={13} className="text-blue-500 shrink-0 mt-0.5" />
+            <span>These signatories will be printed on the <strong>OSCA ID Card Variant 1</strong> and <strong>Variant 2</strong> templates. Update the names and re-sign when officials change.</span>
+          </div>
+        </div>
+      </div>
+      </UsbSignaturePadProvider>
+      )}
+
+      {/* ====== TAB: NFC CONFIGURATION ====== */}
+      {activeConfigTab === 'nfc' && (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1016,8 +1342,10 @@ const COLOR_PALETTES_DARK = [
           </div>
         </div>
       </div>
+      )}
 
-      {/* ====== SYSTEM APPEARANCE & THEME ====== */}
+      {/* ====== TAB: SYSTEM APPEARANCE & THEME ====== */}
+      {activeConfigTab === 'appearance' && (
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1181,9 +1509,12 @@ const COLOR_PALETTES_DARK = [
 
         </div>
       </div>
+      )}
 
-      {/* ====== BIOMETRIC HARDWARE TESTING SECTION ====== */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+      {/* ====== TAB: BIOMETRIC HARDWARE TESTING ====== */}
+      {activeConfigTab === 'biometrics' && (
+      <UsbSignaturePadProvider>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden w-full">
         <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
           <Fingerprint size={16} className="text-teal-600" />
           <h5 className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm">Biometric Hardware Testing & Calibration</h5>
@@ -1191,7 +1522,7 @@ const COLOR_PALETTES_DARK = [
 
         <div className="p-6 space-y-8">
           <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
-            Test and calibrate the biometric devices connected to the system before using them for senior citizen profiling.
+            Test and calibrate the biometric hardware devices connected to this workstation. Verify USB fingerprint scanner, USB signature pad, and camera before using them for senior citizen registration.
           </p>
 
           {/* --- Biometric Profile Photo (Camera Sync) --- */}
@@ -1210,39 +1541,44 @@ const COLOR_PALETTES_DARK = [
             </div>
           </div>
 
-          {/* --- E-Lagda Digital Signature Pad --- */}
+          {/* --- E-Lagda Digital Signature Pad (USB) --- */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
               <FileText size={14} className="text-purple-600" />
-              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">E-Lagda Digital Signature Pad</h6>
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">E-Lagda Digital Signature Pad (USB)</h6>
               <span className="text-[9px] font-bold text-purple-600 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-full border border-purple-100 dark:border-purple-800 uppercase tracking-wider">Test Mode</span>
             </div>
-            <p className="text-[10px] text-slate-400">Test the digital signature pad — draw with a mouse or stylus pen to verify that stroke capture is working.</p>
-            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
+            <p className="text-[10px] text-slate-400">
+              Test the USB signature pad device connection. Click "Activate USB Signature Pad" to connect, then sign on the device to verify output appears on the canvas below. You can also draw with a mouse or stylus pen.
+            </p>
+            <div className="w-full border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
               <SignaturePad
                 value={null}
                 onChange={(sig) => { if (sig) console.log('[CONFIG TEST] Signature captured:', sig.substring(0, 50) + '...'); }}
+                fieldId="config-test-signature"
+                showUsbButton={true}
               />
             </div>
           </div>
 
-          {/* --- Fingerprint Biometric Scanner Sync --- */}
+          {/* --- USB Fingerprint Scanner --- */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
               <Fingerprint size={14} className="text-amber-600" />
-              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Fingerprint Biometric Scanner Sync</h6>
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">USB Fingerprint Scanner</h6>
               <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-100 dark:border-amber-800 uppercase tracking-wider">Test Mode</span>
             </div>
-            <p className="text-[10px] text-slate-400">Sync and test the USB fingerprint scanner device. Ensure the driver is installed and the device is connected.</p>
-            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden">
-              <ThumbprintCapture
-                value={null}
-                onChange={(fp) => { if (fp) console.log('[CONFIG TEST] Fingerprint captured:', fp.substring(0, 50) + '...'); }}
-              />
+            <p className="text-[10px] text-slate-400">
+              Test the USB fingerprint scanner connection via WebUSB. Click "Test Scan" to connect to the device and perform a test capture. Ensure the scanner is plugged in before testing.
+            </p>
+            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 bg-slate-50/30 dark:bg-slate-900/30">
+              <FingerprintScannerTest />
             </div>
           </div>
         </div>
       </div>
+      </UsbSignaturePadProvider>
+      )}
 
     </div>
   );

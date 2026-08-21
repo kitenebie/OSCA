@@ -10,6 +10,7 @@ interface SeniorsState {
   searchQuery: string;
   selectedBarangay: string;
   selectedStatus: string;
+  selectedPension: string;
   isLoading: boolean;
   isInitialized: boolean;
 
@@ -19,6 +20,7 @@ interface SeniorsState {
   setSearchQuery: (query: string) => void;
   setSelectedBarangay: (brgy: string) => void;
   setSelectedStatus: (status: string) => void;
+  setSelectedPension: (pension: string) => void;
 
   addSenior: (senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string) => Promise<string>;
   updateSenior: (id: string, data: Partial<SeniorCitizen>, actorName?: string) => Promise<void>;
@@ -39,6 +41,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
   searchQuery: '',
   selectedBarangay: 'All',
   selectedStatus: 'All',
+  selectedPension: 'All',
   isLoading: false,
   isInitialized: false,
 
@@ -76,6 +79,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedBarangay: (brgy) => set({ selectedBarangay: brgy }),
   setSelectedStatus: (status) => set({ selectedStatus: status }),
+  setSelectedPension: (pension) => set({ selectedPension: pension }),
 
   addSenior: async (seniorData, encoderName) => {
     set({ isLoading: true });
