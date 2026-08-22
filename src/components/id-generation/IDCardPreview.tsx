@@ -3,8 +3,8 @@ import { SeniorCitizen } from '../../types';
 import { exportSeniorIDCardPDF } from '../../utils/pdfExport';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
-import { auditLogsService, signatoriesService, DocumentSignatory } from '../../services/supabaseService';
-import { FileDown, Radio, ShieldCheck, Printer, Layers, Sparkles, CreditCard } from 'lucide-react';
+import { auditLogsService, signatoriesService } from '../../services/supabaseService';
+import { FileDown, Radio, ShieldCheck, Layers, Sparkles, CreditCard } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
 const phLogo = '/ph_logo.png';
@@ -88,91 +88,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
     }
   };
 
-  const handlePrint = () => {
-    const frontEl = document.getElementById(`id-card-front-${senior.id}`);
-    const backEl = document.getElementById(`id-card-back-${senior.id}`);
-    if (!frontEl || !backEl) {
-      showToast('Cannot find ID Card layout for printing.', 'error');
-      return;
-    }
-
-    const printWindow = window.open('', '_blank', 'width=800,height=600');
-    if (!printWindow) {
-      showToast('Your browser blocked the pop-up window.', 'warning');
-      return;
-    }
-
-    let stylesHtml = '';
-    const styleElements = document.querySelectorAll('style, link[rel="stylesheet"]');
-    styleElements.forEach((el) => {
-      stylesHtml += el.outerHTML;
-    });
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print Senior ID - ${senior.firstName} ${senior.lastName}</title>
-          ${stylesHtml}
-          <style>
-            @media print {
-              body {
-                background: white !important;
-                margin: 0;
-                padding: 20px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 30px;
-              }
-              .no-print {
-                display: none !important;
-              }
-            }
-            body {
-              font-family: system-ui, sans-serif;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              gap: 30px;
-              padding: 40px;
-              background-color: #f8fafc;
-            }
-            .card-wrapper {
-              display: inline-block;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-              border-radius: 12px;
-              background: white;
-            }
-          </style>
-        </head>
-        <body>
-          <div class="no-print" style="margin-bottom: 10px; text-align: center;">
-            <button onclick="window.print();" style="padding: 10px 20px; background: #02a952; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 14px;">
-              Print ID Card
-            </button>
-            <p style="font-size: 11px; color: #666; margin-top: 8px;">Tip: Select "Landscape" orientation and set margins to "None" for best results.</p>
-          </div>
-          <div class="card-wrapper">
-            ${frontEl.outerHTML}
-          </div>
-          <div class="card-wrapper">
-            ${backEl.outerHTML}
-          </div>
-          <script>
-            window.onload = function() {
-              setTimeout(function() {
-                window.print();
-              }, 500);
-            };
-          </script>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-  };
-
   // ─── PALETTE CONSTANTS (strict 5-color) ───
   const C = {
     green:   '#02A952',
@@ -212,17 +127,17 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
           {/* Download PDF button */}
           <button
             type="button"
-            disabled={isExporting || senior.status !== 'Approved'}
+            disabled={isExporting || senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased'}
             onClick={handleExportPDF}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-all duration-150 active:scale-95"
-            title={senior.status !== 'Approved' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
+            title={senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
           >
             <FileDown size={14} />
             <span>
-              {isExporting 
-                ? 'Rendering...' 
-                : senior.status !== 'Approved' 
-                  ? 'Not Approved (Download Disabled)' 
+              {isExporting
+                ? 'Rendering...'
+                : senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased'
+                  ? 'Not Approved (Download Disabled)'
                   : 'I-download (CR80 PDF)'}
             </span>
           </button>

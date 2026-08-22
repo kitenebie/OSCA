@@ -199,14 +199,14 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     const name = target ? `${target.firstName} ${target.lastName}` : id;
 
     await get().updateSenior(id, {
-      status: 'Approved',
+      status: 'For Verification',
       remarks: `Approved by ${officerName} on ${new Date().toLocaleDateString()}.`,
     }, officerName);
 
     auditLogsService.log({
       action: 'APPROVE',
       entity: 'Senior',
-      details: `Approved by ${officerName} the registration of ${name}`,
+      details: `Approved (For Verification) by ${officerName} the registration of ${name}`,
       actorName: officerName,
       actorRole: 'approver',
       barangay: target?.barangay,

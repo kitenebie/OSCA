@@ -1412,6 +1412,7 @@ export default function FindUserPage() {
                     ${selectedSenior.status === 'For Verification' ? 'bg-blue-50 border-blue-200 text-blue-600' : ''}
                     ${selectedSenior.status === 'Rejected' ? 'bg-red-50 border-red-200 text-red-600' : ''}
                     ${selectedSenior.status === 'Deactivated' ? 'bg-slate-50 border-slate-200 text-slate-500' : ''}
+                    ${selectedSenior.status === 'Deceased' ? 'bg-gray-100 border-gray-300 text-gray-700' : ''}
                   `}>
                     Status: {selectedSenior.status}
                   </span>

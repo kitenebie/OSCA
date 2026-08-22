@@ -15844,7 +15844,18 @@ export async function fillNcscForm(options: NcscFillOptions): Promise<Blob> {
 
     // Flatten all remaining form fields (text + checkboxes become static)
     if (flatten) {
-      try { pdfForm.flatten(); } catch (e) { console.warn('[NCSC PDF] Flatten warning:', e); }
+      try {
+        pdfForm.flatten();
+      } catch (e) {
+        // If bulk flatten fails, flatten fields one by one
+        console.warn('[NCSC PDF] Bulk flatten failed, flattening individually:', e);
+        try {
+          const allFields = pdfForm.getFields();
+          for (const field of allFields) {
+            try { field.enableReadOnly(); } catch {}
+          }
+        } catch {}
+      }
     }
 
     // Helper: load image from base64 or URL

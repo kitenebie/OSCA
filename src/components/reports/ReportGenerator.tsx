@@ -373,6 +373,7 @@ export default function ReportGenerator() {
               <option value="Pending">Pending Applications</option>
               <option value="For Verification">For Verification</option>
               <option value="Rejected">Rejected</option>
+              <option value="Deceased">Deceased</option>
             </select>
           </div>
 

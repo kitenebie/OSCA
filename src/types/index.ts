@@ -21,7 +21,7 @@ export interface SeniorCitizen {
   profilePhoto: string;         // base64 image or path
   thumbprintData: string | null; // base64 or status
   signatureData: string | null;  // base64 signature path
-  status: "Pending" | "Approved" | "Rejected" | "For Verification" | "Deactivated";
+  status: "Pending" | "Approved" | "Rejected" | "For Verification" | "Deactivated" | "Deceased";
   registeredDate: string;
   registeredBy: string;         // encoder name/id
   pensionBeneficiary: boolean;

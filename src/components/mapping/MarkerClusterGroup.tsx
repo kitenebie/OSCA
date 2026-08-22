@@ -43,6 +43,7 @@ const createSeniorIcon = (senior: SeniorCitizen) => {
   let color = 'var(--osca-primary-600, #128f82)'; // Default Teal
   if (senior.status === 'Pending') color = '#eab308'; // Yellow
   if (senior.status === 'Rejected') color = '#ef4444'; // Red
+  if (senior.status === 'Deceased') color = '#6b7280'; // Gray
   if (senior.pensionBeneficiary) color = '#10b981'; // Green
 
   if (senior.inRiskArea === 'yes') {
