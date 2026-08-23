@@ -64,6 +64,11 @@ public class WindowsBiometricService
     [DllImport("winbio.dll")]
     private static extern int WinBioEnumBiometricUnits(uint Factor, out IntPtr UnitSchemaArray, out int UnitCount);
 
+    [DllImport("winbio.dll")]
+    private static extern int WinBioLocateSensor(
+        IntPtr SessionHandle, out uint UnitId
+    );
+
     // ─── Result Models ───
     public class CaptureResult
     {
@@ -253,21 +258,6 @@ public class WindowsBiometricService
 
         try
         {
-            // First, locate and wake up the sensor
-            Console.WriteLine("[WINBIO] Locating sensor...");
-            int locateResult = WinBioLocateSensor(sessionHandle, out uint locatedUnit);
-            if (locateResult == 0)
-            {
-                Console.WriteLine($"[WINBIO] ✓ Sensor found on unit {locatedUnit}. Touch the sensor now...");
-            }
-            else
-            {
-                Console.WriteLine($"[WINBIO] LocateSensor returned 0x{locateResult:X8} — trying Identify directly...");
-            }
-
-            // Small delay to let sensor initialize
-            Thread.Sleep(300);
-
             serial.Open();
             Console.WriteLine($"[SERIAL] Waiting for finger on scanner ({port})...");
 
@@ -584,6 +574,17 @@ public class WindowsBiometricService
 
             try
             {
+                // Locate and wake up the sensor first
+                int locateResult = WinBioLocateSensor(sessionHandle, out uint locatedUnit);
+                if (locateResult == 0)
+                {
+                    Console.WriteLine($"[WINBIO] ✓ Sensor located on unit {locatedUnit}. Touch sensor now...");
+                }
+                else
+                {
+                    Console.WriteLine($"[WINBIO] LocateSensor: 0x{locateResult:X8} — trying Identify directly...");
+                }
+
                 Console.WriteLine("[WINBIO] Waiting for fingerprint on sensor...");
 
                 int identifyResult = WinBioIdentify(sessionHandle, out uint unitId,
