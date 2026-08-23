@@ -1,6 +1,9 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import InlineFaceCapture from '../../profiling/InlineFaceCapture';
-import { Fingerprint, RotateCcw, Check, X, Loader2, Usb, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Fingerprint, RotateCcw, Check, X, Loader2, Usb, ShieldCheck, AlertCircle, Wifi, WifiOff } from 'lucide-react';
+
+// OSCA Fingerprint Bridge endpoint (.NET Windows Service)
+const BRIDGE_URL = 'http://localhost:8000';
 
 interface StepProps {
   form: any;
@@ -10,134 +13,83 @@ interface StepProps {
 export default function BiometricsPhoto({ form, setForm }: StepProps) {
   const [scanStatus, setScanStatus] = useState<'idle' | 'connecting' | 'scanning' | 'success' | 'error'>('idle');
   const [scanMessage, setScanMessage] = useState('');
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const deviceRef = useRef<USBDevice | null>(null);
+  const [bridgeOnline, setBridgeOnline] = useState<boolean | null>(null);
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (deviceRef.current) {
-        try { deviceRef.current.close(); } catch (_) {}
+  // Check if the Fingerprint Bridge service is online
+  const checkBridgeStatus = useCallback(async () => {
+    try {
+      const res = await fetch(`${BRIDGE_URL}/api/status`, { 
+        method: 'GET',
+        signal: AbortSignal.timeout(5000)
+      });
+      if (res.ok) {
+        setBridgeOnline(true);
+        return true;
       }
-    };
+      setBridgeOnline(false);
+      return false;
+    } catch {
+      setBridgeOnline(false);
+      return false;
+    }
   }, []);
 
-  // Connect to USB fingerprint scanner and scan
+  // Capture fingerprint via Bridge (.NET → WinBio API → Scanner)
   const startFingerprintScan = useCallback(async () => {
     setScanStatus('connecting');
-    setScanMessage('Connecting to fingerprint scanner...');
+    setScanMessage('Kumokonekta sa OSCA Fingerprint Bridge...');
 
     try {
-      const device = await navigator.usb.requestDevice({
-        filters: [
-          { vendorId: 0x1162 }, // SecuGen
-          { vendorId: 0x147e }, // Upek/AuthenTec
-          { vendorId: 0x04f3 }, // Elan Microelectronics
-          { vendorId: 0x1c7a }, // LighTuning
-          { vendorId: 0x05ba }, // DigitalPersona
-          { vendorId: 0x2109 }, // Generic HID fingerprint
-        ],
-      });
-
-      deviceRef.current = device;
-      await device.open();
-
-      if (device.configuration === null) {
-        await device.selectConfiguration(1);
+      // Step 1: Check if bridge is reachable
+      const isOnline = await checkBridgeStatus();
+      if (!isOnline) {
+        throw new Error('Hindi ma-reach ang Fingerprint Bridge service. Siguraduhing running ang service sa port 8000.');
       }
-      await device.claimInterface(0);
 
       setScanStatus('scanning');
-      setScanMessage('Place your right thumb on the scanner...');
+      setScanMessage('Ilagay ang kanang hinlalaki (right thumb) sa scanner...');
 
-      const scanCommand = new Uint8Array([0x40, 0x01, 0x00, 0x00]);
-      const outEndpoint = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(
-        (ep) => ep.direction === 'out'
-      );
-      const inEndpoint = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(
-        (ep) => ep.direction === 'in'
-      );
+      // Step 2: Call capture endpoint — this blocks until finger is placed on sensor
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for user to place finger
 
-      if (outEndpoint) {
-        await device.transferOut(outEndpoint.endpointNumber, scanCommand);
-      }
+      const res = await fetch(`${BRIDGE_URL}/api/capture`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
 
-      if (inEndpoint) {
-        const result = await device.transferIn(inEndpoint.endpointNumber, 64000);
-        if (result.data && result.data.byteLength > 0) {
-          renderFingerprintToCanvas(new Uint8Array(result.data.buffer));
-        } else {
-          throw new Error('No data received from scanner.');
-        }
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        // Store the Base64 fingerprint template and metadata
+        setForm({
+          ...form,
+          fingerprintTemplate: data.template,
+          fingerprintId: data.id,
+          fingerprintQuality: data.quality
+        });
+        setScanStatus('success');
+        setScanMessage(`Fingerprint captured! Quality: ${data.quality}% | ID: ${data.id}`);
       } else {
-        const result = await device.controlTransferIn(
-          { requestType: 'vendor', recipient: 'interface', request: 0x01, value: 0, index: 0 },
-          64000
-        );
-        if (result.data && result.data.byteLength > 0) {
-          renderFingerprintToCanvas(new Uint8Array(result.data.buffer));
-        } else {
-          throw new Error('No fingerprint data received.');
-        }
+        throw new Error(data.error || 'Capture failed. Subukan ulit.');
       }
-
-      await device.close();
-      deviceRef.current = null;
-      setScanStatus('success');
-      setScanMessage('Fingerprint captured successfully!');
     } catch (err: any) {
       setScanStatus('error');
-      if (err.name === 'NotFoundError') {
-        setScanMessage('No scanner selected. Connect your USB scanner and try again.');
-      } else if (err.name === 'SecurityError') {
-        setScanMessage('USB access denied. Allow USB device access in browser settings.');
+      if (err.name === 'AbortError') {
+        setScanMessage('Timeout — hindi nadetect ang daliri sa loob ng 30 segundo. Subukan ulit.');
       } else {
-        setScanMessage(err.message || 'Failed to capture fingerprint. Please try again.');
-      }
-      if (deviceRef.current) {
-        try { deviceRef.current.close(); } catch (_) {}
-        deviceRef.current = null;
+        setScanMessage(err.message || 'Hindi ma-capture ang fingerprint. I-check ang scanner connection.');
       }
     }
-  }, [form, setForm]);
-
-  // Render raw fingerprint data onto canvas and save as PNG
-  const renderFingerprintToCanvas = useCallback((rawData: Uint8Array) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const width = 256;
-    const height = 288;
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const imageData = ctx.createImageData(width, height);
-    for (let i = 0; i < width * height; i++) {
-      const val = rawData[i] || 0;
-      imageData.data[i * 4] = val;
-      imageData.data[i * 4 + 1] = val;
-      imageData.data[i * 4 + 2] = val;
-      imageData.data[i * 4 + 3] = 255;
-    }
-    ctx.putImageData(imageData, 0, 0);
-
-    const dataUrl = canvas.toDataURL('image/png');
-    setForm({ ...form, fingerprintTemplate: dataUrl });
-  }, [form, setForm]);
+  }, [form, setForm, checkBridgeStatus]);
 
   // Remove fingerprint
   const removeFingerprint = () => {
-    setForm({ ...form, fingerprintTemplate: null });
+    setForm({ ...form, fingerprintTemplate: null, fingerprintId: null, fingerprintQuality: null });
     setScanStatus('idle');
     setScanMessage('');
-    const canvas = canvasRef.current;
-    if (canvas) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
   };
 
   // Rescan
@@ -146,8 +98,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
     setTimeout(() => startFingerprintScan(), 100);
   };
 
-  const hasFingerprint = form.fingerprintTemplate &&
-    form.fingerprintTemplate.startsWith('data:image');
+  const hasFingerprint = !!form.fingerprintTemplate;
 
   return (
     <div className="space-y-6 max-w-full animate-fadeIn">
@@ -188,7 +139,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
         </div>
 
         {/* ═══════════════════════════════════════════════════════ */}
-        {/* RIGHT COLUMN — USB Fingerprint Scanner                 */}
+        {/* RIGHT COLUMN — Fingerprint Scanner via Bridge          */}
         {/* ═══════════════════════════════════════════════════════ */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
           {/* Section Header */}
@@ -198,7 +149,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
             </div>
             <div>
               <h6 className="text-sm font-bold text-slate-800">Right Thumb Print</h6>
-              <p className="text-[11px] text-slate-400">USB fingerprint scanner</p>
+              <p className="text-[11px] text-slate-400">via OSCA Fingerprint Bridge</p>
             </div>
             {hasFingerprint && (
               <span className="ml-auto flex items-center gap-1 text-[11px] font-semibold text-green-600 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
@@ -209,7 +160,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
 
           {/* Scanner Body */}
           <div className="flex flex-col items-center gap-4">
-            {/* Fingerprint Canvas Area */}
+            {/* Fingerprint Visual Area */}
             <div className={`relative rounded-2xl overflow-hidden flex items-center justify-center transition-all duration-300 ${
               hasFingerprint
                 ? 'bg-slate-900 border-2 border-indigo-400 shadow-lg shadow-indigo-100'
@@ -219,14 +170,19 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                 ? 'bg-gradient-to-b from-amber-50 to-slate-50 border-2 border-amber-200'
                 : 'bg-gradient-to-b from-slate-50 to-slate-100 border-2 border-dashed border-slate-300'
             }`} style={{ width: 200, height: 220 }}>
-              
-              {/* Canvas */}
-              <canvas
-                ref={canvasRef}
-                className={`w-full h-full object-contain ${hasFingerprint ? 'opacity-100' : 'opacity-0'}`}
-                width={256}
-                height={288}
-              />
+
+              {/* Success State — Show fingerprint icon with ID */}
+              {hasFingerprint && (
+                <div className="flex flex-col items-center justify-center gap-3 text-white">
+                  <div className="w-20 h-20 rounded-full bg-indigo-500/30 border border-indigo-400/50 flex items-center justify-center">
+                    <Fingerprint size={44} strokeWidth={1.2} className="text-indigo-300" />
+                  </div>
+                  <div className="text-center px-3">
+                    <p className="text-[10px] text-indigo-200 font-mono truncate max-w-[180px]">{form.fingerprintId}</p>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Quality: {form.fingerprintQuality}%</p>
+                  </div>
+                </div>
+              )}
 
               {/* Idle State */}
               {!hasFingerprint && scanStatus === 'idle' && (
@@ -235,7 +191,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                     <Fingerprint size={36} strokeWidth={1.3} className="text-slate-400" />
                   </div>
                   <span className="text-xs text-slate-400 font-medium">Awaiting scan</span>
-                  <span className="text-[10px] text-slate-300">Connect USB device</span>
+                  <span className="text-[10px] text-slate-300">Fingerprint Bridge (Port 8000)</span>
                 </div>
               )}
 
@@ -245,7 +201,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                   <div className="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center">
                     <Loader2 size={28} className="animate-spin text-amber-600" />
                   </div>
-                  <span className="text-xs font-semibold text-amber-700">Connecting device...</span>
+                  <span className="text-xs font-semibold text-amber-700">Connecting to bridge...</span>
                 </div>
               )}
 
@@ -256,11 +212,10 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                     <div className="w-16 h-16 rounded-full bg-indigo-100 flex items-center justify-center">
                       <Fingerprint size={32} className="text-indigo-600" />
                     </div>
-                    {/* Pulse ring */}
                     <div className="absolute inset-0 rounded-full border-2 border-indigo-400 animate-ping opacity-40"></div>
                   </div>
-                  <span className="text-xs font-semibold text-indigo-700">Place right thumb</span>
-                  <span className="text-[10px] text-indigo-400">on the scanner pad</span>
+                  <span className="text-xs font-semibold text-indigo-700">Ilagay ang kanang hinlalaki</span>
+                  <span className="text-[10px] text-indigo-400">sa scanner pad</span>
                 </div>
               )}
 
@@ -289,7 +244,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                 {scanStatus === 'success' && <ShieldCheck size={14} className="shrink-0" />}
                 {scanStatus === 'error' && <AlertCircle size={14} className="shrink-0" />}
                 {(scanStatus === 'connecting' || scanStatus === 'scanning') && <Loader2 size={14} className="animate-spin shrink-0" />}
-                <span>{scanMessage}</span>
+                <span className="break-words">{scanMessage}</span>
               </div>
             )}
 
@@ -302,7 +257,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                   disabled={scanStatus === 'connecting' || scanStatus === 'scanning'}
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-bold hover:bg-indigo-700 shadow-md shadow-indigo-200 transition disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
                 >
-                  <Usb size={15} />
+                  <Fingerprint size={15} />
                   {scanStatus === 'error' ? 'Retry Scan' : 'Scan Fingerprint'}
                 </button>
               ) : (
@@ -315,13 +270,30 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
                   Rescan
                 </button>
               )}
+
+              {/* Bridge Status Check Button */}
+              {!hasFingerprint && scanStatus === 'idle' && (
+                <button
+                  type="button"
+                  onClick={checkBridgeStatus}
+                  className="flex items-center gap-1.5 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100 transition"
+                  title="Check bridge connection"
+                >
+                  {bridgeOnline === true && <Wifi size={13} className="text-green-500" />}
+                  {bridgeOnline === false && <WifiOff size={13} className="text-red-400" />}
+                  {bridgeOnline === null && <Wifi size={13} className="text-slate-400" />}
+                  Status
+                </button>
+              )}
             </div>
 
-            {/* USB Info Footer */}
+            {/* Bridge Info Footer */}
             {!hasFingerprint && scanStatus === 'idle' && (
               <div className="flex items-center gap-2 text-[11px] text-slate-400 bg-slate-50 rounded-lg px-3 py-2 border border-slate-100 w-full">
                 <Usb size={12} className="shrink-0 text-slate-400" />
-                <span>Plug in USB fingerprint scanner, then click <strong className="text-slate-600">Scan Fingerprint</strong> to begin.</span>
+                <span>
+                  Gumagamit ng <strong className="text-slate-600">OSCA Fingerprint Bridge</strong> (Windows Service, Port 8000) para ma-capture ang fingerprint gamit ang Windows Biometric Framework.
+                </span>
               </div>
             )}
           </div>

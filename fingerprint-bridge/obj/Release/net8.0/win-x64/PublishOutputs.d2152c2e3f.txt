@@ -1,5 +1,10 @@
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\FingerprintBridge.exe
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\publish\web.config
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\appsettings.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\publish\appsettings.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\publish\FingerprintBridge.deps.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\publish\FingerprintBridge.runtimeconfig.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\publish\FingerprintBridge.staticwebassets.endpoints.json
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\FingerprintBridge.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\FingerprintBridge.deps.json
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\FingerprintBridge.runtimeconfig.json
@@ -327,3 +332,5 @@ C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\mscordbi.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\mscorrc.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\msquic.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\aspnetcorev2_inprocess.dll
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\Microsoft.Extensions.Hosting.WindowsServices.dll
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\publish\System.ServiceProcess.ServiceController.dll

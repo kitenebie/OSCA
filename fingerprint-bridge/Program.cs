@@ -20,8 +20,11 @@ using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure to run on port 8000 (matches OSCA frontend expectation)
-builder.WebHost.UseUrls("http://192.168.8.34:8000");
+// Enable running as a Windows Service
+builder.Host.UseWindowsService();
+
+// Listen on all interfaces (localhost for HTTPS mixed-content exemption + LAN IP for dev)
+builder.WebHost.UseUrls("http://localhost:8000");
 
 // Add services
 builder.Services.AddSingleton<WindowsBiometricService>();
@@ -31,10 +34,10 @@ builder.Services.AddCors(options =>
     {
         // Allow OSCA web app origins
         policy.WithOrigins(
-            "http://192.168.8.34:5173",   // Vite dev server
-            "http://192.168.8.34:3000/",   // Alternative dev
+            "http://localhost:5173",        // Vite dev (localhost)
+            "http://localhost:3000",         // Alt dev (localhost)
             "https://me.oscajuban.online", // Production (update this)
-            "https://me.oscajuban.online" // Production alt
+            "https://oscajuban.online"     // Production alt
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -129,7 +132,7 @@ app.MapPost("/api/verify", async (HttpContext context, WindowsBiometricService b
 
 Console.WriteLine("══════════════════════════════════════════════════");
 Console.WriteLine("  OSCA Fingerprint Bridge Service v1.0.0");
-Console.WriteLine("  Listening on: http://192.168.8.34:8000");
+Console.WriteLine("  Listening on: http://localhost:8000");
 Console.WriteLine("  Endpoints:");
 Console.WriteLine("    GET  /api/status  - Service health check");
 Console.WriteLine("    POST /api/capture - Capture fingerprint");

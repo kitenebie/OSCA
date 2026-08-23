@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { Fingerprint, Check, AlertCircle, RefreshCw, Cpu, Info, ShieldCheck, Compass } from 'lucide-react';
 
+// OSCA Fingerprint Bridge endpoint (localhost — required for HTTPS mixed-content exemption)
+const BRIDGE_URL = 'http://localhost:8000';
+
 interface ThumbprintCaptureProps {
   value: string | null;
   onChange: (base64OrId: string | null) => void;
@@ -68,7 +71,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
   const startLocalSdkScan = async () => {
     setIsScanning(true);
     setScanProgress(10);
-    setScanStatus('Kumokonekta sa OSCA Fingerprint Bridge (localhost:8000)...');
+    setScanStatus('Kumokonekta sa OSCA Fingerprint Bridge...');
 
     try {
       await new Promise((r) => setTimeout(r, 800));
@@ -77,8 +80,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      // Attempting to query common manufacturer local desktop web API endpoints
-      const res = await fetch('http://localhost:8000/api/capture', {
+      const res = await fetch(`${BRIDGE_URL}/api/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal
@@ -170,7 +172,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
             onClick={() => { setScanMode('localsdk'); resetCapture(); }}
             className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (scanMode === 'localsdk' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
           >
-            Local SDK (Port 8000)
+            Fingerprint Bridge
           </button>
           <button
             type="button"
@@ -277,7 +279,7 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
             </p>
           ) : scanMode === 'localsdk' ? (
             <p>
-              <strong>Local Loopback Service Mode:</strong> Uses the default local background service of SecuGen / DigitalPersona (Port 8000) to capture the fingerprint template directly from the card scanner driver.
+              <strong>Fingerprint Bridge Mode:</strong> Kumokonekta sa OSCA Fingerprint Bridge (.NET Windows Service) sa port 8000 gamit ang Windows Biometric Framework (WinBio API) para ma-capture ang fingerprint template directly from the scanner hardware.
             </p>
           ) : (
             <p>
