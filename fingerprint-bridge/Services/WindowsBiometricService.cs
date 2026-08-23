@@ -69,6 +69,9 @@ public class WindowsBiometricService
         IntPtr SessionHandle, out uint UnitId
     );
 
+    [DllImport("winbio.dll")]
+    private static extern int WinBioCancel(IntPtr SessionHandle);
+
     // ─── Result Models ───
     public class CaptureResult
     {
@@ -90,12 +93,37 @@ public class WindowsBiometricService
     // Cache detected serial port
     private string? _detectedPort = null;
     private int _detectedBaud = 57600;
+    
+    // Prevent concurrent capture requests (sensor can only handle one at a time)
+    private static readonly SemaphoreSlim _captureLock = new(1, 1);
+    private static bool _captureInProgress = false;
 
     /// <summary>
     /// Main capture method — tries serial first, then WinBio fallbacks.
     /// </summary>
     public async Task<CaptureResult> CaptureFingerprint()
     {
+        // Reject immediately if another capture is already running
+        if (_captureInProgress)
+        {
+            return new CaptureResult
+            {
+                Success = false,
+                ErrorMessage = "Another capture is already in progress. Please wait."
+            };
+        }
+
+        if (!await _captureLock.WaitAsync(TimeSpan.FromSeconds(1)))
+        {
+            return new CaptureResult
+            {
+                Success = false,
+                ErrorMessage = "Scanner busy. Try again in a few seconds."
+            };
+        }
+
+        _captureInProgress = true;
+
         // Use a timeout so we never hang forever
         var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 
@@ -147,6 +175,11 @@ public class WindowsBiometricService
                 Success = false,
                 ErrorMessage = $"Unexpected error: {ex.Message}"
             };
+        }
+        finally
+        {
+            _captureInProgress = false;
+            _captureLock.Release();
         }
     }
 
@@ -584,6 +617,10 @@ public class WindowsBiometricService
                 {
                     Console.WriteLine($"[WINBIO] LocateSensor: 0x{locateResult:X8} — trying Identify directly...");
                 }
+
+                // Cancel any previous stuck operations on this session
+                WinBioCancel(sessionHandle);
+                Thread.Sleep(200);
 
                 Console.WriteLine("[WINBIO] Waiting for fingerprint on sensor...");
 
