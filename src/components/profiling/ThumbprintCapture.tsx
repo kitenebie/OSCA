@@ -68,14 +68,14 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
   const startLocalSdkScan = async () => {
     setIsScanning(true);
     setScanProgress(10);
-    setScanStatus('Kumokonekta sa local desktop USB scanner service (localhost:8000)...');
+    setScanStatus('Kumokonekta sa OSCA Fingerprint Bridge (localhost:8000)...');
 
     try {
       await new Promise((r) => setTimeout(r, 800));
       setScanProgress(40);
       
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
 
       // Attempting to query common manufacturer local desktop web API endpoints
       const res = await fetch('http://localhost:8000/api/capture', {
@@ -88,18 +88,25 @@ export default function ThumbprintCapture({ value, onChange }: ThumbprintCapture
       setScanProgress(90);
       if (res.ok) {
         const data = await res.json();
-        setScanProgress(100);
-        setIsScanning(false);
-        setScanStatus('Fingerprint data captured successfully from local USB Device!');
-        onChange(data.template || 'Captured Biometrics (Local SDK ID: ' + (data.id || 'FP-81765') + ')');
+        if (data.success !== false) {
+          setScanProgress(100);
+          setIsScanning(false);
+          setScanStatus('Fingerprint captured successfully via Windows Hello! Quality: ' + (data.quality || 'N/A') + '%');
+          onChange(data.template || 'Captured Biometrics (Template ID: ' + (data.id || 'FP-00000') + ')');
+        } else {
+          throw new Error(data.error || 'Capture failed');
+        }
       } else {
-        throw new Error('Returned error response');
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || 'Bridge returned an error');
       }
     } catch (err: any) {
-      console.warn('Local Web SDK service not found on port 8000:', err);
+      console.warn('OSCA Fingerprint Bridge error:', err);
       setIsScanning(false);
       setScanProgress(0);
-      setScanStatus('Scanner software not found on localhost. Please run the SecuGen/DigitalPersona local agent or use the Simulator.');
+      setScanStatus(err.name === 'AbortError' 
+        ? 'Connection timeout. Siguraduhing nakabukas ang OSCA Fingerprint Bridge service.' 
+        : 'Hindi makonekta sa Fingerprint Bridge. Buksan ang start-bridge.bat o i-check kung running ang service.');
     }
   };
 

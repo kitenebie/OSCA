@@ -80,7 +80,7 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
         ctx.lineWidth = 2.5;
-        ctx.strokeStyle = '#020617';
+        ctx.strokeStyle = '#000000';
       }
     }
   }, []);
@@ -135,7 +135,7 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
       if (ctx) {
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
-        ctx.strokeStyle = '#020617';
+        ctx.strokeStyle = '#000000';
 
         if (hasDrawn) {
           const img = new Image();
@@ -159,7 +159,7 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
       setIsDrawing(true);
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#020617';
+      ctx.strokeStyle = '#000000';
     }
   };
 
