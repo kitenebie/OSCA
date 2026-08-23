@@ -357,3 +357,13 @@ C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\Microsoft.Extensions.Hosting.WindowsServices.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\System.ServiceProcess.ServiceController.dll
 C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Release\net8.0\win-x64\FingerprintBridge.csproj.AssemblyReference.cache
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\web.config
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\appsettings.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\FingerprintBridge.deps.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\FingerprintBridge.runtimeconfig.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\FingerprintBridge.staticwebassets.endpoints.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\publish\web.config
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\publish\appsettings.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\publish\FingerprintBridge.deps.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\publish\FingerprintBridge.runtimeconfig.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\bin\Release\net8.0\win-x64\publish\publish\publish\FingerprintBridge.staticwebassets.endpoints.json
