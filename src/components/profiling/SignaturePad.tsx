@@ -316,9 +316,9 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
       )}
 
       {/* Signature Canvas Stage */}
-      <div className={`relative bg-white border rounded-xl shadow-inner min-h-[160px] flex flex-col items-center justify-center ${
+      <div className={`relative border rounded-xl shadow-inner min-h-[160px] flex flex-col items-center justify-center ${
         isActive ? 'border-indigo-200' : 'border-slate-200'
-      }`} style={{ width: '100%' }}>
+      }`} style={{ width: '100%', backgroundColor: '#C5C7CA' }}>
         <canvas
           ref={canvasRef}
           onPointerDown={startDrawing}
@@ -333,7 +333,7 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
         {/* Floating Alignment Guideline */}
         {!hasDrawn && (
           <div className="absolute inset-x-8 bottom-10 border-t border-dashed border-slate-200 pointer-events-none flex justify-center">
-            <span className="text-[10px] text-slate-300 font-medium px-2 bg-white -mt-2 uppercase tracking-widest select-none">
+            <span className="text-[10px] text-slate-500 font-medium px-2 -mt-2 uppercase tracking-widest select-none" style={{ backgroundColor: '#C5C7CA' }}>
               Sign above this line
             </span>
           </div>
