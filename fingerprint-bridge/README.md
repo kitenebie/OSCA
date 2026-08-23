@@ -34,6 +34,8 @@ This bridge service runs locally on `http://localhost:8000` and acts as a middle
 
 ```bash
 cd fingerprint-bridge
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
+reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
 dotnet run
 ```
 

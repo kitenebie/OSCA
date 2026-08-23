@@ -53,12 +53,15 @@ app.UseCors();
 // ─── Health/Status Endpoint ───
 app.MapGet("/api/status", () =>
 {
+    var ports = System.IO.Ports.SerialPort.GetPortNames();
     return Results.Ok(new
     {
         service = "OSCA Fingerprint Bridge",
-        version = "1.0.0",
+        version = "1.1.0",
         status = "running",
-        platform = "Windows Biometric Framework",
+        platform = "Serial + Windows Biometric Framework",
+        serialPorts = ports,
+        serialPortCount = ports.Length,
         timestamp = DateTime.Now.ToString("o")
     });
 });
@@ -78,7 +81,9 @@ app.MapPost("/api/capture", async (WindowsBiometricService biometricService) =>
                 template = result.TemplateBase64,
                 id = result.TemplateId,
                 quality = result.Quality,
-                message = "Fingerprint captured successfully via Windows Hello"
+                method = result.CaptureMethod,
+                port = result.Port,
+                message = $"Fingerprint captured successfully via {result.CaptureMethod}"
             });
         }
         else
