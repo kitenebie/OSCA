@@ -1,0 +1,7 @@
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\rpswa.dswa.cache.json
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.AssemblyInfoInputs.cache
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.AssemblyInfo.cs
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.csproj.CoreCompileInputs.cache
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\kenne\Desktop\em-res\OSCA\fingerprint-bridge\obj\Debug\net8.0\FingerprintBridge.sourcelink.json

@@ -21,7 +21,7 @@ using Microsoft.Extensions.Hosting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure to run on port 8000 (matches OSCA frontend expectation)
-builder.WebHost.UseUrls("http://localhost:8000");
+builder.WebHost.UseUrls("http://192.168.8.34:8000");
 
 // Add services
 builder.Services.AddSingleton<WindowsBiometricService>();
@@ -31,10 +31,10 @@ builder.Services.AddCors(options =>
     {
         // Allow OSCA web app origins
         policy.WithOrigins(
-            "http://localhost:5173",   // Vite dev server
-            "http://localhost:3000",   // Alternative dev
-            "https://osca-juban.vercel.app", // Production (update this)
-            "https://osca-juban.netlify.app" // Production alt
+            "http://192.168.8.34:5173",   // Vite dev server
+            "http://192.168.8.34:3000/",   // Alternative dev
+            "https://me.oscajuban.online", // Production (update this)
+            "https://me.oscajuban.online" // Production alt
         )
         .AllowAnyHeader()
         .AllowAnyMethod()
@@ -89,11 +89,11 @@ app.MapPost("/api/capture", async (WindowsBiometricService biometricService) =>
     }
     catch (Exception ex)
     {
-        return Results.StatusCode(500, new
+        return Results.Json(new
         {
             success = false,
             error = $"Capture failed: {ex.Message}"
-        });
+        }, statusCode: 500);
     }
 });
 
@@ -119,17 +119,17 @@ app.MapPost("/api/verify", async (HttpContext context, WindowsBiometricService b
     }
     catch (Exception ex)
     {
-        return Results.StatusCode(500, new
+        return Results.Json(new
         {
             success = false,
             error = $"Verification failed: {ex.Message}"
-        });
+        }, statusCode: 500);
     }
 });
 
 Console.WriteLine("══════════════════════════════════════════════════");
 Console.WriteLine("  OSCA Fingerprint Bridge Service v1.0.0");
-Console.WriteLine("  Listening on: http://localhost:8000");
+Console.WriteLine("  Listening on: http://192.168.8.34:8000");
 Console.WriteLine("  Endpoints:");
 Console.WriteLine("    GET  /api/status  - Service health check");
 Console.WriteLine("    POST /api/capture - Capture fingerprint");
