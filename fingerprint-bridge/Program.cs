@@ -66,6 +66,46 @@ app.MapGet("/api/status", () =>
     });
 });
 
+// ─── Diagnose Endpoint (debug biometric hardware) ───
+app.MapGet("/api/diagnose", () =>
+{
+    var serialPorts = System.IO.Ports.SerialPort.GetPortNames();
+    
+    // Check WinBio
+    string winBioStatus = "unknown";
+    int unitCount = 0;
+    try
+    {
+        // Quick check via sc query
+        var psi = new System.Diagnostics.ProcessStartInfo("sc", "query WbioSrvc")
+        {
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        var proc = System.Diagnostics.Process.Start(psi);
+        var output = proc?.StandardOutput.ReadToEnd() ?? "";
+        proc?.WaitForExit();
+        winBioStatus = output.Contains("RUNNING") ? "running" : output.Contains("STOPPED") ? "stopped" : "unknown";
+    }
+    catch { winBioStatus = "check_failed"; }
+
+    return Results.Ok(new
+    {
+        serialPorts = serialPorts,
+        winBioServiceStatus = winBioStatus,
+        recommendations = new[]
+        {
+            "1. Ensure Windows Biometric Service (WbioSrvc) is RUNNING",
+            "2. Ensure at least one fingerprint is enrolled: Settings → Accounts → Sign-in options → Fingerprint",
+            "3. If SYNO_FIDO sensor: try touching/swiping the sensor DURING capture (not before)",
+            "4. Make sure only ONE biometric device is enabled in Device Manager",
+            "5. Try: sc stop WbioSrvc && sc start WbioSrvc to reset biometric service"
+        },
+        note = "If capture hangs, the sensor may need a swipe/press gesture (not just resting finger). Try pressing firmly when prompted."
+    });
+});
+
 // ─── Capture Fingerprint Endpoint ───
 app.MapPost("/api/capture", async (WindowsBiometricService biometricService) =>
 {

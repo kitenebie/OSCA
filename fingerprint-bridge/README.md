@@ -36,6 +36,8 @@ This bridge service runs locally on `http://localhost:8000` and acts as a middle
 cd fingerprint-bridge
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
 reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
+powershell -Command "Get-PnpDevice | Where-Object { $_.FriendlyName -like '*SYNO*' -and $_.Status -eq 'Error' } | Disable-PnpDevice -Confirm:$false"
+powershell -Command "Get-PnpDevice | Where-Object { $_.FriendlyName -like '*SYNO*' } | Select-Object FriendlyName, Status"
 dotnet run
 ```
 

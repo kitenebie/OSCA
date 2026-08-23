@@ -91,14 +91,16 @@ public class WindowsBiometricService
     /// </summary>
     public async Task<CaptureResult> CaptureFingerprint()
     {
-        return await Task.Run(() =>
+        // Use a timeout so we never hang forever
+        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+
+        try
         {
-            try
+            return await Task.Run(() =>
             {
-                // Method 1: Serial port fingerprint scanner (most LGU scanners)
+                // Method 1: Serial port fingerprint scanner
                 var serialResult = TrySerialCapture();
-                if (serialResult.Success)
-                    return serialResult;
+                if (serialResult.Success) return serialResult;
 
                 if (serialResult.ErrorMessage.Contains("No serial fingerprint"))
                     Console.WriteLine("[INFO] No serial fingerprint scanner found, trying WinBio...");
@@ -107,33 +109,40 @@ public class WindowsBiometricService
 
                 // Method 2: WinBio Identify (requires enrolled finger)
                 var identifyResult = TryIdentifyCapture();
-                if (identifyResult.Success)
-                    return identifyResult;
+                if (identifyResult.Success) return identifyResult;
 
-                // Method 3: WinBio Raw (requires GP permission)
+                // Method 3: WinBio Raw
                 var rawResult = TryRawCapture();
-                if (rawResult.Success)
-                    return rawResult;
+                if (rawResult.Success) return rawResult;
 
                 // All failed
                 return new CaptureResult
                 {
                     Success = false,
                     ErrorMessage = "No fingerprint captured. Checked: " +
-                        $"Serial ports ({string.Join(", ", SerialPort.GetPortNames().Length > 0 ? SerialPort.GetPortNames() : new[] { "none" })}), " +
-                        "WinBio Identify, WinBio Raw. " +
-                        "Ensure scanner is connected and powered on."
+                        $"Serial ({string.Join(", ", SerialPort.GetPortNames())}), " +
+                        $"WinBio Identify ({identifyResult.ErrorMessage}), " +
+                        $"WinBio Raw ({rawResult.ErrorMessage}). " +
+                        "Check: scanner connected, finger enrolled in Windows Hello."
                 };
-            }
-            catch (Exception ex)
+            }, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            return new CaptureResult
             {
-                return new CaptureResult
-                {
-                    Success = false,
-                    ErrorMessage = $"Unexpected error: {ex.Message}"
-                };
-            }
-        });
+                Success = false,
+                ErrorMessage = "Timeout (15s) — finger was not detected on scanner. Make sure you're placing your enrolled finger firmly on the sensor."
+            };
+        }
+        catch (Exception ex)
+        {
+            return new CaptureResult
+            {
+                Success = false,
+                ErrorMessage = $"Unexpected error: {ex.Message}"
+            };
+        }
     }
 
     // ═══════════════════════════════════════════════════════
@@ -244,6 +253,21 @@ public class WindowsBiometricService
 
         try
         {
+            // First, locate and wake up the sensor
+            Console.WriteLine("[WINBIO] Locating sensor...");
+            int locateResult = WinBioLocateSensor(sessionHandle, out uint locatedUnit);
+            if (locateResult == 0)
+            {
+                Console.WriteLine($"[WINBIO] ✓ Sensor found on unit {locatedUnit}. Touch the sensor now...");
+            }
+            else
+            {
+                Console.WriteLine($"[WINBIO] LocateSensor returned 0x{locateResult:X8} — trying Identify directly...");
+            }
+
+            // Small delay to let sensor initialize
+            Thread.Sleep(300);
+
             serial.Open();
             Console.WriteLine($"[SERIAL] Waiting for finger on scanner ({port})...");
 
