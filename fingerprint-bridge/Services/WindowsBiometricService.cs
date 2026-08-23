@@ -585,7 +585,8 @@ public class WindowsBiometricService
     }
 
     // ═══════════════════════════════════════════════════════
-    // METHOD 2: WinBio Identify (requires enrolled fingerprint)
+    // METHOD 2: WinBio Identify with timeout
+    // Uses WinBioCancel to abort if sensor doesn't respond
     // ═══════════════════════════════════════════════════════
     private CaptureResult TryIdentifyCapture()
     {
@@ -607,64 +608,86 @@ public class WindowsBiometricService
 
             try
             {
-                // Locate and wake up the sensor first
+                // Cancel any previous stuck operations
+                WinBioCancel(sessionHandle);
+                Thread.Sleep(100);
+
+                // Locate sensor
                 int locateResult = WinBioLocateSensor(sessionHandle, out uint locatedUnit);
                 if (locateResult == 0)
-                {
-                    Console.WriteLine($"[WINBIO] ✓ Sensor located on unit {locatedUnit}. Touch sensor now...");
-                }
+                    Console.WriteLine($"[WINBIO] ✓ Sensor on unit {locatedUnit}. Touch sensor NOW...");
                 else
+                    Console.WriteLine($"[WINBIO] LocateSensor: 0x{locateResult:X8}");
+
+                Console.WriteLine("[WINBIO] Waiting for fingerprint (10s timeout)...");
+
+                // Run WinBioIdentify on a separate thread so we can cancel it
+                IntPtr capturedIdentity = IntPtr.Zero;
+                uint capturedUnitId = 0;
+                byte capturedSubFactor = 0;
+                int capturedRejectDetail = 0;
+                int identifyResult = -1;
+
+                var identifyThread = new Thread(() =>
                 {
-                    Console.WriteLine($"[WINBIO] LocateSensor: 0x{locateResult:X8} — trying Identify directly...");
+                    identifyResult = WinBioIdentify(sessionHandle, out capturedUnitId,
+                        out capturedIdentity, out capturedSubFactor, out capturedRejectDetail);
+                });
+                identifyThread.IsBackground = true;
+                identifyThread.Start();
+
+                // Wait up to 10 seconds for the identify to complete
+                bool completed = identifyThread.Join(TimeSpan.FromSeconds(10));
+
+                if (!completed)
+                {
+                    // Timeout — cancel the WinBio operation
+                    Console.WriteLine("[WINBIO] Timeout! Cancelling...");
+                    WinBioCancel(sessionHandle);
+                    identifyThread.Join(2000); // Give it 2s to clean up
+                    return new CaptureResult
+                    {
+                        Success = false,
+                        ErrorMessage = "Timeout (10s) — sensor did not detect finger. Press firmly on the fingerprint reader."
+                    };
                 }
-
-                // Cancel any previous stuck operations on this session
-                WinBioCancel(sessionHandle);
-                Thread.Sleep(200);
-
-                Console.WriteLine("[WINBIO] Waiting for fingerprint on sensor...");
-
-                int identifyResult = WinBioIdentify(sessionHandle, out uint unitId,
-                    out IntPtr identity, out byte subFactor, out int rejectDetail);
 
                 if (identifyResult != 0)
                 {
                     string errorMsg = identifyResult switch
                     {
                         unchecked((int)0x80098005) => "Cancelled.",
-                        unchecked((int)0x80098004) => "No enrolled fingerprints in Windows Hello.",
-                        unchecked((int)0x80098001) => "Bad quality. Try again.",
-                        unchecked((int)0x8009800B) => "Finger not recognized.",
+                        unchecked((int)0x80098004) => "No enrolled fingerprints in Windows Hello. Go to Settings → Accounts → Sign-in options → Fingerprint to enroll.",
+                        unchecked((int)0x80098001) => "Bad quality. Clean finger and try again.",
+                        unchecked((int)0x80098003) => "Sensor busy. Close other apps using biometrics and retry.",
+                        unchecked((int)0x8009800B) => "Finger not recognized. Use the enrolled finger.",
                         _ => $"Identify failed (0x{identifyResult:X8})"
                     };
                     return new CaptureResult { Success = false, ErrorMessage = errorMsg };
                 }
 
-                // Generate template from identity
+                // Success! Generate template from the capture event
+                // Note: WINBIO_IDENTITY is a session-internal struct — we generate
+                // a unique cryptographic template from the capture metadata instead
                 byte[] salt = new byte[32];
                 RandomNumberGenerator.Fill(salt);
-                byte[] identityBytes = new byte[80];
-                if (identity != IntPtr.Zero)
-                    Marshal.Copy(identity, identityBytes, 0, 76);
 
+                // Build template from: salt + unitId + subFactor + timestamp
                 using var sha = SHA256.Create();
-                byte[] composite = new byte[identityBytes.Length + salt.Length + 8];
-                Buffer.BlockCopy(identityBytes, 0, composite, 0, identityBytes.Length);
-                Buffer.BlockCopy(salt, 0, composite, identityBytes.Length, salt.Length);
-                Buffer.BlockCopy(BitConverter.GetBytes(unitId), 0, composite, identityBytes.Length + salt.Length, 4);
-                composite[^4] = subFactor;
-                composite[^3] = (byte)DateTime.Now.Second;
-                composite[^2] = (byte)(DateTime.Now.Millisecond & 0xFF);
-                composite[^1] = (byte)((DateTime.Now.Millisecond >> 8) & 0xFF);
+                byte[] captureInfo = new byte[salt.Length + 16];
+                Buffer.BlockCopy(salt, 0, captureInfo, 0, salt.Length);
+                Buffer.BlockCopy(BitConverter.GetBytes(capturedUnitId), 0, captureInfo, salt.Length, 4);
+                captureInfo[salt.Length + 4] = capturedSubFactor;
+                Buffer.BlockCopy(BitConverter.GetBytes(DateTime.Now.Ticks), 0, captureInfo, salt.Length + 5, 8);
 
-                byte[] hash = sha.ComputeHash(composite);
-                byte[] template = new byte[salt.Length + hash.Length + identityBytes.Length];
+                byte[] hash = sha.ComputeHash(captureInfo);
+                // Template = [salt 32 bytes] + [SHA256 hash 32 bytes] = 64 bytes
+                byte[] template = new byte[salt.Length + hash.Length];
                 Buffer.BlockCopy(salt, 0, template, 0, salt.Length);
                 Buffer.BlockCopy(hash, 0, template, salt.Length, hash.Length);
-                Buffer.BlockCopy(identityBytes, 0, template, salt.Length + hash.Length, identityBytes.Length);
 
                 string templateId = $"FP-BIO-{DateTime.Now:yyyyMMddHHmmss}-{RandomNumberGenerator.GetInt32(100000, 999999)}";
-                Console.WriteLine($"[WINBIO] ✓ Fingerprint identified! Unit: {unitId}");
+                Console.WriteLine($"[WINBIO] ✓ Fingerprint captured! Unit: {capturedUnitId}, SubFactor: {capturedSubFactor}");
 
                 return new CaptureResult
                 {

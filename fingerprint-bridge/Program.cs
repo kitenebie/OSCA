@@ -176,12 +176,41 @@ app.MapPost("/api/verify", async (HttpContext context, WindowsBiometricService b
 });
 
 Console.WriteLine("══════════════════════════════════════════════════");
-Console.WriteLine("  OSCA Fingerprint Bridge Service v1.0.0");
+Console.WriteLine("  OSCA Fingerprint Bridge Service v1.1.0");
 Console.WriteLine("  Listening on: http://localhost:8000");
 Console.WriteLine("  Endpoints:");
-Console.WriteLine("    GET  /api/status  - Service health check");
-Console.WriteLine("    POST /api/capture - Capture fingerprint");
-Console.WriteLine("    POST /api/verify  - Verify fingerprint");
+Console.WriteLine("    GET  /api/status   - Service health check");
+Console.WriteLine("    GET  /api/diagnose - Hardware diagnostics");
+Console.WriteLine("    POST /api/capture  - Capture fingerprint");
+Console.WriteLine("    POST /api/verify   - Verify fingerprint");
+Console.WriteLine("══════════════════════════════════════════════════");
+
+// Show detected hardware at startup
+var serialPorts = System.IO.Ports.SerialPort.GetPortNames();
+Console.WriteLine($"  Serial Ports: {(serialPorts.Length > 0 ? string.Join(", ", serialPorts) : "none")}");
+
+// Check WinBio devices
+try
+{
+    var psi = new System.Diagnostics.ProcessStartInfo("powershell", "-Command \"Get-PnpDevice | Where-Object { $_.Class -eq 'Biometric' -and $_.Status -eq 'OK' } | Select-Object -ExpandProperty FriendlyName\"")
+    {
+        RedirectStandardOutput = true, UseShellExecute = false, CreateNoWindow = true
+    };
+    var proc = System.Diagnostics.Process.Start(psi);
+    var bioDevices = proc?.StandardOutput.ReadToEnd()?.Trim() ?? "";
+    proc?.WaitForExit();
+    if (!string.IsNullOrEmpty(bioDevices))
+    {
+        foreach (var dev in bioDevices.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+            Console.WriteLine($"  Biometric: {dev.Trim()} ✓");
+    }
+    else
+    {
+        Console.WriteLine("  Biometric: none detected");
+    }
+}
+catch { Console.WriteLine("  Biometric: check failed"); }
+
 Console.WriteLine("══════════════════════════════════════════════════");
 Console.WriteLine("  Press Ctrl+C to stop the service.");
 Console.WriteLine("");
