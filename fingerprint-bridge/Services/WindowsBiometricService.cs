@@ -14,8 +14,9 @@ public class WindowsBiometricService
     // ─── WinBio API Constants ───
     private const uint WINBIO_TYPE_FINGERPRINT = 0x00000008;
     private const uint WINBIO_POOL_SYSTEM = 0x00000001;
-    private const uint WINBIO_FLAG_DEFAULT = 0x00000000;
+    private const uint WINBIO_FLAG_RAW = 0x00000002;
     private const uint WINBIO_ID_TYPE_SID = 3;
+    private const byte WINBIO_NO_PURPOSE_AVAILABLE = 0x00;
 
     // ─── WinBio API P/Invoke Declarations ───
     [DllImport("winbio.dll", EntryPoint = "WinBioOpenSession")]
@@ -105,7 +106,7 @@ public class WindowsBiometricService
                 int openResult = WinBioOpenSession(
                     WINBIO_TYPE_FINGERPRINT,
                     WINBIO_POOL_SYSTEM,
-                    WINBIO_FLAG_DEFAULT,
+                    WINBIO_FLAG_RAW,
                     IntPtr.Zero,
                     0,
                     IntPtr.Zero,
@@ -125,11 +126,11 @@ public class WindowsBiometricService
                 try
                 {
                     // Capture a fingerprint sample
-                    // Purpose: 0x01 = WINBIO_PURPOSE_VERIFY
+                    // Purpose: 0x00 = WINBIO_NO_PURPOSE_AVAILABLE (required for raw capture)
                     // Flags: 0x01 = WINBIO_DATA_FLAG_RAW
                     int captureResult = WinBioCaptureSample(
                         sessionHandle,
-                        0x01,  // Purpose: Verify
+                        WINBIO_NO_PURPOSE_AVAILABLE,  // Purpose: Raw capture (no verify/identify intent)
                         0x01,  // Flags: Raw
                         out IntPtr unitId,
                         out IntPtr sample,
@@ -142,6 +143,7 @@ public class WindowsBiometricService
                         string errorMsg = captureResult switch
                         {
                             unchecked((int)0x80098005) => "Fingerprint capture cancelled by user.",
+                            unchecked((int)0x80070005) => "Access denied. Run the bridge as Administrator, or enable 'Allow biometric raw capture' in Group Policy.",
                             unchecked((int)0x80098003) => "Fingerprint sensor busy. Please try again.",
                             unchecked((int)0x80098001) => "Bad capture quality. Please try again with a clean, flat finger.",
                             _ => $"Capture failed (HRESULT: 0x{captureResult:X8}, Reject: {rejectDetail})"
