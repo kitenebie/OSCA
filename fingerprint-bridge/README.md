@@ -1,159 +1,150 @@
-# OSCA Fingerprint Bridge Service
+# OSCA Fingerprint Bridge v2.0.0
 
-A lightweight local HTTP service that bridges **Windows Hello fingerprint readers** to the OSCA Senior Citizen Management web application.
+Local HTTP service that connects USB fingerprint scanners to the OSCA web application.
 
-## Problem
+## Supported Devices
 
-Windows Hello fingerprint scanners are not accessible via WebUSB because Windows OS "claims" the device through the Windows Biometric Framework (WBF). The browser cannot directly communicate with the scanner.
+| Priority | Device | Method | Template Format |
+|----------|--------|--------|-----------------|
+| ⭐ 0 | **DigitalPersona U.are.U 4500** | DP SDK (dpfpdd.dll) | ANSI 378-2004 (industry standard) |
+| 1 | Serial scanners (ZFM-20, R307, R305) | COM port | Proprietary (ZFM protocol) |
+| 2 | Any WinBio device (Windows Hello) | WinBio Identify | Hash-based |
+| 3 | WinBio Raw Capture | WinBio Raw | Bitmap |
 
-## Solution
+## Setup for U.are.U 4500 (Recommended)
 
-This bridge service runs locally on `http://localhost:8000` and acts as a middleman:
+### Step 1: Install the Device Driver
+- Plug in the U.are.U 4500 USB scanner
+- Windows should auto-install the driver (check Device Manager → Biometric devices)
+- If not detected, download from: https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip
 
+### Step 2: Install DigitalPersona SDK
+- Download "DigitalPersona U.are.U SDK" or "One Touch for Windows SDK"
+- URL: https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip
+- Install the SDK (just need the DLLs, not the full development environment)
+
+### Step 3: Copy SDK DLLs
+Copy these files to the same folder as `FingerprintBridge.exe`:
 ```
-[Windows Hello Fingerprint Reader]
-          ↓
-[Windows Biometric Framework (WBF)]
-          ↓
-[FingerprintBridge Service (localhost:8000)]
-          ↓ REST API (JSON)
-[OSCA React Web App (Browser)]
-          ↓
-[Supabase Database]
+dpfpdd.dll    ← Device Driver (capture images)
+dpfj.dll      ← Feature Extraction (create/match templates)
 ```
 
-## Requirements
+Typical source locations:
+- `C:\Program Files\DigitalPersona\Bin\`
+- `C:\Program Files (x86)\DigitalPersona\Bin\`
+- Inside the SDK ZIP under `Bin\Win64\` or `Bin\Win32\`
 
-- **Windows 10/11** with fingerprint reader enrolled in Windows Hello
-- **.NET 8 Runtime** — [Download here](https://dotnet.microsoft.com/download/dotnet/8.0)
-- **Windows Biometric Service** running (default on Windows)
-
-## Quick Start
-
-### Option 1: Run directly (for development)
-
+### Step 4: Run the Bridge
 ```bash
-cd fingerprint-bridge
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
-reg add "HKLM\SOFTWARE\Policies\Microsoft\Biometrics\Credential Provider" /v Enabled /t REG_DWORD /d 1 /f
-powershell -Command "Get-PnpDevice | Where-Object { $_.FriendlyName -like '*SYNO*' -and $_.Status -eq 'Error' } | Disable-PnpDevice -Confirm:$false"
-powershell -Command "Get-PnpDevice | Where-Object { $_.FriendlyName -like '*SYNO*' } | Select-Object FriendlyName, Status"
+# Development
 dotnet run
+
+# Production (pre-built)
+./bin/Release/net8.0/win-x64/FingerprintBridge.exe
 ```
 
-### Option 2: Double-click batch file
-
-```
-start-bridge.bat
-```
-
-### Option 3: Install as Windows Service (for production)
-
-Run as Administrator:
-```
-install-as-service.bat
+### Step 5: Verify
+Visit http://localhost:8000/api/status — you should see:
+```json
+{
+  "service": "OSCA Fingerprint Bridge",
+  "version": "2.0.0",
+  "devices": {
+    "digitalPersona": { "available": true, "count": 1 }
+  }
+}
 ```
 
 ## API Endpoints
 
-### `GET /api/status`
-Check if the service is running.
+### GET /api/status
+Health check — shows detected hardware and service version.
 
-**Response:**
-```json
-{
-  "service": "OSCA Fingerprint Bridge",
-  "version": "1.0.0",
-  "status": "running",
-  "platform": "Windows Biometric Framework",
-  "timestamp": "2026-08-23T10:30:00"
-}
-```
+### GET /api/diagnose
+Detailed diagnostics — DLL locations, device list, troubleshooting tips.
 
-### `POST /api/capture`
-Capture a fingerprint from the Windows Hello reader.
-
-**Response (success):**
+### POST /api/capture
+Capture a fingerprint. Returns:
 ```json
 {
   "success": true,
-  "template": "base64-encoded-fingerprint-template...",
-  "id": "FP-20260823103045-847291",
+  "template": "<base64 ANSI 378-2004 FMD template>",
+  "id": "FP-DP-20260824120000-123456",
   "quality": 85,
-  "message": "Fingerprint captured successfully via Windows Hello"
+  "qualityLabel": "Good",
+  "method": "digitalpersona",
+  "format": "ANSI_378_2004",
+  "templateSize": 482,
+  "nfiqScore": 2,
+  "message": "Fingerprint captured via DigitalPersona U.are.U! Quality: 85% (Good)"
 }
 ```
 
-**Response (error):**
+### POST /api/verify
+Verify a live fingerprint against a stored template:
 ```json
-{
-  "success": false,
-  "error": "No fingerprint scanner detected. Please connect a fingerprint reader."
-}
-```
+// Request body:
+{ "storedTemplate": "<base64 template from database>" }
 
-### `POST /api/verify`
-Verify a live fingerprint against a stored template.
-
-**Request body:**
-```json
-{
-  "storedTemplate": "base64-encoded-stored-template..."
-}
-```
-
-**Response:**
-```json
+// Response:
 {
   "success": true,
   "confidence": 92.5,
-  "message": "Fingerprint verified!"
+  "method": "digitalpersona",
+  "message": "✓ Fingerprint verified! Confidence: 92.5%"
 }
 ```
 
-## How It Works with OSCA Web App
+## Architecture
 
-The OSCA web app's `ThumbprintCapture.tsx` component already has a **"Local SDK (Port 8000)"** mode that calls this service:
+```
+┌──────────────────────────────────────────────────────────────┐
+│  OSCA Web App (React)                                        │
+│  ThumbprintCapture.tsx → POST http://localhost:8000/api/...   │
+└──────────────────────┬───────────────────────────────────────┘
+                       │ HTTP (localhost only)
+┌──────────────────────▼───────────────────────────────────────┐
+│  Fingerprint Bridge (.NET 8 Minimal API)                     │
+│  Program.cs → DigitalPersonaService / WindowsBiometricService│
+└──────────────────────┬───────────────────────────────────────┘
+                       │ P/Invoke (native DLL calls)
+┌──────────────────────▼───────────────────────────────────────┐
+│  dpfpdd.dll + dpfj.dll (DigitalPersona SDK)                  │
+│  Device communication + template extraction/matching         │
+└──────────────────────┬───────────────────────────────────────┘
+                       │ USB
+┌──────────────────────▼───────────────────────────────────────┐
+│  U.are.U 4500 Hardware (512 DPI optical sensor)              │
+└──────────────────────────────────────────────────────────────┘
+```
 
-1. User selects "Local SDK (Port 8000)" mode in the fingerprint capture UI
-2. Clicks "Scan Fingerprint"
-3. Web app calls `POST http://localhost:8000/api/capture`
-4. This service triggers the Windows Hello fingerprint prompt
-5. User touches the fingerprint reader
-6. Template data is returned to the browser
-7. Web app stores it in Supabase
+## Template Storage (Supabase)
 
-## CORS Configuration
+The captured template (Base64 string) should be stored in your Supabase `senior_citizens` table:
+- Column: `fingerprint_template` (TEXT or BYTEA)
+- Format: ANSI 378-2004 FMD (Fingerprint Minutiae Data)
+- Size: typically 300-600 bytes per template
 
-The service allows requests from:
-- `http://localhost:5173` (Vite dev server)
-- `http://localhost:3000` (Alternative dev)
-- `https://osca-juban.vercel.app` (Production)
-- `https://osca-juban.netlify.app` (Production alt)
-
-Edit `Program.cs` to add more allowed origins.
+For verification, send the stored template to `/api/verify` — the bridge will capture a new
+fingerprint and compare using the DigitalPersona matching engine (FAR 0.1% threshold).
 
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| "No fingerprint scanner detected" | Check Device Manager → Biometric devices |
-| "Windows Biometric Service not running" | Run `services.msc` → Start "Windows Biometric Service" |
-| ".NET 8 not found" | Install from https://dotnet.microsoft.com/download/dotnet/8.0 |
-| "CORS error in browser" | Make sure your web app URL is in the allowed origins |
-| "Port 8000 in use" | Change port in `Program.cs` and update `ThumbprintCapture.tsx` |
+| "dpfpdd.dll not found" | Copy DLLs from SDK install to bridge directory |
+| "No devices detected" | Check USB connection, reinstall driver |
+| "Device busy" | Close other apps using the scanner (only one app at a time) |
+| "Timeout" | Finger wasn't placed on sensor within 12 seconds |
+| "Quality too low" | Clean finger, press more firmly and evenly |
+| Bridge won't start | Check if port 8000 is already in use |
 
-## Uninstall
+## Building from Source
 
-If installed as a Windows Service:
 ```bash
-sc stop "OSCAFingerprintBridge"
-sc delete "OSCAFingerprintBridge"
+cd fingerprint-bridge
+dotnet build -c Release -r win-x64 --self-contained
 ```
 
-## Security Notes
-
-- Service only listens on `localhost` — not accessible from network
-- CORS restricts which websites can call the API
-- No sensitive data is logged
-- Fingerprint templates are sent directly to the browser (not stored locally)
+Output: `bin/Release/net8.0/win-x64/FingerprintBridge.exe`

@@ -183,3 +183,45 @@ export async function deleteStorageFile(publicUrl: string): Promise<void> {
 
   await supabase.storage.from(bucket).remove([filePath]);
 }
+
+/**
+ * Upload a fingerprint image (base64 PNG) to Supabase Storage.
+ * Returns the public URL of the uploaded fingerprint image.
+ *
+ * Storage path: fingerprints/{seniorId}_{timestamp}.png
+ */
+export async function uploadFingerprintImage(
+  base64DataUri: string,
+  seniorId: string
+): Promise<string> {
+  if (!base64DataUri) {
+    throw new Error('No fingerprint image data provided');
+  }
+
+  // Handle both raw base64 and data URI formats
+  const dataUri = base64DataUri.startsWith('data:')
+    ? base64DataUri
+    : `data:image/png;base64,${base64DataUri}`;
+
+  const { blob, extension } = base64ToBlob(dataUri);
+  const bucket = await getAvailableBucket();
+  const fileName = `${seniorId}_fp_${Date.now()}.${extension}`;
+  const filePath = `fingerprints/${fileName}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, blob, {
+      contentType: blob.type,
+      upsert: true,
+    });
+
+  if (uploadError) {
+    throw new Error(`Fingerprint upload failed: ${uploadError.message}`);
+  }
+
+  const { data: urlData } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(filePath);
+
+  return urlData.publicUrl;
+}
