@@ -91,10 +91,6 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
   // ═══════════════════════════════════════════════════════════
 
   const startLiveDetection = useCallback(() => {
-    if (scannerConfig.type !== 'esp32') {
-      startBridgeCapture();
-      return;
-    }
 
     setIsLiveDetecting(true);
     setFingerDetected(false);
@@ -354,7 +350,7 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
             </div>
 
             {/* Action buttons during live detection */}
-            {isLiveDetecting && isEsp32 && (
+            {isLiveDetecting && displayImage && (
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -437,9 +433,7 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
                     {bridgeConnected ? 'Scanner Ready — Click to Start' : 'Scanner Not Connected'}
                   </h5>
                   <p className="text-[10px] text-slate-400 mt-1 max-w-xs leading-normal">
-                    {isEsp32
-                      ? 'Live fingerprint detection will start. Image updates in real-time.'
-                      : 'Click to capture fingerprint via the bridge service.'}
+                    {'Live fingerprint detection will start. Place finger on scanner for real-time preview.'}
                   </p>
                 </div>
               </>
@@ -466,8 +460,8 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
         <Info size={12} className="text-slate-400 shrink-0 mt-0.5" />
         <p>
           {isEsp32
-            ? 'ESP32 mode: Connects wirelessly to the fingerprint scanner via WiFi (OSCA-Fingerprint network). Live detection polls continuously until you click Capture.'
-            : 'U.are.U 4500 mode: Connects via USB through the Fingerprint Bridge service (localhost:8000). Single capture per scan.'}
+            ? 'ESP32 mode: Connects wirelessly to the fingerprint scanner via WiFi. Live detection polls continuously until you click Capture.'
+            : 'U.are.U 4500 mode: Connects via USB through the Fingerprint Bridge service (localhost:8000). Live detection with real-time preview.'}
         </p>
       </div>
     </div>

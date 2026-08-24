@@ -14,10 +14,11 @@
 //   (or) FingerprintBridge.exe
 //
 // Endpoints:
-//   GET  /api/status   - Check if service is running + detected hardware
-//   GET  /api/diagnose - Detailed hardware diagnostics
-//   POST /api/capture  - Capture fingerprint (auto-selects best method)
-//   POST /api/verify   - Verify fingerprint against stored template
+//   GET  /api/status               - Check if service is running + detected hardware
+//   GET  /api/diagnose             - Detailed hardware diagnostics
+//   GET  /live/detect/fingerprint  - Live detection (returns BMP if finger present)
+//   POST /api/capture              - Capture fingerprint (auto-selects best method)
+//   POST /api/verify               - Verify fingerprint against stored template
 // ============================================================
 
 using FingerprintBridge.Services;
@@ -219,6 +220,47 @@ app.MapPost("/api/capture", async (DigitalPersonaService dp, WindowsBiometricSer
             success = false,
             error = $"Capture failed: {ex.Message}"
         }, statusCode: 500);
+    }
+});
+
+// ─── Live Detect Fingerprint Endpoint (for real-time preview) ───
+app.MapGet("/live/detect/fingerprint", (DigitalPersonaService dp) =>
+{
+    try
+    {
+        if (!dp.IsAvailable())
+        {
+            return Results.Ok(new { detected = false, image = false, error = "DigitalPersona SDK not available" });
+        }
+
+        // Quick capture with short timeout (2 seconds — non-blocking for polling)
+        var result = dp.Capture(timeoutMs: 2000);
+
+        if (result != null && result.Success && !string.IsNullOrEmpty(result.ImageBase64))
+        {
+            // Finger detected + image captured — return BMP as binary
+            var bmpBytes = Convert.FromBase64String(result.ImageBase64);
+            return Results.File(bmpBytes, "image/bmp");
+        }
+        else if (result != null && !result.Success && result.ErrorMessage.Contains("Timeout"))
+        {
+            // No finger on sensor
+            return Results.Ok(new { detected = false, image = false });
+        }
+        else
+        {
+            // Some other issue
+            return Results.Ok(new
+            {
+                detected = false,
+                image = false,
+                error = result?.ErrorMessage ?? "Capture returned null"
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        return Results.Ok(new { detected = false, image = false, error = ex.Message });
     }
 });
 
