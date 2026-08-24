@@ -68,8 +68,9 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* ===== I. IDENTIFYING INFORMATION ===== */}
+        <div className="md:col-span-2">
         <ReviewSection title="I. Identifying Information">
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             <ReviewField label="Last Name" value={form.lastName} />
             <ReviewField label="First Name" value={form.firstName} />
             <ReviewField label="Middle Name" value={form.middleName} />
@@ -84,7 +85,7 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             <ReviewField label="Mobile No." value={form.contactNumber} />
             <ReviewField label="Telephone" value={form.telephone} />
             <ReviewField label="Email" value={form.emailAddress} />
-            <div className="col-span-2">
+            <div className="col-span-2 md:col-span-4">
               <ReviewField label="Address" value={form.streetAddress} />
             </div>
             <ReviewField label="Barangay" value={form.barangay} />
@@ -92,7 +93,7 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             <ReviewField label="Province" value={form.province} />
             <ReviewField label="Region" value={form.region} />
           </div>
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-200">
             <ReviewField label="GSIS" value={form.gsis} />
             <ReviewField label="SSS" value={form.sss} />
             <ReviewField label="TIN" value={form.tin} />
@@ -105,11 +106,12 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             <ReviewField label="Education" value={form.highestEducationalAttainment} />
             <ReviewField label="Can Travel?" value={form.capabilityToTravel ? 'Yes' : 'No'} />
           </div>
-          <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 pt-2 border-t border-slate-200">
             <ReviewField label="Emergency Contact" value={form.emergencyContactName} />
             <ReviewField label="Emergency Phone" value={form.emergencyContactPhone} />
           </div>
         </ReviewSection>
+        </div>
 
         {/* ===== II. FAMILY COMPOSITION ===== */}
         <ReviewSection title="II. Family Composition">
@@ -230,38 +232,51 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
 
         {/* ===== VII & VIII. BIOMETRICS ===== */}
         <ReviewSection title="VII–VIII. Biometrics & Signature">
-          <div className="flex items-start gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            {/* Profile Photo */}
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider block font-bold">Profile Photo</span>
             {form.profilePhoto ? (
-              <img src={form.profilePhoto} alt="Profile" className="w-20 h-20 rounded-xl object-cover border-2 border-teal-200 shadow-sm" />
+                <img src={form.profilePhoto} alt="Profile" className="w-32 h-32 rounded-xl object-cover border-2 border-teal-200 shadow-md" />
             ) : (
-              <div className="w-20 h-20 rounded-xl bg-slate-200 border border-slate-300 flex items-center justify-center">
-                <User size={20} className="text-slate-400" />
+                <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+                  <User size={32} className="text-slate-300" />
               </div>
             )}
-            <div className="flex-1 space-y-2">
-              <div>
-                <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Senior Citizen Signature</span>
-                <SignaturePreview src={form.signatureData} alt="Signature" />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Thumbprint</span>
+            </div>
+
+            {/* Signature */}
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider block font-bold">Signature</span>
+              {form.signatureData ? (
+                <img src={form.signatureData} alt="Signature" className="w-full h-32 object-contain border-2 border-slate-200 rounded-xl p-2 bg-white" style={{ mixBlendMode: 'darken' }} />
+              ) : (
+                <div className="w-full h-32 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center">
+                  <span className="text-xs text-slate-400 italic">No signature</span>
+                </div>
+              )}
+            </div>
+
+            {/* Thumbprint */}
+            <div className="flex flex-col items-center gap-1.5">
+              <span className="text-xs text-slate-400 uppercase tracking-wider block font-bold">Thumbprint</span>
                 {form.fingerprintTemplate && (form.fingerprintTemplate.startsWith('data:') || form.fingerprintTemplate.startsWith('http')) ? (
-                  <img src={form.fingerprintTemplate} alt="Thumbprint" className="h-14 w-14 object-contain border border-slate-200 rounded-lg p-0.5" />
+                <img src={form.fingerprintTemplate} alt="Thumbprint" className="w-32 h-32 object-contain border-2 border-slate-200 rounded-xl p-1.5 bg-white" />
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <Fingerprint size={12} className="text-teal-600" />
-                    <span className="text-xs font-bold text-slate-600">
+                <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1">
+                  <Fingerprint size={28} className="text-slate-300" />
+                  <span className="text-[10px] font-bold text-slate-400 text-center">
                       {form.fingerprintTemplate ? 'Fingerprint Enrolled ✓' : 'No Fingerprint'}
                     </span>
-                  </div>
+                </div>
                 )}
-              </div>
             </div>
           </div>
+
           {form.validIdPhoto && (
             <div className="pt-2 border-t border-slate-200">
               <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Valid ID</span>
-              <img src={form.validIdPhoto} alt="Valid ID" className="w-full h-24 object-cover rounded-xl border border-slate-200" />
+              <img src={form.validIdPhoto} alt="Valid ID" className="w-full h-56 object-cover rounded-xl border-2 border-slate-200 shadow-sm" />
             </div>
           )}
         </ReviewSection>

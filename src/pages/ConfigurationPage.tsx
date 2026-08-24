@@ -7,7 +7,12 @@ import {
   userSettingsService,
   signatoriesService,
   DocumentSignatory,
+  idCardConfigService,
+  IdCardConfigField,
+  systemSettingsService,
+  SystemSetting,
 } from "../services/supabaseService";
+import { useSettingsStore } from "../store/settingsStore";
 import { supabase } from "../../utils/supabase";
 import {
   applySystemTheme,
@@ -53,7 +58,13 @@ import {
   Stamp,
   PenTool,
   Landmark,
-} from "lucide-react";
+  Settings,
+  Image,
+  Upload,
+  CreditCard,
+  Globe,
+  Cpu,
+} from "lucide-react"
 import InlineFaceCapture from "../components/profiling/InlineFaceCapture";
 import SignaturePad from "../components/profiling/SignaturePad";
 import ThumbprintCapture from "../components/profiling/ThumbprintCapture";
@@ -455,7 +466,32 @@ export default function ConfigurationPage() {
   const [testFingerprintUrl, setTestFingerprintUrl] = useState<string | null>(
     null,
   );
+  const [fingerprintScannerType, setFingerprintScannerType] = useState<'digitalpersona' | 'esp32'>('digitalpersona');
+  const [fingerprintEndpoint, setFingerprintEndpoint] = useState<string>('http://localhost:8000');
+  const [fpSettingsLoaded, setFpSettingsLoaded] = useState(false);
+
+  // Load fingerprint settings from database on mount
+  useEffect(() => {
+    (async () => {
+      try {
+        const typeRow = await systemSettingsService.get('fingerprint_scanner_type');
+        const endpointRow = await systemSettingsService.get('fingerprint_scanner_endpoint');
+        if (typeRow?.settingValue) setFingerprintScannerType(typeRow.settingValue as 'digitalpersona' | 'esp32');
+        if (endpointRow?.settingValue) setFingerprintEndpoint(endpointRow.settingValue);
+        // Also sync to localStorage for ThumbprintCapture component
+        const config = {
+          type: typeRow?.settingValue || 'digitalpersona',
+          endpoint: endpointRow?.settingValue || 'http://localhost:8000'
+        };
+        localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(config));
+      } catch (err) {
+        console.warn('Failed to load fingerprint settings from DB, using defaults');
+      }
+      setFpSettingsLoaded(true);
+    })();
+  }, []);
   const { hasPermission, currentUser } = useAuthStore();
+  const { updateSystemSettings: updateGlobalSettings, updateIdCardConfig: updateGlobalIdConfig } = useSettingsStore();
 
   // ====== THEME STATE ======
   const FONT_OPTIONS = [
@@ -1215,7 +1251,7 @@ export default function ConfigurationPage() {
   const [viewMode, setViewMode] = useState<"roles" | "matrix">("roles");
   const [selectedRoleTab, setSelectedRoleTab] = useState<string>("super-admin");
   const [activeConfigTab, setActiveConfigTab] = useState<
-    "roles" | "signatories" | "nfc" | "appearance" | "biometrics"
+    "roles" | "id_config" | "nfc" | "appearance" | "biometrics" | "fingerprint_settings" | "system_settings"
   >("roles");
 
   // ID Signatories state
@@ -1229,6 +1265,17 @@ export default function ConfigurationPage() {
   }>({ fullName: "", signatureData: "" });
   const [signatoryLoading, setSignatoryLoading] = useState(false);
   const [signatorySaving, setSignatorySaving] = useState(false);
+
+  // ID Card Config state
+  const [idConfigVariant1, setIdConfigVariant1] = useState<IdCardConfigField[]>([]);
+  const [idConfigVariant2, setIdConfigVariant2] = useState<IdCardConfigField[]>([]);
+  const [idConfigLoading, setIdConfigLoading] = useState(false);
+  const [idConfigSaving, setIdConfigSaving] = useState(false);
+
+  // System Settings state
+  const [systemSettings, setSystemSettings] = useState<SystemSetting[]>([]);
+  const [sysSettingsLoading, setSysSettingsLoading] = useState(false);
+  const [sysSettingsSaving, setSysSettingsSaving] = useState(false);
 
   const togglePermissionByRole = (
     roleName: string,
@@ -1273,7 +1320,102 @@ export default function ConfigurationPage() {
   useEffect(() => {
     loadRoles();
     loadSignatories();
+    loadIdCardConfig();
+    loadSystemSettings();
   }, []);
+
+  const loadIdCardConfig = async () => {
+    setIdConfigLoading(true);
+    try {
+      const v1 = await idCardConfigService.getByVariant('variant1');
+      const v2 = await idCardConfigService.getByVariant('variant2');
+      setIdConfigVariant1(v1);
+      setIdConfigVariant2(v2);
+    } catch (err) {
+      console.error('Failed to load ID card config:', err);
+    }
+    setIdConfigLoading(false);
+  };
+
+  const loadSystemSettings = async () => {
+    setSysSettingsLoading(true);
+    try {
+      const data = await systemSettingsService.getAll();
+      setSystemSettings(data);
+    } catch (err) {
+      console.error('Failed to load system settings:', err);
+    }
+    setSysSettingsLoading(false);
+  };
+
+  const handleSaveIdCardConfig = async () => {
+    setIdConfigSaving(true);
+    try {
+      const allFields = [...idConfigVariant1, ...idConfigVariant2];
+      await idCardConfigService.bulkUpsert(
+        allFields.map(f => ({
+          variant: f.variant,
+          fieldKey: f.fieldKey,
+          fieldValue: f.fieldValue,
+          fieldLabel: f.fieldLabel,
+          sortOrder: f.sortOrder,
+        }))
+      );
+      // Update global store so other components reflect changes instantly
+      const configMap: Record<string, string> = {};
+      allFields.forEach(f => { configMap[`${f.variant}.${f.fieldKey}`] = f.fieldValue; });
+      updateGlobalIdConfig(configMap);
+      showToast('ID Card configuration saved!', 'success');
+    } catch (err) {
+      console.error('Failed to save ID card config:', err);
+      showToast('Failed to save ID card configuration.', 'error');
+    }
+    setIdConfigSaving(false);
+  };
+
+  const handleSaveSystemSettings = async () => {
+    setSysSettingsSaving(true);
+    try {
+      await systemSettingsService.bulkUpsert(
+        systemSettings.map(s => ({
+          settingKey: s.settingKey,
+          settingValue: s.settingValue,
+        }))
+      );
+      // Update global store so other components reflect changes instantly
+      const settingsMap: Record<string, string> = {};
+      systemSettings.forEach(s => { settingsMap[s.settingKey] = s.settingValue; });
+      updateGlobalSettings(settingsMap);
+      showToast('System settings saved!', 'success');
+    } catch (err) {
+      console.error('Failed to save system settings:', err);
+      showToast('Failed to save system settings.', 'error');
+    }
+    setSysSettingsSaving(false);
+  };
+
+  const updateIdConfigField = (variant: 'variant1' | 'variant2', fieldKey: string, newValue: string) => {
+    if (variant === 'variant1') {
+      setIdConfigVariant1(prev => prev.map(f => f.fieldKey === fieldKey ? { ...f, fieldValue: newValue } : f));
+    } else {
+      setIdConfigVariant2(prev => prev.map(f => f.fieldKey === fieldKey ? { ...f, fieldValue: newValue } : f));
+    }
+  };
+
+  const updateSystemSetting = (key: string, value: string) => {
+    setSystemSettings(prev => prev.map(s => s.settingKey === key ? { ...s, settingValue: value } : s));
+  };
+
+  const handleImageUpload = async (settingKey: string, file: File) => {
+    try {
+      const url = await systemSettingsService.uploadImage(file);
+      updateSystemSetting(settingKey, url);
+      showToast('Image uploaded!', 'success');
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      showToast('Failed to upload image.', 'error');
+    }
+  };
 
   const loadSignatories = async () => {
     setSignatoryLoading(true);
@@ -1503,11 +1645,7 @@ export default function ConfigurationPage() {
               label: "Roles & Permissions",
               icon: Shield,
             },
-            {
-              id: "signatories" as const,
-              label: "ID Signatories",
-              icon: Stamp,
-            },
+
             { id: "nfc" as const, label: "Hardware & NFC", icon: Sliders },
             {
               id: "appearance" as const,
@@ -1518,6 +1656,21 @@ export default function ConfigurationPage() {
               id: "biometrics" as const,
               label: "Biometric Testing",
               icon: Fingerprint,
+            },
+            {
+              id: "fingerprint_settings" as const,
+              label: "Scanner Settings",
+              icon: Usb,
+            },
+            {
+              id: "id_config" as const,
+              label: "ID Card Config",
+              icon: CreditCard,
+            },
+            {
+              id: "system_settings" as const,
+              label: "System Settings",
+              icon: Settings,
             },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -1740,7 +1893,7 @@ export default function ConfigurationPage() {
                           return (
                             <div
                               key={groupName}
-                              className="bg-white rounded-xl p-4 border border-slate-200 shadow-xs space-y-3"
+                              className={`bg-white rounded-xl p-4 border border-slate-200 shadow-xs space-y-3 ${groupName === "Pages Access" ? "md:col-span-2" : ""}`}
                             >
                               <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                                 <h6 className="font-bold text-xs text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
@@ -1760,7 +1913,7 @@ export default function ConfigurationPage() {
                                 </span>
                               </div>
 
-                              <div className="space-y-2">
+                              <div className={`${groupName === "Pages Access" ? "grid grid-cols-1 md:grid-cols-2 gap-2" : "space-y-2"}`}>
                                 {items.map((item) => {
                                   const isEnabled =
                                     activeRole.permissions[item.key];
@@ -1981,29 +2134,286 @@ export default function ConfigurationPage() {
         </div>
       )}
 
-      {/* ====== TAB: ID SIGNATORIES ====== */}
-      {activeConfigTab === "signatories" && (
-        <UsbSignaturePadProvider>
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Stamp size={16} className="text-teal-600" />
-                <h5 className="font-bold text-slate-800 text-xs md:text-sm">
-                  ID Card Signatories
-                </h5>
-              </div>
-              <button
-                onClick={handleSaveSignatories}
-                disabled={signatorySaving}
-                className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
-              >
-                <Save size={11} />
-                {signatorySaving ? "Saving..." : "Save Signatories"}
-              </button>
-            </div>
 
-            <div className="p-5 space-y-6">
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+
+
+      {/* ====== TAB: ID CARD CONFIGURATION ====== */}
+      {activeConfigTab === "id_config" && (
+        <UsbSignaturePadProvider>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <CreditCard size={16} className="text-teal-600 dark:text-teal-400" />
+              <h5 className="font-bold text-slate-800 dark:text-slate-200 text-xs md:text-sm">
+                ID Card Text Configuration
+              </h5>
+            </div>
+            <button
+              onClick={handleSaveIdCardConfig}
+              disabled={idConfigSaving}
+              className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            >
+              <Save size={11} />
+              {idConfigSaving ? "Saving..." : "Save Configuration"}
+            </button>
+          </div>
+
+          <div className="p-5 space-y-6">
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
+              Edit the text labels and content that appear on ID Card Variant 1 and Variant 2. Changes will reflect on all newly generated IDs.
+            </p>
+
+            {idConfigLoading ? (
+              <div className="text-center py-8 text-slate-400 text-xs">Loading ID card configuration...</div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Variant 1 */}
+                <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <CreditCard size={16} className="text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        Variant 1
+                      </h6>
+                      <p className="text-[10px] text-slate-400">Classic OSCA ID Layout</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Front Fields */}
+                    {idConfigVariant1.filter(f => !f.fieldKey.startsWith('back_')).length > 0 && (
+                      <div className="space-y-3">
+                        <div className="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest border-b border-emerald-200 dark:border-emerald-800 pb-1">
+                          ▸ Front Side
+                        </div>
+                        {idConfigVariant1.filter(f => !f.fieldKey.startsWith('back_')).map((field) => (
+                          <div key={field.fieldKey} className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              {field.fieldLabel}
+                            </label>
+                            {field.fieldKey.startsWith('img_') ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={field.fieldValue}
+                                    onChange={(e) => updateIdConfigField('variant1', field.fieldKey, e.target.value)}
+                                    placeholder="Image URL or upload..."
+                                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                                  />
+                                  <label className="px-2 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg cursor-pointer transition-colors">
+                                    <Upload size={12} className="text-slate-500 dark:text-slate-400" />
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          try {
+                                            const url = await systemSettingsService.uploadImage(file);
+                                            updateIdConfigField('variant1', field.fieldKey, url);
+                                            showToast('Image uploaded!', 'success');
+                                          } catch (err) {
+                                            showToast('Failed to upload image.', 'error');
+                                          }
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                                {field.fieldValue && (
+                                  <div className="w-12 h-12 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900 flex items-center justify-center">
+                                    <img src={field.fieldValue} alt={field.fieldLabel} className="max-w-full max-h-full object-contain" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <input
+                                type="text"
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant1', field.fieldKey, e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Back Fields */}
+                    {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_')).length > 0 && (
+                      <div className="space-y-3 mt-4">
+                        <div className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-amber-200 dark:border-amber-800 pb-1">
+                          ▸ Back Side
+                        </div>
+                        {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_')).map((field) => (
+                          <div key={field.fieldKey} className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              {field.fieldLabel}
+                            </label>
+                            {field.fieldKey.includes('benefit') || field.fieldKey.includes('warning') ? (
+                              <textarea
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant1', field.fieldKey, e.target.value)}
+                                rows={2}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 resize-y"
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant1', field.fieldKey, e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {idConfigVariant1.length === 0 && (
+                      <p className="text-[10px] text-slate-400 italic py-4 text-center">
+                        No configuration found. Run the SQL migration to seed default values.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Variant 2 */}
+                <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                      <CreditCard size={16} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        Variant 2
+                      </h6>
+                      <p className="text-[10px] text-slate-400">Modern OSCA ID Layout</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Front Fields */}
+                    {idConfigVariant2.filter(f => !f.fieldKey.startsWith('back_')).length > 0 && (
+                      <div className="space-y-3">
+                        <div className="text-[9px] font-extrabold text-blue-600 dark:text-blue-400 uppercase tracking-widest border-b border-blue-200 dark:border-blue-800 pb-1">
+                          ▸ Front Side
+                        </div>
+                        {idConfigVariant2.filter(f => !f.fieldKey.startsWith('back_')).map((field) => (
+                          <div key={field.fieldKey} className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              {field.fieldLabel}
+                            </label>
+                            {field.fieldKey.startsWith('img_') ? (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <input
+                                    type="text"
+                                    value={field.fieldValue}
+                                    onChange={(e) => updateIdConfigField('variant2', field.fieldKey, e.target.value)}
+                                    placeholder="Image URL or upload..."
+                                    className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                                  />
+                                  <label className="px-2 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg cursor-pointer transition-colors">
+                                    <Upload size={12} className="text-slate-500 dark:text-slate-400" />
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      className="hidden"
+                                      onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (file) {
+                                          try {
+                                            const url = await systemSettingsService.uploadImage(file);
+                                            updateIdConfigField('variant2', field.fieldKey, url);
+                                            showToast('Image uploaded!', 'success');
+                                          } catch (err) {
+                                            showToast('Failed to upload image.', 'error');
+                                          }
+                                        }
+                                      }}
+                                    />
+                                  </label>
+                                </div>
+                                {field.fieldValue && (
+                                  <div className="w-12 h-12 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900 flex items-center justify-center">
+                                    <img src={field.fieldValue} alt={field.fieldLabel} className="max-w-full max-h-full object-contain" />
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <input
+                                type="text"
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant2', field.fieldKey, e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* Back Fields */}
+                    {idConfigVariant2.filter(f => f.fieldKey.startsWith('back_')).length > 0 && (
+                      <div className="space-y-3 mt-4">
+                        <div className="text-[9px] font-extrabold text-amber-600 dark:text-amber-400 uppercase tracking-widest border-b border-amber-200 dark:border-amber-800 pb-1">
+                          ▸ Back Side
+                        </div>
+                        {idConfigVariant2.filter(f => f.fieldKey.startsWith('back_')).map((field) => (
+                          <div key={field.fieldKey} className="space-y-1">
+                            <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                              {field.fieldLabel}
+                            </label>
+                            {field.fieldKey.includes('benefit') || field.fieldKey.includes('warning') ? (
+                              <textarea
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant2', field.fieldKey, e.target.value)}
+                                rows={2}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 resize-y"
+                              />
+                            ) : (
+                              <input
+                                type="text"
+                                value={field.fieldValue}
+                                onChange={(e) => updateIdConfigField('variant2', field.fieldKey, e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 resize-y"
+                              />
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {idConfigVariant2.length === 0 && (
+                      <p className="text-[10px] text-slate-400 italic py-4 text-center">
+                        No configuration found. Run the SQL migration to seed default values.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+            {/* ====== ID CARD SIGNATORIES ====== */}
+            <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2 mb-4">
+                <Stamp size={14} className="text-teal-600 dark:text-teal-400" />
+                <h6 className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+                  ID Card Signatories
+                </h6>
+                <button
+                  onClick={handleSaveSignatories}
+                  disabled={signatorySaving}
+                  className="ml-auto px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                >
+                  <Save size={11} />
+                  {signatorySaving ? "Saving..." : "Save Signatories"}
+                </button>
+              </div>
+
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed mb-4">
                 Configure the names and signatures for the OSCA Head and
                 Municipal Mayor. These will appear on generated ID Cards
                 (Variant 1 and Variant 2).
@@ -2016,13 +2426,13 @@ export default function ConfigurationPage() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* OSCA Head Card */}
-                  <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-200/80 space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-200/60 pb-3">
-                      <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center">
-                        <ShieldCheck size={16} className="text-teal-600" />
+                  <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                      <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/40 flex items-center justify-center">
+                        <ShieldCheck size={16} className="text-teal-600 dark:text-teal-400" />
                       </div>
                       <div>
-                        <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">
+                        <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                           OSCA Head
                         </h6>
                         <p className="text-[10px] text-slate-400">
@@ -2032,7 +2442,7 @@ export default function ConfigurationPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                         Full Name
                       </label>
                       <input
@@ -2045,12 +2455,12 @@ export default function ConfigurationPage() {
                           }))
                         }
                         placeholder="e.g. Juan Dela Cruz"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                         Signature
                       </label>
                       <div className="w-full">
@@ -2084,13 +2494,13 @@ export default function ConfigurationPage() {
                   </div>
 
                   {/* Municipal Mayor Card */}
-                  <div className="bg-slate-50/50 rounded-2xl p-5 border border-slate-200/80 space-y-4">
-                    <div className="flex items-center gap-2 border-b border-slate-200/60 pb-3">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                        <Landmark size={16} className="text-blue-600" />
+                  <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
+                    <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                        <Landmark size={16} className="text-blue-600 dark:text-blue-400" />
                       </div>
                       <div>
-                        <h6 className="font-extrabold text-xs text-slate-800 uppercase tracking-wider">
+                        <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
                           Municipal Mayor
                         </h6>
                         <p className="text-[10px] text-slate-400">
@@ -2100,7 +2510,7 @@ export default function ConfigurationPage() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                         Full Name
                       </label>
                       <input
@@ -2113,12 +2523,12 @@ export default function ConfigurationPage() {
                           }))
                         }
                         placeholder="e.g. Maria Santos"
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                        className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800 placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
                       />
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                      <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
                         Signature
                       </label>
                       <div className="w-full">
@@ -2149,21 +2559,19 @@ export default function ConfigurationPage() {
                   </div>
                 </div>
               )}
+            </div>
 
-              <div className="flex items-start gap-2.5 p-3 bg-blue-50 border border-blue-100 rounded-xl text-[10px] text-blue-700 font-medium leading-relaxed">
-                <HelpCircle
-                  size={13}
-                  className="text-blue-500 shrink-0 mt-0.5"
-                />
-                <span>
-                  These signatories will be printed on the{" "}
-                  <strong>OSCA ID Card Variant 1</strong> and{" "}
-                  <strong>Variant 2</strong> templates. Update the names and
-                  re-sign when officials change.
-                </span>
-              </div>
+            <div className="flex items-start gap-2.5 p-3 mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl text-[10px] text-blue-700 dark:text-blue-300 font-medium leading-relaxed">
+              <HelpCircle size={13} className="text-blue-500 shrink-0 mt-0.5" />
+              <span>
+                These labels appear on generated ID Cards. <strong>Header lines</strong> are at the top of the card,{" "}
+                <strong>badge text</strong> appears on the OSCA badge, and <strong>footer</strong> is at the bottom.
+                Signatories will be printed on <strong>Variant 1</strong> and <strong>Variant 2</strong> templates.
+                Changes apply to all newly generated IDs.
+              </span>
             </div>
           </div>
+        </div>
         </UsbSignaturePadProvider>
       )}
 
@@ -2493,6 +2901,152 @@ export default function ConfigurationPage() {
       )}
 
       {/* ====== TAB: BIOMETRIC HARDWARE TESTING ====== */}
+            {/* ====== TAB: FINGERPRINT SCANNER SETTINGS ====== */}
+      {activeConfigTab === "fingerprint_settings" && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden w-full">
+          <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
+            <Usb size={16} className="text-violet-600" />
+            <h5 className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm">Fingerprint Scanner Configuration</h5>
+          </div>
+
+          <div className="p-6 space-y-6">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
+              Select the fingerprint scanner type and configure the connection endpoint. This setting is saved locally and used by the fingerprint capture component throughout the application.
+            </p>
+
+            {/* Scanner Type Selection */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Scanner Type</label>
+              <select
+                value={fingerprintScannerType}
+                onChange={(e) => {
+                  const type = e.target.value as 'digitalpersona' | 'esp32';
+                  setFingerprintScannerType(type);
+                  setFingerprintEndpoint(type === 'esp32' ? 'http://192.168.8.1' : 'http://localhost:8000');
+                }}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+              >
+                <option value="digitalpersona">DigitalPersona U.are.U 4500 (USB — via Fingerprint Bridge)</option>
+                <option value="esp32">ESP32 + Arduino Fingerprint Module (WiFi — R307/AS608)</option>
+              </select>
+            </div>
+
+            {/* Endpoint Configuration */}
+            <div className="space-y-3">
+              <label className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Scanner Endpoint URL</label>
+              <input
+                type="text"
+                value={fingerprintEndpoint}
+                onChange={(e) => setFingerprintEndpoint(e.target.value)}
+                placeholder={fingerprintScannerType === 'esp32' ? 'http://192.168.8.1' : 'http://localhost:8000'}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+              />
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                {fingerprintScannerType === 'esp32'
+                  ? 'The ESP32 creates a WiFi hotspot (OSCA-Fingerprint). Connect to it, then the scanner is at http://192.168.8.1'
+                  : 'The Fingerprint Bridge runs locally on port 8000. Make sure FingerprintBridge.exe is running.'}
+              </p>
+            </div>
+
+            {/* Save Button */}
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  // Save to database (system_settings table)
+                  await systemSettingsService.bulkUpsert([
+                    { settingKey: 'fingerprint_scanner_type', settingValue: fingerprintScannerType },
+                    { settingKey: 'fingerprint_scanner_endpoint', settingValue: fingerprintEndpoint }
+                  ]);
+                  // Also sync to localStorage for immediate use by ThumbprintCapture
+                  const config = { type: fingerprintScannerType, endpoint: fingerprintEndpoint };
+                  localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(config));
+                  showToast('Fingerprint scanner settings saved!', 'success');
+                } catch (err: any) {
+                  showToast('Failed to save: ' + (err.message || 'Database error'), 'error');
+                }
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 shadow-md shadow-teal-200 dark:shadow-teal-900/30 transition"
+            >
+              <Save size={14} />
+              Save Scanner Settings
+            </button>
+
+            {/* Scanner-specific info cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+              {/* U.are.U 4500 Card */}
+              <div className={`rounded-xl border-2 p-4 space-y-2 transition ${
+                fingerprintScannerType === 'digitalpersona' ? 'border-teal-300 bg-teal-50/50 dark:bg-teal-950/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Fingerprint size={14} className="text-teal-600" />
+                  <h6 className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase">U.are.U 4500</h6>
+                  {fingerprintScannerType === 'digitalpersona' && <span className="text-[9px] font-bold text-teal-600 bg-teal-100 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
+                </div>
+                <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                  <li>• USB wired connection</li>
+                  <li>• 512 DPI, high quality image</li>
+                  <li>• Requires FingerprintBridge.exe</li>
+                  <li>• Single capture per scan</li>
+                  <li>• ANSI 378 biometric template</li>
+                </ul>
+              </div>
+
+              {/* ESP32 Card */}
+              <div className={`rounded-xl border-2 p-4 space-y-2 transition ${
+                fingerprintScannerType === 'esp32' ? 'border-violet-300 bg-violet-50/50 dark:bg-violet-950/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
+              }`}>
+                <div className="flex items-center gap-2">
+                  <Cpu size={14} className="text-violet-600" />
+                  <h6 className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase">ESP32 + R307/AS608</h6>
+                  {fingerprintScannerType === 'esp32' && <span className="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
+                </div>
+                <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                  <li>• WiFi wireless connection</li>
+                  <li>• 500 DPI, 256x288 image</li>
+                  <li>• No bridge needed — direct WiFi</li>
+                  <li>• Live detection (real-time preview)</li>
+                </ul>
+              </div>
+            </div>
+
+            {/* ESP32 Setup Guide (shown when ESP32 selected) */}
+            {fingerprintScannerType === 'esp32' && (
+              <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-800 rounded-xl p-4 space-y-3 mt-2">
+                <h6 className="text-[11px] font-bold text-violet-800 dark:text-violet-200 uppercase">ESP32 Scanner Setup</h6>
+                <div className="space-y-2 text-[10px] text-slate-600 dark:text-slate-400">
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
+                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">1</span>
+                    <p><strong>Hardware:</strong> Connect R307/AS608 fingerprint module to ESP32 — TX→GPIO16, RX→GPIO17, VCC→3.3V, GND→GND</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
+                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">2</span>
+                    <p><strong>Flash firmware:</strong> Open <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">fingerprint-bridge/esp32-firmware/esp32_fingerprint_server.ino</code> in Arduino IDE. Select ESP32 Dev Module. Upload.</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
+                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">3</span>
+                    <p><strong>Connect WiFi:</strong> On this PC, connect to WiFi network <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">OSCA-Fingerprint</code> (password: osca1234)</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
+                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">4</span>
+                    <p><strong>Verify:</strong> Open <a href="http://192.168.8.1/status" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">http://192.168.8.1/status</a> in your browser — should return JSON with device info.</p>
+                  </div>
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
+                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">5</span>
+                    <p><strong>Test:</strong> Go to Biometric Testing tab above and scan a fingerprint. The live preview should appear.</p>
+                  </div>
+                </div>
+                <div className="mt-2">
+                  <h6 className="text-[10px] font-bold text-violet-700 dark:text-violet-300 mb-1">API Endpoints:</h6>
+                  <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`GET http://192.168.8.1/status                  → Device info (JSON)
+GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected, JSON if not`}</pre>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {activeConfigTab === "biometrics" && (
         <UsbSignaturePadProvider>
           <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden w-full">
@@ -2673,9 +3227,7 @@ export default function ConfigurationPage() {
                             Install U.are.U 4500 Driver
                           </p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            I-plug ang USB scanner. Automatic dapat mag-install
-                            ang driver. Kung hindi, download from HID Global
-                            website. Check sa Device Manager → Biometric
+                            Plug in the USB scanner. The driver should install automatically. If not, download from the HID Global website. Verify in Device Manager → Biometric
                             devices.
                           </p>
                         </div>
@@ -2690,9 +3242,7 @@ export default function ConfigurationPage() {
                             Download & Install DigitalPersona SDK
                           </p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Mag-register sa HID Global Developer Center (free).
-                            Download ang "ZKFinger SDK for Windows" or "U.are.U
-                            SDK". I-install para makuha ang DLL files.
+                            Register at HID Global Developer Center (free). Download "ZKFinger SDK for Windows" or "U.are.U SDK". Install to get the required DLL files.
                           </p>
                         </div>
                       </div>
@@ -2706,7 +3256,7 @@ export default function ConfigurationPage() {
                             Copy SDK DLLs to Bridge Folder
                           </p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Hanapin ang{" "}
+                            Find{" "}
                             <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
                               dpfpdd.dll
                             </code>{" "}
@@ -2714,11 +3264,11 @@ export default function ConfigurationPage() {
                             <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
                               dpfj.dll
                             </code>{" "}
-                            sa SDK install folder (typically{" "}
+                            in the SDK install folder (typically{" "}
                             <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
                               C:\Program Files\DigitalPersona\Bin\
                             </code>
-                            ). I-copy sa same folder ng FingerprintBridge.exe.
+                            ). Copy them to the same folder as FingerprintBridge.exe.
                           </p>
                         </div>
                       </div>
@@ -2740,9 +3290,7 @@ export default function ConfigurationPage() {
                             <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
                               dotnet run
                             </code>{" "}
-                            sa project folder). Makikita mo "DigitalPersona SDK
-                            initialized ✓" at "Listening on
-                            http://localhost:8000".
+                            sa project folder). You should see "DigitalPersona SDK initialized ✓" and "Listening on http://localhost:8000".
                           </p>
                         </div>
                       </div>
@@ -2756,10 +3304,7 @@ export default function ConfigurationPage() {
                             Test Scanner Above ↑
                           </p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Kapag green na ang "Bridge connected" indicator sa
-                            taas, click ang fingerprint button at ilagay ang
-                            daliri sa scanner. Dapat lumabas ang fingerprint
-                            image.
+                            Once the "Bridge connected" indicator above turns green, click the fingerprint button and place your finger on the scanner. The fingerprint image should appear.
                           </p>
                         </div>
                       </div>
@@ -2777,8 +3322,7 @@ export default function ConfigurationPage() {
                           "Bridge disconnected"
                         </p>
                         <p className="text-slate-500 dark:text-slate-400">
-                          Hindi pa nakabukas ang FingerprintBridge.exe. I-run
-                          muna bago mag-test.
+                          FingerprintBridge.exe is not running. Start it before testing.
                         </p>
                       </div>
                       <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
@@ -2786,8 +3330,7 @@ export default function ConfigurationPage() {
                           "dpfpdd.dll not found"
                         </p>
                         <p className="text-slate-500 dark:text-slate-400">
-                          Wala pang DLL files sa bridge folder. I-copy ang
-                          dpfpdd.dll at dpfj.dll from SDK.
+                          DLL files are missing from the bridge folder. Copy dpfpdd.dll and dpfj.dll from the SDK.
                         </p>
                       </div>
                       <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
@@ -2795,17 +3338,15 @@ export default function ConfigurationPage() {
                           "No device detected"
                         </p>
                         <p className="text-slate-500 dark:text-slate-400">
-                          Unplug at replug ang USB scanner. Check sa Device
-                          Manager kung naka-detect ang Biometric device.
+                          Unplug and replug the USB scanner. Check in Device Manager if the Biometric device is detected.
                         </p>
                       </div>
                       <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
                         <p className="font-semibold text-slate-700 dark:text-slate-200">
-                          "Timeout — walang finger"
+                          "Timeout — no finger detected"
                         </p>
                         <p className="text-slate-500 dark:text-slate-400">
-                          Hindi na-detect ang daliri within 12 seconds. Ilagay
-                          nang maigi ang daliri sa glass ng scanner.
+                          No finger detected within 12 seconds. Place your finger firmly on the scanner glass.
                         </p>
                       </div>
                     </div>
@@ -2897,13 +3438,11 @@ dotnet publish -c Release -r win-x64 --self-contained`}</pre>
                       {/* Quick Dev Mode */}
                       <div>
                         <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-                          Quick Dev Mode (Walang Build)
+                          Quick Dev Mode (No Build Required)
                         </h6>
                         <div className="bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Kung naka-install na ang .NET 8 SDK, pwede i-run ang
-                            bridge directly without publishing (para sa
-                            testing):
+                            If .NET 8 SDK is already installed, you can run the bridge directly without publishing (for testing):
                           </p>
                           <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 mt-1.5 font-mono overflow-x-auto">{`cd fingerprint-bridge
 dotnet run`}</pre>
@@ -2927,9 +3466,7 @@ dotnet run`}</pre>
                             Auto-Start on PC Boot (via PowerShell)
                           </p>
                           <p className="text-[10px] text-slate-500 dark:text-slate-400">
-                            Para automatic mag-start ang FingerprintBridge.exe
-                            kapag binuksan ang computer. Pumili ng isa sa
-                            tatlong paraan. Open{" "}
+                            To automatically start FingerprintBridge.exe when the computer boots up. Choose one of the three methods below. Open{" "}
                             <strong>PowerShell as Administrator</strong> at
                             i-paste ang command:
                           </p>
@@ -2938,13 +3475,12 @@ dotnet run`}</pre>
                             {/* Method 1: Startup Folder */}
                             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
                               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-                                Option 1: Startup Folder (Pinaka-madali)
+                                Option 1: Startup Folder (Easiest)
                               </p>
                               <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">
-                                Mag-create ng shortcut sa Startup folder —
-                                auto-run pag nag-login ang user:
+                                Creates a shortcut in the Startup folder — auto-runs when the user logs in:
                               </p>
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path sa actual location ng FingerprintBridge.exe mo
+                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to the actual location of your FingerprintBridge.exe
 $BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
 $BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
 
@@ -2965,9 +3501,9 @@ Write-Host "Done! FingerprintBridge will auto-start on next login." -ForegroundC
                             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
                               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
                                 Option 2: Scheduled Task (Recommended — runs
-                                kahit walang naka-login)
+                                even without user login)
                               </p>
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path
+                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to match your installation
 $BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
 $BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
 
@@ -2995,10 +3531,10 @@ Unregister-ScheduledTask -TaskName "OSCA Fingerprint Bridge" -Confirm:$false  # 
                             {/* Method 3: Windows Service */}
                             <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
                               <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-                                Option 3: Windows Service (Pinaka-reliable —
+                                Option 3: Windows Service (Most Reliable —
                                 auto-restart on crash)
                               </p>
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path
+                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to match your installation
 $BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
 
 # Install as Windows Service
@@ -3026,7 +3562,7 @@ sc.exe delete OSCAFingerprintBridge   # Uninstall (stop first)`}</pre>
                               <p className="text-[10px] font-bold text-emerald-800 dark:text-emerald-200 mb-1">
                                 ✓ Verify kung gumagana:
                               </p>
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`# Open PowerShell at i-test kung active ang bridge:
+                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`# Open PowerShell and test if the bridge is active:
 Invoke-RestMethod -Uri "http://localhost:8000/api/status" | ConvertTo-Json
 
 # Expected output: { "service": "OSCA Fingerprint Bridge", "status": "running", ... }`}</pre>
@@ -3053,6 +3589,230 @@ Invoke-RestMethod -Uri "http://localhost:8000/api/status" | ConvertTo-Json
           </div>
         </UsbSignaturePadProvider>
       )}
+
+      {/* ====== TAB: SYSTEM SETTINGS ====== */}
+      {activeConfigTab === "system_settings" && (
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
+          <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-800/50 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Settings size={16} className="text-teal-600 dark:text-teal-400" />
+              <h5 className="font-bold text-slate-800 dark:text-slate-200 text-xs md:text-sm">
+                System Settings
+              </h5>
+            </div>
+            <button
+              onClick={handleSaveSystemSettings}
+              disabled={sysSettingsSaving}
+              className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            >
+              <Save size={11} />
+              {sysSettingsSaving ? "Saving..." : "Save Settings"}
+            </button>
+          </div>
+
+          <div className="p-5 space-y-8">
+            {sysSettingsLoading ? (
+              <div className="text-center py-8 text-slate-400 text-xs">Loading system settings...</div>
+            ) : (
+              <>
+                {/* Logo Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                      <Image size={16} className="text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div>
+                      <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        Logo & Images
+                      </h6>
+                      <p className="text-[10px] text-slate-400">System logo, favicon, and branding images</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {systemSettings
+                      .filter(s => s.settingGroup === 'logo')
+                      .map((setting) => (
+                        <div key={setting.settingKey} className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            {setting.settingLabel}
+                          </label>
+                          {setting.settingType === 'image' ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={setting.settingValue}
+                                  onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                                  placeholder="Image URL or upload..."
+                                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                                />
+                                <label className="px-2 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg cursor-pointer transition-colors">
+                                  <Upload size={12} className="text-slate-500 dark:text-slate-400" />
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(setting.settingKey, file);
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                              {setting.settingValue && (
+                                <div className="w-16 h-16 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900 flex items-center justify-center">
+                                  <img src={setting.settingValue} alt={setting.settingLabel} className="max-w-full max-h-full object-contain" />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              value={setting.settingValue}
+                              onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                            />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Brand Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                      <Palette size={16} className="text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div>
+                      <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        Brand & Identity
+                      </h6>
+                      <p className="text-[10px] text-slate-400">System name, municipality, colors</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {systemSettings
+                      .filter(s => s.settingGroup === 'brand')
+                      .map((setting) => (
+                        <div key={setting.settingKey} className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            {setting.settingLabel}
+                          </label>
+                          {setting.settingType === 'color' ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="color"
+                                value={setting.settingValue}
+                                onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                                className="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-600 cursor-pointer"
+                              />
+                              <input
+                                type="text"
+                                value={setting.settingValue}
+                                onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                                className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                              />
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              value={setting.settingValue}
+                              onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                            />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+
+                {/* Landing Page Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-200/60 dark:border-slate-700 pb-3">
+                    <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-900/30 flex items-center justify-center">
+                      <Globe size={16} className="text-sky-600 dark:text-sky-400" />
+                    </div>
+                    <div>
+                      <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
+                        Landing Page Content
+                      </h6>
+                      <p className="text-[10px] text-slate-400">Title, description, and content shown on login/landing page</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {systemSettings
+                      .filter(s => s.settingGroup === 'landing')
+                      .map((setting) => (
+                        <div key={setting.settingKey} className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+                            {setting.settingLabel}
+                          </label>
+                          {setting.settingType === 'richtext' ? (
+                            <textarea
+                              value={setting.settingValue}
+                              onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                              rows={4}
+                              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400 resize-y"
+                            />
+                          ) : setting.settingType === 'image' ? (
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="text"
+                                  value={setting.settingValue}
+                                  onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                                  placeholder="Image URL or upload..."
+                                  className="flex-1 px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                                />
+                                <label className="px-2 py-2 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg cursor-pointer transition-colors">
+                                  <Upload size={12} className="text-slate-500 dark:text-slate-400" />
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="hidden"
+                                    onChange={(e) => {
+                                      const file = e.target.files?.[0];
+                                      if (file) handleImageUpload(setting.settingKey, file);
+                                    }}
+                                  />
+                                </label>
+                              </div>
+                              {setting.settingValue && (
+                                <div className="w-full h-24 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden bg-white dark:bg-slate-900 flex items-center justify-center">
+                                  <img src={setting.settingValue} alt={setting.settingLabel} className="max-w-full max-h-full object-contain" />
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              value={setting.settingValue}
+                              onChange={(e) => updateSystemSetting(setting.settingKey, e.target.value)}
+                              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-xl text-xs text-slate-700 dark:text-slate-200 dark:bg-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-400"
+                            />
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </>
+            )}
+
+            <div className="flex items-start gap-2.5 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800 rounded-xl text-[10px] text-amber-700 dark:text-amber-300 font-medium leading-relaxed">
+              <HelpCircle size={13} className="text-amber-500 shrink-0 mt-0.5" />
+              <span>
+                System settings affect the entire application. <strong>Logo</strong> changes will update the sidebar and login page.{" "}
+                <strong>Brand</strong> settings control the system identity. <strong>Landing page</strong> content is what users see before logging in.
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

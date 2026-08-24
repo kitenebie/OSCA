@@ -1229,3 +1229,179 @@ export const interviewerService = {
   },
 };
 
+// ====== ID CARD CONFIG SERVICE ======
+export interface IdCardConfigField {
+  id: string;
+  variant: 'variant1' | 'variant2';
+  fieldKey: string;
+  fieldValue: string;
+  fieldLabel: string;
+  sortOrder: number;
+}
+
+function mapIdCardConfigFromDB(row: any): IdCardConfigField {
+  return {
+    id: row.id,
+    variant: row.variant,
+    fieldKey: row.field_key,
+    fieldValue: row.field_value,
+    fieldLabel: row.field_label || '',
+    sortOrder: row.sort_order || 0,
+  };
+}
+
+export const idCardConfigService = {
+  async getByVariant(variant: 'variant1' | 'variant2'): Promise<IdCardConfigField[]> {
+    const { data, error } = await supabase
+      .from('id_card_config')
+      .select('*')
+      .eq('variant', variant)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapIdCardConfigFromDB);
+  },
+
+  async getAll(): Promise<IdCardConfigField[]> {
+    const { data, error } = await supabase
+      .from('id_card_config')
+      .select('*')
+      .order('variant', { ascending: true })
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapIdCardConfigFromDB);
+  },
+
+  async upsert(field: { variant: string; fieldKey: string; fieldValue: string; fieldLabel?: string; sortOrder?: number }): Promise<void> {
+    const { error } = await supabase
+      .from('id_card_config')
+      .upsert({
+        variant: field.variant,
+        field_key: field.fieldKey,
+        field_value: field.fieldValue,
+        field_label: field.fieldLabel || '',
+        sort_order: field.sortOrder || 0,
+      }, { onConflict: 'variant,field_key' });
+    if (error) throw error;
+  },
+
+  async bulkUpsert(fields: { variant: string; fieldKey: string; fieldValue: string; fieldLabel?: string; sortOrder?: number }[]): Promise<void> {
+    const dbRows = fields.map(f => ({
+      variant: f.variant,
+      field_key: f.fieldKey,
+      field_value: f.fieldValue,
+      field_label: f.fieldLabel || '',
+      sort_order: f.sortOrder || 0,
+    }));
+    const { error } = await supabase
+      .from('id_card_config')
+      .upsert(dbRows, { onConflict: 'variant,field_key' });
+    if (error) throw error;
+  },
+
+  async addField(field: { variant: string; fieldKey: string; fieldValue: string; fieldLabel: string; sortOrder?: number }): Promise<void> {
+    const { error } = await supabase
+      .from('id_card_config')
+      .insert({
+        variant: field.variant,
+        field_key: field.fieldKey,
+        field_value: field.fieldValue,
+        field_label: field.fieldLabel,
+        sort_order: field.sortOrder || 0,
+      });
+    if (error) throw error;
+  },
+
+  async deleteField(variant: string, fieldKey: string): Promise<void> {
+    const { error } = await supabase
+      .from('id_card_config')
+      .delete()
+      .eq('variant', variant)
+      .eq('field_key', fieldKey);
+    if (error) throw error;
+  },
+};
+
+// ====== SYSTEM SETTINGS SERVICE ======
+export interface SystemSetting {
+  id: string;
+  settingKey: string;
+  settingValue: string;
+  settingType: 'text' | 'image' | 'richtext' | 'color';
+  settingLabel: string;
+  settingGroup: 'logo' | 'brand' | 'landing' | 'general';
+  sortOrder: number;
+}
+
+function mapSystemSettingFromDB(row: any): SystemSetting {
+  return {
+    id: row.id,
+    settingKey: row.setting_key,
+    settingValue: row.setting_value,
+    settingType: row.setting_type || 'text',
+    settingLabel: row.setting_label || '',
+    settingGroup: row.setting_group || 'general',
+    sortOrder: row.sort_order || 0,
+  };
+}
+
+export const systemSettingsService = {
+  async getAll(): Promise<SystemSetting[]> {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .order('setting_group', { ascending: true })
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapSystemSettingFromDB);
+  },
+
+  async getByGroup(group: string): Promise<SystemSetting[]> {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .eq('setting_group', group)
+      .order('sort_order', { ascending: true });
+    if (error) throw error;
+    return (data || []).map(mapSystemSettingFromDB);
+  },
+
+  async get(key: string): Promise<SystemSetting | null> {
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .eq('setting_key', key)
+      .single();
+    if (error || !data) return null;
+    return mapSystemSettingFromDB(data);
+  },
+
+  async upsert(key: string, value: string): Promise<void> {
+    const { error } = await supabase
+      .from('system_settings')
+      .update({ setting_value: value })
+      .eq('setting_key', key);
+    if (error) throw error;
+  },
+
+  async bulkUpsert(settings: { settingKey: string; settingValue: string }[]): Promise<void> {
+    for (const s of settings) {
+      const { error } = await supabase
+        .from('system_settings')
+        .update({ setting_value: s.settingValue })
+        .eq('setting_key', s.settingKey);
+      if (error) throw error;
+    }
+  },
+
+  async uploadImage(file: File, bucket: string = 'system-assets'): Promise<string> {
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const fileName = `${Date.now()}-${safeName}`;
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file, { upsert: true });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from(bucket).getPublicUrl(fileName);
+    return urlData.publicUrl;
+  },
+};
+

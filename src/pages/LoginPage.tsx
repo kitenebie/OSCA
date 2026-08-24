@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { useAuthStore } from "../store/authStore";
 
 import { useUIStore } from "../store/uiStore";
+import { useSettingsStore } from "../store/settingsStore";
 
 import {
   ShieldCheck,
@@ -46,11 +47,23 @@ export default function LoginPage() {
 
   const [viewMode, setViewMode] = useState<"landing" | "login">("landing");
 
+  const [rememberMe, setRememberMe] = useState(false);
+
   const [loginAttempts, setLoginAttempts] = useState(0);
 
   const [isLocked, setIsLocked] = useState(false);
 
   const [lockoutTimer, setLockoutTimer] = useState(0);
+
+  // System settings from global store
+  const { systemSettings: sysSettings, systemSettingsLoaded, loadSystemSettings } = useSettingsStore();
+
+  useEffect(() => {
+    if (!systemSettingsLoaded) loadSystemSettings();
+  }, [systemSettingsLoaded, loadSystemSettings]);
+
+  // Helper to get setting with fallback
+  const getSetting = (key: string, fallback: string) => sysSettings[key] || fallback;
 
   // Start lockout countdown
 
@@ -112,7 +125,7 @@ export default function LoginPage() {
       return;
     }
 
-    const success = await login(username, password);
+    const success = await login(username, password, rememberMe);
 
     if (success) {
       setLoginAttempts(0);
@@ -171,8 +184,8 @@ export default function LoginPage() {
           <div className="w-15 h-15 bg-white border border-slate-150 rounded-full flex items-center justify-center p-1 shadow-sm">
             <img
               referrerPolicy="no-referrer"
-              src="/juban-logo.png"
-              alt="Juban Logo"
+              src={getSetting('logo_url', '/juban-logo.png')}
+              alt={getSetting('logo_alt_text', 'Juban Logo')}
               className="w-full h-full object-contain"
             />
           </div>
@@ -180,14 +193,14 @@ export default function LoginPage() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-md font-extrabold text-teal-600 tracking-wider uppercase font-mono">
-                LGU JUBAN
+                {getSetting('brand_name', 'LGU JUBAN')}
               </span>
 
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
 
             <h1 className="font-extrabold text-md md:text-base text-slate-800 uppercase tracking-tight">
-              Senior Citizen Portal
+              {getSetting('brand_tagline', 'Senior Citizen Portal')}
             </h1>
           </div>
         </div>
@@ -238,21 +251,15 @@ export default function LoginPage() {
                       size={20}
                       className="text-emerald-600 animate-pulse"
                     />
-                    Centralized Information for Senior Citizens
+                    {getSetting('landing_subtitle', 'Centralized Information for Senior Citizens')}
                   </div>
 
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-800 tracking-tight leading-[1.1] uppercase">
-                    Proactive Service, <br />
-                    <span className="text-teal-600">Quality Care</span> <br />
-                    in the Town of Juban
+                    {getSetting('landing_title', 'Proactive Service, Quality Care in the Town of Juban')}
                   </h1>
 
                   <p className="text-sm md:text-base text-slate-500 leading-relaxed max-w-xl">
-                    Welcome to the official portal for e-Census, Profiling, and
-                    Benefits for Senior Citizens of Juban, Sorsogon. This
-                    digital platform is built to streamline communication, aid
-                    distribution, and provide safer protection for our senior
-                    citizens.
+                    {getSetting('landing_description', 'Welcome to the official portal for e-Census, Profiling, and Benefits for Senior Citizens of Juban, Sorsogon. This digital platform is built to streamline communication, aid distribution, and provide safer protection for our senior citizens.')}
                   </p>
                 </div>
 
@@ -820,6 +827,22 @@ export default function LoginPage() {
                     </p>
                   )}
 
+                  {/* Remember Me Checkbox */}
+                  <div className="flex items-center justify-between">
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500/30 cursor-pointer"
+                        disabled={isLocked}
+                      />
+                      <span className="text-sm text-slate-600 font-medium">
+                        Remember me
+                      </span>
+                    </label>
+                  </div>
+
                   <button
                     type="submit"
                     disabled={isLoading || isLocked}
@@ -891,28 +914,26 @@ export default function LoginPage() {
           <div className="flex items-center gap-3">
             <img
               referrerPolicy="no-referrer"
-              src="/Bagong_Pilipinas_Logo.svg.webp"
-              alt="Bagong Pilipinas"
+              src={getSetting('landing_footer_logo1', '/Bagong_Pilipinas_Logo.svg.webp')}
+              alt="Footer Logo 1"
               className="h-7 opacity-80"
             />
 
             <img
               referrerPolicy="no-referrer"
-              src="/ph_logo.png"
-              alt="Philippine Logo"
+              src={getSetting('landing_footer_logo2', '/ph_logo.png')}
+              alt="Footer Logo 2"
               className="h-7 opacity-80"
             />
           </div>
 
           <div className="text-center sm:text-right">
             <p className="text-[9px] text-slate-400 font-medium">
-              © {new Date().getFullYear()} LGU Juban, Sorsogon • Office for
-              Senior Citizens Affairs (OSCA)
+              {getSetting('landing_footer_text', `© ${new Date().getFullYear()} LGU Juban, Sorsogon • Office for Senior Citizens Affairs (OSCA)`)}
             </p>
 
             <p className="text-[8px] text-slate-300 mt-0.5">
-              Developed for the Municipality of Juban • Republic of the
-              Philippines
+              {getSetting('landing_contact_info', 'Developed for the Municipality of Juban • Republic of the Philippines')}
             </p>
           </div>
         </div>

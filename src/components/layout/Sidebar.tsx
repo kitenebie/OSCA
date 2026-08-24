@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSettingsStore } from '../../store/settingsStore';
 import { useUIStore, AppPages } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { 
@@ -13,13 +14,12 @@ import {
   Scan,
   UserRoundCog,
   MonitorCog,
-  AlertTriangle,
-  Trophy
+  AlertTriangle
 } from 'lucide-react';
 
 export default function Sidebar() {
   const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar, nfcEnabled } = useUIStore();
-  const { currentUser, logout, hasPermission } = useAuthStore();
+  const { currentUser, logout, hasPermission, roles } = useAuthStore();
 
   const menuItems = [
     { 
@@ -65,12 +65,6 @@ export default function Sidebar() {
       permission: 'canAccessSMSCenter' as const 
     },
     { 
-      id: 'CentenarianHonoring' as AppPages, 
-      label: 'Centenarian Honoring', 
-      icon: Trophy, 
-      permission: 'canAccessSeniorsList' as const 
-    },
-    { 
       id: 'UserManagement' as AppPages, 
       label: 'User Management', 
       icon: UserRoundCog, 
@@ -86,8 +80,32 @@ export default function Sidebar() {
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  const handleLogout = () => {
-    logout();
+  // System settings from global store
+  const { systemSettings: sidebarSettings, systemSettingsLoaded, loadSystemSettings } = useSettingsStore();
+
+  useEffect(() => {
+    if (!systemSettingsLoaded) loadSystemSettings();
+  }, [systemSettingsLoaded, loadSystemSettings]);
+
+  const getBrand = (key: string, fallback: string) => sidebarSettings[key] || fallback;
+
+  // Auto-logout if user has no accessible menu items (no permissions)
+  useEffect(() => {
+    if (!currentUser) return;
+    if (roles.length === 0) return; // Wait until roles are loaded
+    const accessibleItems = menuItems.filter((item) => hasPermission(item.permission));
+    if (accessibleItems.length === 0) {
+      console.log('[SECURITY] User has no accessible pages. Auto-logging out.');
+      const doLogout = async () => {
+        await logout();
+        window.location.reload();
+      };
+      doLogout();
+    }
+  }, [currentUser, roles]);
+
+  const handleLogout = async () => {
+    await logout();
     window.location.reload();
   };
 
@@ -113,15 +131,15 @@ export default function Sidebar() {
             <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center p-0.5 shadow-md shrink-0">
               <img 
                 referrerPolicy="no-referrer"
-                src="/juban-logo.png" 
-                alt="Juban Logo" 
+                src={sidebarSettings['logo_url'] || '/juban-logo.png'} 
+                alt={getBrand('brand_name', 'Logo')} 
                 className="w-full h-full object-contain"
               />
             </div>
             {sidebarOpen && (
               <div className="flex flex-col">
-                <span className="font-extrabold text-sm tracking-wide leading-none text-white font-sans">JUBAN, SORSOGON</span>
-                <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'var(--osca-sidebar-active)' }}>OSCA LGU Portal</span>
+                <span className="font-extrabold text-sm tracking-wide leading-none text-white font-sans">{getBrand('sidebar_title', 'JUBAN, SORSOGON')}</span>
+                <span className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'var(--osca-sidebar-active)' }}>{getBrand('sidebar_subtitle', 'OSCA LGU Portal')}</span>
               </div>
             )}
           </div>
@@ -139,9 +157,17 @@ export default function Sidebar() {
         {/* Logged User Info Badge */}
         {currentUser && sidebarOpen && (
           <div className="mx-4 my-6 p-3 bg-[#02061733] rounded-xl border border-[#0206171a] flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-[#02061726] border border-[#02061740] flex items-center justify-center text-white shrink-0 font-extrabold">
-              {currentUser.fullName.split(' ').pop()?.charAt(0) || 'U'}
-            </div>
+            {currentUser.profilePhoto ? (
+              <img
+                src={currentUser.profilePhoto}
+                alt={currentUser.fullName}
+                className="w-10 h-10 rounded-full object-cover border border-[#02061740] shrink-0"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-[#02061726] border border-[#02061740] flex items-center justify-center text-white shrink-0 font-extrabold">
+                {currentUser.fullName.split(' ').pop()?.charAt(0) || 'U'}
+              </div>
+            )}
             <div className="overflow-hidden">
               <h4 className="font-bold text-xs truncate text-white">{currentUser.fullName}</h4>
               <p className="text-[8px] font-mono font-semibold mt-0.5 truncate uppercase tracking-widest" style={{ color: 'var(--osca-sidebar-active)' }}>{currentUser.role}</p>
@@ -203,7 +229,7 @@ export default function Sidebar() {
           
           {sidebarOpen && (
             <div className="pt-2 text-center">
-              <span className="text-[8px] text-[#f1f5f966] font-mono uppercase tracking-widest">LGU-JUBAN v1.0.0</span>
+              <span className="text-[8px] text-[#f1f5f966] font-mono uppercase tracking-widest">{getBrand('sidebar_version', 'LGU-JUBAN v1.0.0')}</span>
             </div>
           )}
         </div>

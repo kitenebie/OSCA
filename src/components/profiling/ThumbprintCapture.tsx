@@ -1,486 +1,475 @@
-import React, { useState, useEffect } from 'react';
-import { Fingerprint, Check, AlertCircle, RefreshCw, Cpu, Info, Wifi, WifiOff, Upload, Image } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Fingerprint, Check, RefreshCw, Cpu, Info, Wifi, WifiOff, Image, Camera, Square } from 'lucide-react';
+import { systemSettingsService } from '../../services/supabaseService';
 import { uploadFingerprintImage } from '../../services/storageService';
 
-// OSCA Fingerprint Bridge endpoint (localhost — required for HTTPS mixed-content exemption)
-const BRIDGE_URL = 'http://localhost:8000';
-
-interface ThumbprintCaptureProps {
-  value: string | null;         // Stores the Supabase image URL (or null)
-  onChange: (imageUrl: string | null) => void;
-  seniorId?: string;            // Senior citizen ID for file naming
+// Scanner type config — should match what's selected in Configuration page
+// Reads from localStorage (set by ConfigurationPage)
+function getScannerConfig(): { type: 'digitalpersona' | 'esp32'; endpoint: string } {
+  const stored = localStorage.getItem('osca_fingerprint_scanner');
+  if (stored) {
+    try { return JSON.parse(stored); } catch {}
+  }
+  return { type: 'digitalpersona', endpoint: 'http://localhost:8000' };
 }
 
-type ScanMode = 'bridge' | 'webauthn' | 'simulator';
+// Async version that loads from database (called on mount)
+async function loadScannerConfigFromDB(): Promise<{ type: 'digitalpersona' | 'esp32'; endpoint: string } | null> {
+  try {
+    const typeRow = await systemSettingsService.get('fingerprint_scanner_type');
+    const endpointRow = await systemSettingsService.get('fingerprint_scanner_endpoint');
+    if (typeRow?.settingValue || endpointRow?.settingValue) {
+      return {
+        type: (typeRow?.settingValue || 'digitalpersona') as 'digitalpersona' | 'esp32',
+        endpoint: endpointRow?.settingValue || 'http://localhost:8000'
+      };
+    }
+  } catch {}
+  return null;
+}
 
-interface BridgeStatus {
-  connected: boolean;
-  version?: string;
-  digitalPersona?: { available: boolean; count: number };
-  serialPortCount?: number;
+interface ThumbprintCaptureProps {
+  value: string | null;
+  onChange: (imageUrl: string | null) => void;
+  seniorId?: string;
 }
 
 export default function ThumbprintCapture({ value, onChange, seniorId }: ThumbprintCaptureProps) {
-  const [scanMode, setScanMode] = useState<ScanMode>('bridge');
-  const [isScanning, setIsScanning] = useState<boolean>(false);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [scanProgress, setScanProgress] = useState<number>(0);
-  const [scanStatus, setScanStatus] = useState<string>('Ready for scanning.');
-  const [bridgeStatus, setBridgeStatus] = useState<BridgeStatus>({ connected: false });
-  const [fingerprintImage, setFingerprintImage] = useState<string | null>(null); // base64 image for preview
-  const [captureMethod, setCaptureMethod] = useState<string>('');
+  const [scannerConfig, setScannerConfig] = useState(getScannerConfig);
+  const [isLiveDetecting, setIsLiveDetecting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [scanStatus, setScanStatus] = useState('Ready for scanning.');
+  const [livePreview, setLivePreview] = useState<string | null>(null); // Live BMP preview (data URI)
+  const [capturedImage, setCapturedImage] = useState<string | null>(null); // Final captured image
+  const [fingerDetected, setFingerDetected] = useState(false);
+  const [bridgeConnected, setBridgeConnected] = useState(false);
 
-  // Check bridge connection on mount and mode switch
+  const pollingRef = useRef<NodeJS.Timeout | null>(null);
+  const lastImageRef = useRef<string | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // Load config from database + check connection on mount
   useEffect(() => {
-    if (scanMode === 'bridge') {
-      checkBridgeStatus();
-    }
-  }, [scanMode]);
+    (async () => {
+      const dbConfig = await loadScannerConfigFromDB();
+      if (dbConfig) {
+        setScannerConfig(dbConfig);
+        localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(dbConfig));
+      }
+    })();
+    checkConnection();
+    return () => stopLiveDetection();
+  }, []);
 
-  const checkBridgeStatus = async () => {
+  const checkConnection = async () => {
+    const endpoint = scannerConfig.type === 'esp32'
+      ? `${scannerConfig.endpoint}/status`
+      : `${scannerConfig.endpoint}/api/status`;
+
     try {
-      const res = await fetch(`${BRIDGE_URL}/api/status`, {
-        method: 'GET',
-        signal: AbortSignal.timeout(3000)
-      });
+      const res = await fetch(endpoint, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
+        setBridgeConnected(true);
         const data = await res.json();
-        setBridgeStatus({
-          connected: true,
-          version: data.version,
-          digitalPersona: data.devices?.digitalPersona,
-          serialPortCount: data.devices?.serialPortCount ?? data.serialPortCount ?? 0
-        });
-        setScanStatus(
-          data.devices?.digitalPersona?.available
-            ? `U.are.U scanner detected ✓ — Ready to capture.`
-            : 'Bridge connected. Place finger on scanner to capture.'
-        );
+        setScanStatus(scannerConfig.type === 'esp32'
+          ? `ESP32 connected — ${data.device || 'Fingerprint Scanner'}`
+          : `Bridge v${data.version || '?'} connected`);
       } else {
-        setBridgeStatus({ connected: false });
-        setScanStatus('Bridge not responding. Start the Fingerprint Bridge service.');
+        setBridgeConnected(false);
+        setScanStatus('Scanner not responding.');
       }
     } catch {
-      setBridgeStatus({ connected: false });
-      setScanStatus('Hindi makonekta sa Fingerprint Bridge. Buksan ang FingerprintBridge.exe.');
+      setBridgeConnected(false);
+      setScanStatus(scannerConfig.type === 'esp32'
+        ? 'Cannot connect to ESP32. Connect to WiFi: OSCA-Fingerprint'
+        : 'Cannot connect to Fingerprint Bridge. Start FingerprintBridge.exe.');
     }
   };
 
-  // Main capture via Fingerprint Bridge — returns image + template
-  const startBridgeScan = async () => {
-    setIsScanning(true);
-    setScanProgress(10);
-    setScanStatus('Kumokonekta sa Fingerprint Bridge...');
-    setCaptureMethod('');
-    setFingerprintImage(null);
+  // ═══════════════════════════════════════════════════════════
+  // ESP32 MODE: Live Detection (polling)
+  // ═══════════════════════════════════════════════════════════
+
+  const startLiveDetection = useCallback(() => {
+    if (scannerConfig.type !== 'esp32') {
+      startBridgeCapture();
+      return;
+    }
+
+    setIsLiveDetecting(true);
+    setFingerDetected(false);
+    setLivePreview(null);
+    setCapturedImage(null);
+    setScanStatus('Live detection started — place finger on scanner...');
+
+    // Start polling the ESP32
+    const pollInterval = 500; // Poll every 500ms
+    const poll = async () => {
+      if (!isLiveDetecting && !pollingRef.current) return;
+
+      try {
+        abortRef.current = new AbortController();
+        const res = await fetch(`${scannerConfig.endpoint}/live/detect/fingerprint`, {
+          signal: abortRef.current.signal
+        });
+
+        if (!res.ok) return;
+
+        const contentType = res.headers.get('content-type') || '';
+
+        if (contentType.includes('image/bmp')) {
+          // Finger detected — received BMP image
+          const blob = await res.blob();
+          const dataUri = await blobToDataUri(blob);
+          
+          setLivePreview(dataUri);
+          lastImageRef.current = dataUri;
+          setFingerDetected(true);
+          setScanStatus('Finger detected! Click "Capture" to save.');
+        } else {
+          // JSON response — no finger detected
+          const data = await res.json();
+          if (!data.detected) {
+            setFingerDetected(false);
+            setScanStatus('Waiting for finger on scanner...');
+          }
+        }
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.warn('Poll error:', err);
+        }
+      }
+    };
+
+    // Start polling loop
+    poll();
+    pollingRef.current = setInterval(poll, pollInterval);
+  }, [scannerConfig]);
+
+  const stopLiveDetection = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+    if (abortRef.current) {
+      abortRef.current.abort();
+      abortRef.current = null;
+    }
+    setIsLiveDetecting(false);
+  };
+
+  const captureCurrentFrame = async () => {
+    // Stop polling
+    stopLiveDetection();
+
+    const imageToSave = lastImageRef.current || livePreview;
+    if (!imageToSave) {
+      setScanStatus('No image to capture. Try scanning again.');
+      return;
+    }
+
+    // Convert BMP to PNG using canvas
+    const pngDataUri = await convertBmpToPng(imageToSave);
+    setCapturedImage(pngDataUri);
+    setScanStatus('Fingerprint captured! Uploading...');
+
+    // Upload to Supabase Storage
+    setIsUploading(true);
+    try {
+      const id = seniorId || `temp_${Date.now()}`;
+      const publicUrl = await uploadFingerprintImage(pngDataUri, id);
+      setIsUploading(false);
+      setScanStatus('Fingerprint saved to storage.');
+      onChange(publicUrl);
+    } catch (err: any) {
+      setIsUploading(false);
+      setScanStatus(`Upload failed: ${err.message}. Click Retake to try again.`);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // DIGITALPERSONA MODE: Single Capture via Bridge
+  // ═══════════════════════════════════════════════════════════
+
+  const startBridgeCapture = async () => {
+    setIsLiveDetecting(true);
+    setLivePreview(null);
+    setCapturedImage(null);
+    setScanStatus('Connecting to Fingerprint Bridge...');
 
     try {
-      setScanProgress(20);
-      const statusRes = await fetch(`${BRIDGE_URL}/api/status`, { signal: AbortSignal.timeout(3000) });
-
-      if (!statusRes.ok) {
-        throw new Error('Bridge not responding');
-      }
-
-      setScanProgress(30);
-      setScanStatus('Ilagay ang daliri sa scanner... (hinihintay ang fingerprint)');
-
-      // Capture fingerprint (bridge returns both image and template)
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 20000);
-
-      const res = await fetch(`${BRIDGE_URL}/api/capture`, {
+      const res = await fetch(`${scannerConfig.endpoint}/api/capture`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal
+        signal: AbortSignal.timeout(20000)
       });
-      clearTimeout(timeoutId);
-
-      setScanProgress(70);
 
       if (res.ok) {
         const data = await res.json();
-        if (data.success !== false) {
-          setCaptureMethod(data.method || 'unknown');
+        if (data.success !== false && data.image) {
+          const imageDataUri = `data:image/bmp;base64,${data.image}`;
+          const pngDataUri = await convertBmpToPng(imageDataUri);
+          
+          setCapturedImage(pngDataUri);
+          setIsLiveDetecting(false);
+          setScanStatus(`Fingerprint captured! Quality: ${data.quality || 'N/A'}%. Uploading...`);
 
-          // Show the fingerprint image preview
-          if (data.image) {
-            // Bridge returns base64 BMP image
-            const imageDataUri = `data:image/bmp;base64,${data.image}`;
-            setFingerprintImage(imageDataUri);
-            setScanProgress(80);
-            setScanStatus('✓ Fingerprint image captured! Uploading...');
-
-            // Upload image to Supabase Storage
-            setIsUploading(true);
-            try {
-              const id = seniorId || `temp_${Date.now()}`;
-              const publicUrl = await uploadFingerprintImage(imageDataUri, id);
-
-              setScanProgress(100);
-              setIsScanning(false);
-              setIsUploading(false);
-              setScanStatus(`✓ Fingerprint saved! URL stored in database.`);
-
-              // Return the public URL to parent (this gets saved to the database)
-              onChange(publicUrl);
-            } catch (uploadErr: any) {
-              setIsUploading(false);
-              setIsScanning(false);
-              setScanProgress(90);
-              setScanStatus(`⚠ Captured but upload failed: ${uploadErr.message}. Retake or try again.`);
-              // Still show the image even if upload failed
-            }
-          } else {
-            // No image returned (older bridge or serial scanner) — fallback
-            setScanProgress(100);
-            setIsScanning(false);
-            setScanStatus(`✓ Fingerprint captured via ${data.method} (no image available from this device).`);
-            // Store template ID as fallback
-            onChange(data.template || data.id || 'captured');
-          }
+          // Upload
+          setIsUploading(true);
+          const id = seniorId || `temp_${Date.now()}`;
+          const publicUrl = await uploadFingerprintImage(pngDataUri, id);
+          setIsUploading(false);
+          setScanStatus('Fingerprint saved to storage.');
+          onChange(publicUrl);
+        } else if (data.success !== false && !data.image) {
+          // Template only (no image)
+          setIsLiveDetecting(false);
+          setScanStatus('Captured (no image from this device).');
+          onChange(data.template || data.id || 'captured');
         } else {
           throw new Error(data.error || 'Capture failed');
         }
       } else {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.error || 'Bridge returned an error');
+        const err = await res.json().catch(() => null);
+        throw new Error(err?.error || 'Bridge error');
       }
     } catch (err: any) {
-      console.warn('OSCA Fingerprint Bridge error:', err);
-      setIsScanning(false);
-      setIsUploading(false);
-      setScanProgress(0);
-
+      setIsLiveDetecting(false);
       if (err.name === 'AbortError') {
-        setScanStatus('Timeout — walang daliring na-detect. Subukan ulit at ilagay ang daliri nang maigi.');
-      } else if (err.message?.includes('Bridge not responding')) {
-        setScanStatus('Hindi makonekta sa bridge. Siguraduhing nakabukas ang FingerprintBridge.exe.');
+        setScanStatus('Timeout — no finger detected. Try again.');
       } else {
-        setScanStatus(err.message || 'Capture failed. Try again.');
+        setScanStatus(err.message || 'Capture failed.');
       }
     }
   };
 
-  // WebAuthn fallback
-  const startWebAuthnScan = async () => {
-    setIsScanning(true);
-    setScanProgress(20);
-    setScanStatus('Launching Windows Hello biometric prompt...');
+  // ═══════════════════════════════════════════════════════════
+  // UTILS
+  // ═══════════════════════════════════════════════════════════
 
-    try {
-      await new Promise((r) => setTimeout(r, 400));
-      setScanProgress(50);
-
-      const challenge = new Uint8Array(32);
-      window.crypto.getRandomValues(challenge);
-      const userId = new Uint8Array(16);
-      window.crypto.getRandomValues(userId);
-
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge: challenge,
-          rp: { name: "OSCA Juban Biometrics" },
-          user: {
-            id: userId,
-            name: "senior@osca.juban.gov",
-            displayName: "Registered Senior Citizen"
-          },
-          pubKeyCredParams: [{ alg: -7, type: "public-key" }],
-          authenticatorSelection: {
-            authenticatorAttachment: "platform",
-            userVerification: "required"
-          },
-          timeout: 30000
-        }
-      });
-
-      setScanProgress(100);
-      setIsScanning(false);
-
-      if (credential) {
-        setCaptureMethod('webauthn');
-        setScanStatus('✓ Biometric identity verified via Windows Hello!');
-        onChange('WebAuthn:' + credential.id);
-      } else {
-        throw new Error('No credential returned.');
-      }
-    } catch (err: any) {
-      console.error(err);
-      setIsScanning(false);
-      setScanProgress(0);
-      setScanStatus('Failed: ' + (err.message || 'Verification cancelled.'));
-    }
+  /** Convert Blob to data URI */
+  const blobToDataUri = (blob: Blob): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.readAsDataURL(blob);
+    });
   };
 
-  // Simulated capture (testing only)
-  const triggerSimulatorScan = async () => {
-    setIsScanning(true);
-    setScanProgress(0);
-    setScanStatus("Place the senior's thumb on the scanner glass...");
-
-    const interval = setInterval(() => {
-      setScanProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
-
-    await new Promise((resolve) => setTimeout(resolve, 2200));
-    clearInterval(interval);
-
-    setIsScanning(false);
-    setCaptureMethod('simulator');
-    setFingerprintImage(null);
-    setScanStatus('✓ Simulated (no real fingerprint image generated).');
-    onChange('SIM:FP-' + Math.floor(Math.random() * 900000 + 100000));
-  };
-
-  const startScan = () => {
-    if (scanMode === 'bridge') startBridgeScan();
-    else if (scanMode === 'webauthn') startWebAuthnScan();
-    else triggerSimulatorScan();
+  /** Convert BMP data URI to PNG using canvas */
+  const convertBmpToPng = (bmpDataUri: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = () => resolve(bmpDataUri); // Fallback to original
+      img.src = bmpDataUri;
+    });
   };
 
   const resetCapture = () => {
+    stopLiveDetection();
     onChange(null);
-    setFingerprintImage(null);
-    setScanProgress(0);
-    setCaptureMethod('');
+    setLivePreview(null);
+    setCapturedImage(null);
+    setFingerDetected(false);
+    lastImageRef.current = null;
     setScanStatus('Ready for scanning.');
   };
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════
+
+  const displayImage = capturedImage || livePreview;
+  const isEsp32 = scannerConfig.type === 'esp32';
 
   return (
     <div className="border border-slate-200 rounded-2xl p-5 bg-slate-50/50 flex flex-col gap-4">
 
-      {/* Header & Source Mode Selection */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-3">
         <div className="flex items-center gap-2">
           <Cpu size={16} className="text-teal-600" />
-          <span className="font-bold text-xs text-slate-700 uppercase tracking-wide">Biometric Fingerprint Capture</span>
-        </div>
-
-        {/* Connection/Source select buttons */}
-        <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200 self-start">
-          <button
-            type="button"
-            onClick={() => { setScanMode('bridge'); resetCapture(); }}
-            className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (scanMode === 'bridge' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
-          >
-            U.are.U / Bridge
-          </button>
-          <button
-            type="button"
-            onClick={() => { setScanMode('webauthn'); resetCapture(); }}
-            className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (scanMode === 'webauthn' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
-          >
-            Windows Hello
-          </button>
-          <button
-            type="button"
-            onClick={() => { setScanMode('simulator'); resetCapture(); }}
-            className={'px-2 py-1 rounded-md text-[10px] font-bold transition-all ' + (scanMode === 'simulator' ? 'bg-white text-teal-700 shadow-sm' : 'text-slate-500 hover:text-slate-800')}
-          >
-            Simulator
-          </button>
+          <span className="font-bold text-xs text-slate-700 uppercase tracking-wide">Fingerprint Capture</span>
+          <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${
+            isEsp32
+              ? 'text-violet-600 bg-violet-50 border-violet-200'
+              : 'text-teal-600 bg-teal-50 border-teal-200'
+          }`}>
+            {isEsp32 ? 'ESP32 / Arduino' : 'U.are.U 4500'}
+          </span>
         </div>
       </div>
 
-      {/* Bridge Connection Status Indicator */}
-      {scanMode === 'bridge' && (
-        <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-medium ' +
-          (bridgeStatus.connected
-            ? 'bg-emerald-50 border border-emerald-100 text-emerald-700'
-            : 'bg-red-50 border border-red-100 text-red-600')}>
-          {bridgeStatus.connected ? <Wifi size={11} /> : <WifiOff size={11} />}
-          <span>
-            {bridgeStatus.connected
-              ? `Bridge v${bridgeStatus.version || '?'} connected` +
-                (bridgeStatus.digitalPersona?.available
-                  ? ` — U.are.U ${bridgeStatus.digitalPersona.count > 0 ? '✓ detected' : '(no device)'}`
-                  : ` — ${bridgeStatus.serialPortCount || 0} serial port(s)`)
-              : 'Bridge disconnected — buksan ang FingerprintBridge.exe'}
-          </span>
-          {bridgeStatus.connected && (
-            <button type="button" onClick={checkBridgeStatus} className="ml-auto text-emerald-500 hover:text-emerald-700">
-              <RefreshCw size={10} />
-            </button>
-          )}
-        </div>
-      )}
+      {/* Connection Status */}
+      <div className={'flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-medium ' +
+        (bridgeConnected
+          ? 'bg-emerald-50 border border-emerald-100 text-emerald-700'
+          : 'bg-red-50 border border-red-100 text-red-600')}>
+        {bridgeConnected ? <Wifi size={11} /> : <WifiOff size={11} />}
+        <span>{scanStatus}</span>
+        <button type="button" onClick={checkConnection} className="ml-auto opacity-60 hover:opacity-100">
+          <RefreshCw size={10} />
+        </button>
+      </div>
 
-      {/* Main Biometric UI Stage */}
-      <div className="flex flex-col items-center justify-center py-6 bg-white border border-slate-200 rounded-xl shadow-inner relative overflow-hidden min-h-[220px]">
+      {/* Main Capture Area */}
+      <div className="flex flex-col items-center justify-center py-4 bg-white border border-slate-200 rounded-xl shadow-inner relative overflow-hidden min-h-[260px]">
 
-        {isScanning && !fingerprintImage && (
-          <div className="absolute inset-0 m-auto w-24 h-24 rounded-full border border-teal-500/20 bg-teal-500/5 animate-ping"></div>
-        )}
-
-        {/* ═══ STATE: Fingerprint captured — show image ═══ */}
-        {(value || fingerprintImage) ? (
-          <div className="flex flex-col items-center gap-3 animate-fadeIn">
-            
-            {/* Fingerprint Image Display */}
-            {fingerprintImage ? (
-              <div className="relative">
-                <div className="w-28 h-36 rounded-lg border-2 border-emerald-200 shadow-md overflow-hidden bg-slate-900">
-                  <img
-                    src={fingerprintImage}
-                    alt="Captured fingerprint"
-                    className="w-full h-full object-contain opacity-90"
-                    style={{ imageRendering: 'pixelated' }}
-                  />
+        {/* ═══ Fingerprint Image Preview ═══ */}
+        {displayImage ? (
+          <div className="flex flex-col items-center gap-3">
+            {/* Image display */}
+            <div className={`relative rounded-lg border-2 shadow-md overflow-hidden bg-slate-900 ${
+              isLiveDetecting 
+                ? (fingerDetected ? 'border-green-400' : 'border-amber-400 animate-pulse') 
+                : 'border-emerald-300'
+            }`} style={{ width: 180, height: 200 }}>
+              <img
+                src={displayImage}
+                alt="Fingerprint"
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'pixelated' }}
+              />
+              {/* Live indicator */}
+              {isLiveDetecting && (
+                <div className="absolute top-2 left-2 flex items-center gap-1 bg-black/70 text-white text-[9px] font-bold px-1.5 py-0.5 rounded">
+                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
+                  LIVE
                 </div>
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1.5 border-2 border-white shadow">
+              )}
+              {/* Captured checkmark */}
+              {capturedImage && !isLiveDetecting && (
+                <div className="absolute bottom-1 right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white shadow">
                   <Check size={12} className="stroke-[3]" />
                 </div>
-              </div>
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-500 shadow-sm relative">
-                <Fingerprint size={32} className="stroke-[1.5]" />
-                <div className="absolute -bottom-1 -right-1 bg-emerald-500 text-white rounded-full p-1 border-2 border-white">
-                  <Check size={10} className="stroke-[3]" />
-                </div>
+              )}
+            </div>
+
+            {/* Action buttons during live detection */}
+            {isLiveDetecting && isEsp32 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={captureCurrentFrame}
+                  disabled={!fingerDetected}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                    fingerDetected
+                      ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-200'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  <Camera size={13} />
+                  Capture
+                </button>
+                <button
+                  type="button"
+                  onClick={stopLiveDetection}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold bg-red-50 text-red-600 border border-red-200 hover:bg-red-100 transition-all"
+                >
+                  <Square size={11} fill="currentColor" />
+                  Stop
+                </button>
               </div>
             )}
 
-            <div className="text-center">
-              <h5 className="font-bold text-xs text-slate-800">
-                {isUploading ? 'Uploading to storage...' : 'Fingerprint Saved ✓'}
-              </h5>
-              
-              {isUploading && (
-                <div className="flex items-center gap-1.5 mt-1 text-[10px] text-teal-600">
-                  <Upload size={10} className="animate-bounce" />
-                  <span>Saving fingerprint image to Supabase Storage...</span>
-                </div>
-              )}
-              
-              {value && !isUploading && (
-                <p className="text-[9px] text-emerald-600 mt-1 font-medium max-w-[240px] truncate">
-                  {value.startsWith('http') ? '✓ Image saved to cloud storage' : value.substring(0, 50)}
-                </p>
-              )}
+            {/* Upload indicator */}
+            {isUploading && (
+              <p className="text-[10px] text-teal-600 font-medium animate-pulse">Uploading to storage...</p>
+            )}
 
-              {value && value.startsWith('http') && (
-                <a
-                  href={value}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[9px] text-blue-500 hover:text-blue-700 underline mt-0.5 inline-flex items-center gap-0.5"
-                >
-                  <Image size={9} />
-                  View saved image
-                </a>
-              )}
-            </div>
+            {/* Saved confirmation */}
+            {value && !isUploading && !isLiveDetecting && (
+              <div className="text-center">
+                <p className="text-[10px] text-emerald-600 font-bold">Fingerprint saved to storage</p>
+                {value.startsWith('http') && (
+                  <a href={value} target="_blank" rel="noopener noreferrer"
+                    className="text-[9px] text-blue-500 hover:text-blue-700 underline inline-flex items-center gap-0.5 mt-0.5">
+                    <Image size={9} /> View saved image
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         ) : (
-          /* ═══ STATE: Ready to capture ═══ */
+          /* ═══ Ready State — Scan Button ═══ */
           <div className="flex flex-col items-center gap-3.5">
-            <button
-              type="button"
-              disabled={isScanning || (scanMode === 'bridge' && !bridgeStatus.connected)}
-              onClick={startScan}
-              className={'w-16 h-16 rounded-full border flex items-center justify-center transition-all duration-300 relative group ' +
-                (isScanning
-                  ? 'bg-teal-50 border-teal-400 text-teal-500 animate-pulse'
-                  : (scanMode === 'bridge' && !bridgeStatus.connected)
-                  ? 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
-                  : 'bg-slate-50 hover:bg-teal-50 hover:border-teal-300 text-slate-500 hover:text-teal-600 cursor-pointer active:scale-95')}
-            >
-              <Fingerprint size={30} className="stroke-[1.5]" />
-
-              {isScanning && (
-                <div className="absolute left-0 right-0 h-0.5 bg-teal-500/60 shadow shadow-teal-500 animate-bounce top-1/3"></div>
-              )}
-            </button>
-            <div className="text-center px-4">
-              <h5 className="font-semibold text-xs text-slate-700">
-                {isScanning
-                  ? 'Ilagay ang daliri sa scanner...'
-                  : scanMode === 'bridge'
-                  ? (bridgeStatus.connected ? 'Scanner Ready — Click to Capture' : 'Bridge Disconnected')
-                  : scanMode === 'webauthn'
-                  ? 'Windows Hello Ready'
-                  : 'Simulator Ready'}
-              </h5>
-              <p className="text-[10px] text-slate-400 mt-1 max-w-xs leading-normal">
-                {isScanning
-                  ? `Capturing fingerprint... ${scanProgress}%`
-                  : scanMode === 'bridge'
-                    ? (bridgeStatus.connected
-                        ? 'Fingerprint image will be captured, displayed, and saved to cloud storage'
-                        : 'Start FingerprintBridge.exe to enable capture')
-                    : scanMode === 'webauthn'
-                    ? 'Windows Hello verification (no image saved)'
-                    : 'Generates mock data for UI testing only'}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Progress bar */}
-        {(isScanning || isUploading) && (
-          <div className="absolute bottom-0 inset-x-0 h-1.5 bg-slate-100">
-            <div
-              className="h-full bg-teal-600 transition-all duration-300 rounded-r"
-              style={{ width: scanProgress + '%' }}
-            ></div>
+            {isLiveDetecting && !displayImage ? (
+              // Waiting for finger (ESP32 mode, no image yet)
+              <div className="flex flex-col items-center gap-2">
+                <div className="w-16 h-16 rounded-full bg-amber-50 border-2 border-amber-300 flex items-center justify-center animate-pulse">
+                  <Fingerprint size={30} className="text-amber-500 stroke-[1.5]" />
+                </div>
+                <p className="text-xs font-semibold text-amber-700">Waiting for finger...</p>
+                <p className="text-[10px] text-slate-400">Place your finger on the scanner</p>
+                <button
+                  type="button"
+                  onClick={stopLiveDetection}
+                  className="mt-2 text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
+                >
+                  <Square size={9} fill="currentColor" /> Stop
+                </button>
+              </div>
+            ) : (
+              // Initial state — start button
+              <>
+                <button
+                  type="button"
+                  disabled={!bridgeConnected}
+                  onClick={startLiveDetection}
+                  className={`w-16 h-16 rounded-full border flex items-center justify-center transition-all duration-300 ${
+                    bridgeConnected
+                      ? 'bg-slate-50 hover:bg-teal-50 hover:border-teal-300 text-slate-500 hover:text-teal-600 cursor-pointer active:scale-95'
+                      : 'bg-slate-100 border-slate-200 text-slate-300 cursor-not-allowed'
+                  }`}
+                >
+                  <Fingerprint size={30} className="stroke-[1.5]" />
+                </button>
+                <div className="text-center px-4">
+                  <h5 className="font-semibold text-xs text-slate-700">
+                    {bridgeConnected ? 'Scanner Ready — Click to Start' : 'Scanner Not Connected'}
+                  </h5>
+                  <p className="text-[10px] text-slate-400 mt-1 max-w-xs leading-normal">
+                    {isEsp32
+                      ? 'Live fingerprint detection will start. Image updates in real-time.'
+                      : 'Click to capture fingerprint via the bridge service.'}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>
 
-      {/* Control Actions & Status */}
-      <div className="flex items-center justify-between gap-3 text-slate-500 text-[11px] font-medium p-3 rounded-xl bg-white border border-slate-200">
-        <div className="flex items-center gap-1.5 font-mono truncate">
-          <div className={'w-1.5 h-1.5 rounded-full ' + (
-            isScanning || isUploading ? 'bg-teal-400 animate-pulse' 
-            : value ? 'bg-emerald-500' 
-            : 'bg-slate-300'
-          )}></div>
-          <span className="truncate">{scanStatus}</span>
-        </div>
-
-        {value && !isScanning && !isUploading && (
+      {/* Retake button */}
+      {(value || capturedImage) && !isLiveDetecting && !isUploading && (
+        <div className="flex justify-end">
           <button
             type="button"
             onClick={resetCapture}
-            className="text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1 hover:underline shrink-0"
+            className="text-[10px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1 hover:underline"
           >
-            <RefreshCw size={11} />
-            <span>Retake</span>
+            <RefreshCw size={11} /> Retake
           </button>
-        )}
-      </div>
-
-      {/* Mode Advisory footer */}
-      <div className="flex items-start gap-1.5 bg-amber-50 border border-amber-100/50 p-2.5 rounded-xl text-[10px] text-amber-800 leading-normal">
-        <Info size={12} className="text-amber-500 shrink-0 mt-0.5" />
-        <div>
-          {scanMode === 'bridge' ? (
-            <p>
-              <strong>U.are.U / Bridge Mode (Recommended):</strong> Captures the actual fingerprint image,
-              displays it for verification, then uploads to Supabase Storage. The image URL is saved to the database.
-              Supports <strong>DigitalPersona U.are.U 4500</strong> and serial scanners.
-              Requires FingerprintBridge.exe running locally.
-            </p>
-          ) : scanMode === 'webauthn' ? (
-            <p>
-              <strong>Windows Hello Mode:</strong> Verifies biometric identity through the browser but does NOT
-              produce a fingerprint image. Use only for authentication, not senior citizen registration.
-            </p>
-          ) : (
-            <p>
-              <strong>Simulator Mode:</strong> Generates mock data for UI testing. No real fingerprint image is captured.
-            </p>
-          )}
         </div>
-      </div>
+      )}
 
+      {/* Info footer */}
+      <div className="flex items-start gap-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[10px] text-slate-500 leading-normal">
+        <Info size={12} className="text-slate-400 shrink-0 mt-0.5" />
+        <p>
+          {isEsp32
+            ? 'ESP32 mode: Connects wirelessly to the fingerprint scanner via WiFi (OSCA-Fingerprint network). Live detection polls continuously until you click Capture.'
+            : 'U.are.U 4500 mode: Connects via USB through the Fingerprint Bridge service (localhost:8000). Single capture per scan.'}
+        </p>
+      </div>
     </div>
   );
 }

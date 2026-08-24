@@ -223,8 +223,8 @@ export interface SMSLog {
 
 export interface AuditLogNotification {
   id: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT' | 'LOGIN' | 'SMS';
-  entity: 'Senior' | 'User' | 'Role' | 'Report' | 'SMS' | 'System';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT' | 'LOGIN' | 'LOGOUT' | 'SMS' | 'SESSION_TERMINATE' | 'SESSION_TERMINATE_ALL' | 'SESSION_EXPIRED' | 'SESSION_RENEW';
+  entity: 'Senior' | 'User' | 'Role' | 'Report' | 'SMS' | 'System' | 'Session';
   details: string;
   actorName: string;
   actorRole: string;

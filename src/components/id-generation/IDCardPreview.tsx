@@ -4,6 +4,7 @@ import { exportSeniorIDCardPDF } from '../../utils/pdfExport';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService, signatoriesService } from '../../services/supabaseService';
+import { useSettingsStore } from '../../store/settingsStore';
 import { FileDown, Radio, ShieldCheck, Layers, Sparkles, CreditCard } from 'lucide-react';
 import NFCWriteModal from './NFCWriteModal';
 import { renderBarcodeBits } from '../../utils/idGenerator';
@@ -33,6 +34,9 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
   const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
   const [mayor, setMayor] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
 
+  // ID card config from global store
+  const { idCardConfig, idCardConfigLoaded, loadIdCardConfig, getIdConfig: getConfig } = useSettingsStore();
+
   useEffect(() => {
     signatoriesService.getByDocumentType('id_card').then((data) => {
       const oscaEntry = data.find((s) => s.roleKey === 'osca_head');
@@ -40,7 +44,16 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
       if (oscaEntry) setOscaHead({ fullName: oscaEntry.fullName, signatureData: oscaEntry.signatureData });
       if (mayorEntry) setMayor({ fullName: mayorEntry.fullName, signatureData: mayorEntry.signatureData });
     }).catch((err) => console.error('Failed to load signatories:', err));
-  }, []);
+
+    if (!idCardConfigLoaded) loadIdCardConfig();
+  }, [idCardConfigLoaded, loadIdCardConfig]);
+
+  // Resolved image paths from config
+  const v1Logo = getConfig('variant1', 'img_logo', '/juban-logo.png');
+  const v2Logo = getConfig('variant2', 'img_logo', '/juban-logo.png');
+  const v1Seal = getConfig('variant1', 'img_seal', '/ph_logo.png');
+  const v2Seal = getConfig('variant2', 'img_seal', '/ph_logo.png');
+  const v1Fingerprint = getConfig('variant1', 'img_fingerprint', '/fingerprint.png');
 
   // Secure QR code API using direct CDN generator
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&color=02A952&data=${encodeURIComponent(
@@ -268,7 +281,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
             {/* Blended PH Logo background watermark (centered, large and visible) */}
             <img 
               crossOrigin="anonymous"
-              src={phLogo} 
+              src={v1Seal} 
               alt="PH Logo Seal"
               style={{
                 position: 'absolute',
@@ -358,7 +371,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
             {/* Biometric Fingerprint Security Seal (bottom-right on green curve) */}
             <img 
               crossOrigin="anonymous"
-              src={fingerprintImg} 
+              src={v1Fingerprint} 
               alt="Biometric Fingerprint"
               style={{
                 position: 'absolute',
@@ -411,7 +424,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 <img 
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
-                  src="/juban-logo.png" 
+                  src={v1Logo} 
                   alt="Juban Logo" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
@@ -425,14 +438,14 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   lineHeight: 1.1,
                   textTransform: 'uppercase',
                   textShadow: '0 1px 2px rgba(0,0,0,0.2)',
-                }}>MUNICIPALITY OF JUBAN</div>
+                }}>{getConfig('variant1', 'header_line2', 'MUNICIPALITY OF JUBAN')}</div>
                 <div style={{
                   fontSize: 5.5,
                   fontWeight: 600,
                   color: 'rgba(254,254,254,0.85)',
                   lineHeight: 1.1,
                   textTransform: 'uppercase',
-                }}>Office of Senior Citizens Affairs</div>
+                }}>{getConfig('variant1', 'header_line3', 'Office of Senior Citizens Affairs')}</div>
               </div>
             </div>
 
@@ -455,14 +468,14 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 borderRadius: 3,
                 letterSpacing: '1px',
                 lineHeight: 1,
-              }}>OSCA</div>
+              }}>{getConfig('variant1', 'badge_text', 'OSCA')}</div>
               <div style={{
                 fontSize: 5,
                 color: C.green,
                 fontWeight: 700,
                 marginTop: 1,
                 letterSpacing: '0.3px',
-              }}>SENIOR CITIZEN</div>
+              }}>{getConfig('variant1', 'badge_subtitle', 'SENIOR CITIZEN')}</div>
             </div>
 
             {/* ── PHOTO PLACEHOLDER (upper-left-center area) ── */}
@@ -723,7 +736,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               <img 
                 crossOrigin="anonymous"
                 referrerPolicy="no-referrer"
-                src="/juban-logo.png" 
+                src={v2Logo} 
                 alt="Juban Seal" 
                 style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
@@ -738,13 +751,13 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               textAlign: 'center',
             }}>
               <div style={{ fontSize: 9.5, fontWeight: 700, color: '#000000', lineHeight: 1.15 }}>
-                Republic of the Philippines
+                {getConfig('variant2', 'header_line1', 'Republic of the Philippines')}
               </div>
               <div style={{ fontSize: 10.5, fontWeight: 800, color: '#000000', lineHeight: 1.15 }}>
-                Municipality of Juban
+                {getConfig('variant2', 'header_line2', 'Municipality of Juban')}
               </div>
               <div style={{ fontSize: 9.5, fontWeight: 800, color: '#000000', lineHeight: 1.15, marginTop: 1 }}>
-                Office for Senior Citizens Affairs
+                {getConfig('variant2', 'header_line3', 'Office for Senior Citizens Affairs')}
               </div>
             </div>
 
@@ -1055,7 +1068,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
             {/* Blended PH Logo background watermark on back side (centered, large and visible) */}
             <img 
               crossOrigin="anonymous"
-              src={phLogo} 
+              src={v1Seal} 
               alt="PH Logo Seal"
               style={{
                 position: 'absolute',
@@ -1117,7 +1130,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 <img 
                   crossOrigin="anonymous"
                   referrerPolicy="no-referrer"
-                  src="/juban-logo.png" 
+                  src={v1Logo} 
                   alt="Juban Logo" 
                   style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
@@ -1130,14 +1143,14 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   letterSpacing: '0.5px',
                   textTransform: 'uppercase',
                   lineHeight: 1.1,
-                }}>MUNICIPALITY OF JUBAN</div>
+                }}>{getConfig('variant1', 'back_header', 'MUNICIPALITY OF JUBAN')}</div>
                 <div style={{
                   fontSize: 5.5,
                   fontWeight: 600,
                   color: 'rgba(254,254,254,0.8)',
                   textTransform: 'uppercase',
                   lineHeight: 1.1,
-                }}>OSCA — Sorsogon, Philippines</div>
+                }}>{getConfig('variant1', 'back_subtitle', 'OSCA — Sorsogon, Philippines')}</div>
               </div>
             </div>
 
@@ -1165,7 +1178,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 fontFamily: "'Consolas', 'SF Mono', monospace",
                 letterSpacing: '0.8px',
                 textTransform: 'uppercase',
-              }}>{nfcEnabled ? 'NFC SMART TAG' : 'SMART TAG'}</span>
+              }}>{nfcEnabled ? getConfig('variant1', 'back_nfc_label', 'NFC SMART TAG') : 'SMART TAG'}</span>
             </div>
 
             {/* ── BENEFITS & PRIVILEGES TEXT BLOCK (from Variant 2) ── */}
@@ -1184,7 +1197,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 letterSpacing: '0.3px',
                 lineHeight: 1,
                 marginBottom: 4,
-              }}>BENEFITS & PRIVILEGES UNDER RA 9994</div>
+              }}>{getConfig('variant1', 'back_ra_title', 'BENEFITS & PRIVILEGES UNDER RA 9994')}</div>
               <div style={{
                 fontSize: 5,
                 fontWeight: 400,
@@ -1194,11 +1207,11 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 flexDirection: 'column',
                 gap: 2,
               }}>
-                <p style={{ margin: 0 }}>Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.</p>
-                <p style={{ margin: 0 }}>20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.</p>
-                <p style={{ margin: 0 }}>5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.</p>
-                <p style={{ margin: 0 }}>20% discount & VAT exemption, if applicable on the sale of goods & services.</p>
-                <p style={{ margin: 0, fontWeight: 700 }}>Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.</p>
+                <p style={{ margin: 0 }}>{getConfig('variant1', 'back_benefit_1', 'Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.')}</p>
+                <p style={{ margin: 0 }}>{getConfig('variant1', 'back_benefit_2', '20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.')}</p>
+                <p style={{ margin: 0 }}>{getConfig('variant1', 'back_benefit_3', '5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.')}</p>
+                <p style={{ margin: 0 }}>{getConfig('variant1', 'back_benefit_4', '20% discount & VAT exemption, if applicable on the sale of goods & services.')}</p>
+                <p style={{ margin: 0, fontWeight: 700 }}>{getConfig('variant1', 'back_benefit_5', 'Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.')}</p>
               </div>
             </div>
 
@@ -1272,7 +1285,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 color: C.white,
                 textTransform: 'uppercase',
                 letterSpacing: '0.5px',
-              }}>SCAN TO VERIFY</span>
+              }}>{getConfig('variant1', 'back_qr_label', 'SCAN TO VERIFY')}</span>
             </div>
 
             {/* ── BARCODE (bottom-center strip) ── */}
@@ -1354,7 +1367,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                     color: 'rgba(254,254,254,0.65)',
                     textTransform: 'uppercase',
                     marginTop: 1,
-                  }}>OSCA Head</div>
+                  }}>{getConfig('variant1', 'back_osca_head_title', 'OSCA Head')}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'center' }}>
@@ -1380,7 +1393,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                     color: 'rgba(254,254,254,0.65)',
                     textTransform: 'uppercase',
                     marginTop: 1,
-                  }}>Municipal Mayor</div>
+                  }}>{getConfig('variant1', 'back_mayor_title', 'Municipal Mayor')}</div>
                 </div>
               </div>
             </div>
@@ -1423,7 +1436,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 textAlign: 'left',
                 marginBottom: 6,
               }}>
-                BENEFITS & PRIVILEGES UNDER REPUBLIC ACT NO.9994
+                {getConfig('variant2', 'back_ra_title', 'BENEFITS & PRIVILEGES UNDER REPUBLIC ACT NO.9994')}
               </div>
 
               {/* Text provisions */}
@@ -1437,19 +1450,19 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 gap: 5,
               }}>
                 <p style={{ margin: 0 }}>
-                  Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.
+                  {getConfig('variant2', 'back_benefit_1', 'Free Medical & Dental, Diagnostic & Laboratory Services in all Government Facilities.')}
                 </p>
                 <p style={{ margin: 0 }}>
-                  20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.
+                  {getConfig('variant2', 'back_benefit_2', '20% discount in purchase of unbranded generic medicines, discounts in hotels, restaurants, recreation center, theatres, cinema houses & concert halls, discount in Medical & Dental, Diagnostic & Laboratory Services in all private facilities, discount fare for domestic air, sea travel and public land transportation, discount in funeral & burial services.')}
                 </p>
                 <p style={{ margin: 0 }}>
-                  5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.
+                  {getConfig('variant2', 'back_benefit_3', '5% discounts for regular retail price of prime necessities & prime commodities monthly utilization of water and electricity.')}
                 </p>
                 <p style={{ margin: 0 }}>
-                  20% discount & VAT exemption, if applicable on the sale of goods & services.
+                  {getConfig('variant2', 'back_benefit_4', '20% discount & VAT exemption, if applicable on the sale of goods & services.')}
                 </p>
                 <p style={{ margin: 0, fontWeight: 700 }}>
-                  Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.
+                  {getConfig('variant2', 'back_benefit_5', 'Only EXCLUSIVE USE OF SENIOR CITIZENS, abuse of privileges is punishable by law. Persons & Corporations violating RA 9994 shall be penalized.')}
                 </p>
               </div>
             </div>
@@ -1471,7 +1484,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 )}
                 <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
                   <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>{oscaHead.fullName || 'OSCA Head'}</div>
-                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>OSCA Head</div>
+                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>{getConfig('variant2', 'back_osca_head_title', 'OSCA Head')}</div>
                 </div>
               </div>
               <div style={{ textAlign: 'center', width: 105 }}>
@@ -1482,7 +1495,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                 )}
                 <div style={{ borderTop: '1px solid #000', paddingTop: 2 }}>
                   <div style={{ fontSize: 6.5, fontWeight: 800, color: '#000', textTransform: 'uppercase' }}>{mayor.fullName || 'Municipal Mayor'}</div>
-                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>Municipal Mayor</div>
+                  <div style={{ fontSize: 5.5, fontWeight: 600, color: '#444', textTransform: 'uppercase' }}>{getConfig('variant2', 'back_mayor_title', 'Municipal Mayor')}</div>
                 </div>
               </div>
             </div>

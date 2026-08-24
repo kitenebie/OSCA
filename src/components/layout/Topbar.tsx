@@ -357,9 +357,17 @@ export default function Topbar() {
             {/* User Profile dropdown mockup */}
             {currentUser && (
               <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
-                <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center font-extrabold text-xs text-white shadow-sm">
-                  {currentUser.username.substring(0, 2).toUpperCase()}
-                </div>
+                {currentUser.profilePhoto ? (
+                  <img
+                    src={currentUser.profilePhoto}
+                    alt={currentUser.fullName}
+                    className="w-8 h-8 rounded-full object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center font-extrabold text-xs text-white shadow-sm">
+                    {currentUser.username.substring(0, 2).toUpperCase()}
+                  </div>
+                )}
                 <div className="hidden md:block text-left">
                   <h4 className="text-xs font-bold text-slate-700 leading-tight">{currentUser.fullName}</h4>
                   <p className="text-[8px] font-mono text-emerald-600 font-bold uppercase tracking-wider">{currentUser.role}</p>

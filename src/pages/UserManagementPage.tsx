@@ -1,9 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import UserManagement from '../components/rbac/UserManagement';
+import SessionManagement from '../components/rbac/SessionManagement';
 import RoleGuard from '../components/rbac/RoleGuard';
-import { ShieldCheck, ShieldAlert } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Users, MonitorSmartphone } from 'lucide-react';
 
 export default function UserManagementPage() {
+  const [activeTab, setActiveTab] = useState<'users' | 'sessions'>('users');
+
+  const tabs = [
+    { id: 'users' as const, label: 'User Accounts', icon: Users },
+    { id: 'sessions' as const, label: 'Active Sessions', icon: MonitorSmartphone },
+  ];
+
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
       
@@ -13,7 +21,7 @@ export default function UserManagementPage() {
         <p className="text-[11px] text-slate-400">Configure encoder accounts, toggle security logins, and manage RBAC profiles</p>
       </div>
 
-      {/* Role Guard wrapping the actual component */}
+      {/* Role Guard wrapping the actual content */}
       <RoleGuard
         permission="canManageUsers"
         fallback={
@@ -28,7 +36,38 @@ export default function UserManagementPage() {
           </div>
         }
       >
-        <UserManagement />
+        {/* Tabs */}
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm">
+          <div className="flex border-b border-slate-100">
+            {tabs.map((tab) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center gap-2 px-5 py-3.5 text-xs font-bold transition-all relative ${
+                    isActive
+                      ? 'text-teal-600'
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <Icon size={15} />
+                  {tab.label}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-teal-500 rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Tab Content */}
+          <div className="p-5">
+            {activeTab === 'users' && <UserManagement />}
+            {activeTab === 'sessions' && <SessionManagement />}
+          </div>
+        </div>
       </RoleGuard>
 
     </div>

@@ -2348,11 +2348,15 @@ export default function SeniorRegistrationPage() {
 
 
 
-                  // Only allow jumping back to completed steps
+                  // In edit mode: allow jumping to ANY step (data is pre-filled)
 
 
 
-                  if (step.id < currentStep) {
+                  // In new registration: only allow jumping back to completed steps
+
+
+
+                  if (isEditMode || step.id < currentStep) {
 
 
 
@@ -2388,7 +2392,15 @@ export default function SeniorRegistrationPage() {
 
 
 
-                      : 'text-slate-400 cursor-not-allowed'}`}
+                      : isEditMode
+
+
+
+                        ? 'text-slate-500 hover:text-teal-600 cursor-pointer'
+
+
+
+                        : 'text-slate-400 cursor-not-allowed'}`}
 
 
 
@@ -2420,7 +2432,15 @@ export default function SeniorRegistrationPage() {
 
 
 
-                      : 'bg-slate-100 border border-slate-200 text-slate-400'}`}
+                      : isEditMode
+
+
+
+                        ? 'bg-slate-200 border border-slate-300 text-slate-600 hover:bg-teal-100 hover:border-teal-300 hover:text-teal-700 transition-colors'
+
+
+
+                        : 'bg-slate-100 border border-slate-200 text-slate-400'}`}
 
 
 
@@ -2444,7 +2464,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-                  ${isActive ? 'text-teal-800' : isCompleted ? 'text-emerald-700' : 'text-slate-400'}`}
+                  ${isActive ? 'text-teal-800' : isCompleted ? 'text-emerald-700' : isEditMode ? 'text-slate-600' : 'text-slate-400'}`}
 
 
 
@@ -2629,6 +2649,86 @@ export default function SeniorRegistrationPage() {
 
 
             </div>
+
+
+
+            {/* Mobile Edit Mode: Clickable step numbers */}
+
+
+
+            {isEditMode && (
+
+
+
+              <div className="flex flex-wrap gap-1.5 mt-1">
+
+
+
+                {STEPS.map((step) => (
+
+
+
+                  <button
+
+
+
+                    key={step.id}
+
+
+
+                    type="button"
+
+
+
+                    onClick={() => setCurrentStep(step.id)}
+
+
+
+                    className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-all
+
+
+
+                      ${currentStep === step.id
+
+
+
+                        ? 'bg-teal-600 text-white ring-2 ring-teal-500/20 scale-110'
+
+
+
+                        : 'bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700 border border-slate-200 hover:border-teal-300'
+
+
+
+                      }`}
+
+
+
+                    title={step.label}
+
+
+
+                  >
+
+
+
+                    {step.id}
+
+
+
+                  </button>
+
+
+
+                ))}
+
+
+
+              </div>
+
+
+
+            )}
 
 
 

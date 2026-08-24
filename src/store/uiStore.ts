@@ -11,7 +11,6 @@ export type AppPages =
   | 'FindUser'
   | 'Configuration'
   | 'Mapping'
-  | 'CentenarianHonoring';
 
 interface Toast {
   id: string;
@@ -25,6 +24,7 @@ interface UIState {
   sidebarOpen: boolean;
   toasts: Toast[];
   nfcEnabled: boolean;
+  sessionDismissedBy: string | null;
   
   setCurrentPage: (page: AppPages, seniorId?: string | null) => void;
   toggleSidebar: () => void;
@@ -32,6 +32,8 @@ interface UIState {
   showToast: (message: string, type?: Toast['type']) => void;
   removeToast: (id: string) => void;
   setNfcEnabled: (enabled: boolean) => void;
+  showSessionDismissed: (terminatedBy: string) => void;
+  clearSessionDismissed: () => void;
 }
 
 const getStoredPage = (): AppPages => {
@@ -49,6 +51,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   sidebarOpen: true,
   toasts: [],
   nfcEnabled: false,
+  sessionDismissedBy: null,
 
   setCurrentPage: (page, seniorId = null) => {
     set({ currentPage: page, selectedSeniorId: seniorId });
@@ -80,5 +83,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
   },
 
-  setNfcEnabled: (enabled) => set({ nfcEnabled: enabled })
+  setNfcEnabled: (enabled) => set({ nfcEnabled: enabled }),
+
+  showSessionDismissed: (terminatedBy) => set({ sessionDismissedBy: terminatedBy }),
+  clearSessionDismissed: () => set({ sessionDismissedBy: null }),
 }));

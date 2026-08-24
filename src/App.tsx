@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { userSettingsService } from './services/supabaseService';
 import { useAuthStore } from './store/authStore';
 import { useSeniorsStore } from './store/seniorsStore';
@@ -15,21 +15,27 @@ import UserManagementPage from './pages/UserManagementPage';
 import FindUserPage from './pages/FindUserPage';
 import ConfigurationPage from './pages/ConfigurationPage';
 import MappingPage from './pages/MappingPage';
-import CentenarianHonoringPage from './pages/CentenarianHonoringPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
+import SessionDismissedModal from './components/rbac/SessionDismissedModal';
 import { applySystemTheme } from './utils/theme';
 
 export default function App() {
   const { currentUser } = useAuthStore();
-  const { currentPage, toasts, removeToast } = useUIStore();
+  const { currentPage, toasts, removeToast, sessionDismissedBy, clearSessionDismissed } = useUIStore();
+  const logout = useAuthStore((s) => s.logout);
   const initAuth = useAuthStore((s) => s.initialize);
   const initSeniors = useSeniorsStore((s) => s.initialize);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
   // Initialize Supabase data on mount
   useEffect(() => {
-    initAuth();
+    const init = async () => {
+      await initAuth();
+      setIsCheckingSession(false);
+    };
+    init();
     initSeniors();
   }, []);
 
@@ -73,8 +79,6 @@ export default function App() {
         return <ConfigurationPage />;
       case 'Mapping':
         return <MappingPage />;
-      case 'CentenarianHonoring':
-        return <CentenarianHonoringPage />;
       default:
         return <DashboardPage />;
     }
@@ -102,7 +106,17 @@ export default function App() {
     <div className="min-h-screen bg-slate-50/50 text-slate-800 antialiased selection:bg-teal-500/10 selection:text-teal-800">
       
       {/* Auth state manager router */}
-      {!currentUser ? (
+      {isCheckingSession ? (
+        <div className="min-h-screen flex items-center justify-center bg-slate-50">
+          <div className="flex flex-col items-center gap-3">
+            <svg className="animate-spin h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p className="text-sm text-slate-500 font-medium">Verifying session...</p>
+          </div>
+        </div>
+      ) : !currentUser ? (
         <LoginPage />
       ) : (
         <DashboardLayout>
@@ -135,6 +149,16 @@ export default function App() {
           ))}
         </AnimatePresence>
       </div>
+
+      {/* Session Dismissed Modal — shown when admin force-terminates this user's session */}
+      <SessionDismissedModal
+        isOpen={!!sessionDismissedBy}
+        terminatedBy={sessionDismissedBy || ''}
+        onAcknowledge={() => {
+          clearSessionDismissed();
+          logout();
+        }}
+      />
 
     </div>
   );

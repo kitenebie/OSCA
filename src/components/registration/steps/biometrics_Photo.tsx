@@ -64,12 +64,12 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
         setScanStatus('success');
         setScanMessage(`Fingerprint verified via Windows Hello! ID: ${templateId}`);
       } else {
-        throw new Error('Walang credential na na-return.');
+        throw new Error('No credential returned from the sensor.');
       }
     } catch (err: any) {
       setScanStatus('error');
       if (err.name === 'NotAllowedError') {
-        setScanMessage('Cancelled — hindi na-touch ang sensor o ni-cancel ang Windows Hello dialog.');
+        setScanMessage('Cancelled — sensor was not touched or the Windows Hello dialog was dismissed.');
       } else if (err.name === 'InvalidStateError') {
         setScanMessage('Biometric already registered. Click "Rescan" to capture again.');
       } else if (err.name === 'NotSupportedError') {
