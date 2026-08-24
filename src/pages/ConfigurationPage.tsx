@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 import SignaturePad from '../components/profiling/SignaturePad';
+import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
 import { UsbSignaturePadProvider } from '../contexts/UsbSignaturePadContext';
 
 // Default roles configuration with notifications, CRUD, and page access control
@@ -287,135 +288,9 @@ const PERMISSION_LABELS: { key: keyof RolePermission['permissions']; label: stri
   { key: 'canAccessConfiguration', label: 'Page: System Config', group: 'Pages Access', icon: MonitorCog },
 ];
 
-// ── USB Fingerprint Scanner Test Component ──────────────────────────────────
-function FingerprintScannerTest() {
-  const [status, setStatus] = React.useState<'idle' | 'connecting' | 'scanning' | 'success' | 'error'>('idle');
-  const [message, setMessage] = React.useState('');
-  const [capturedImage, setCapturedImage] = React.useState<string | null>(null);
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-
-  const startTestScan = async () => {
-    setStatus('connecting');
-    setMessage('Connecting to USB fingerprint scanner...');
-    setCapturedImage(null);
-
-    try {
-      const device = await navigator.usb.requestDevice({
-        filters: [
-          { vendorId: 0x1162 }, // SecuGen
-          { vendorId: 0x147e }, // Upek/AuthenTec
-          { vendorId: 0x04f3 }, // Elan Microelectronics
-          { vendorId: 0x1c7a }, // LighTuning
-          { vendorId: 0x05ba }, // DigitalPersona
-          { vendorId: 0x2109 }, // Generic HID fingerprint
-        ],
-      });
-
-      await device.open();
-      if (device.configuration === null) await device.selectConfiguration(1);
-      await device.claimInterface(0);
-
-      setStatus('scanning');
-      setMessage('Place your thumb on the scanner...');
-
-      const scanCommand = new Uint8Array([0x40, 0x01, 0x00, 0x00]);
-      const outEp = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(ep => ep.direction === 'out');
-      const inEp = device.configuration!.interfaces[0]?.alternate?.endpoints?.find(ep => ep.direction === 'in');
-
-      if (outEp) await device.transferOut(outEp.endpointNumber, scanCommand);
-
-      let rawData: Uint8Array | null = null;
-      if (inEp) {
-        const result = await device.transferIn(inEp.endpointNumber, 64000);
-        if (result.data && result.data.byteLength > 0) rawData = new Uint8Array(result.data.buffer);
-      } else {
-        const result = await device.controlTransferIn(
-          { requestType: 'vendor', recipient: 'interface', request: 0x01, value: 0, index: 0 }, 64000
-        );
-        if (result.data && result.data.byteLength > 0) rawData = new Uint8Array(result.data.buffer);
-      }
-
-      await device.close();
-
-      if (rawData) {
-        const canvas = canvasRef.current!;
-        canvas.width = 256; canvas.height = 288;
-        const ctx = canvas.getContext('2d')!;
-        const imageData = ctx.createImageData(256, 288);
-        for (let i = 0; i < 256 * 288; i++) {
-          const val = rawData[i] || 0;
-          imageData.data[i * 4] = val;
-          imageData.data[i * 4 + 1] = val;
-          imageData.data[i * 4 + 2] = val;
-          imageData.data[i * 4 + 3] = 255;
-        }
-        ctx.putImageData(imageData, 0, 0);
-        setCapturedImage(canvas.toDataURL('image/png'));
-        setStatus('success');
-        setMessage('✓ Fingerprint captured successfully! Scanner is working.');
-      } else {
-        throw new Error('No data received from scanner.');
-      }
-    } catch (err: any) {
-      setStatus('error');
-      if (err.name === 'NotFoundError') setMessage('No scanner selected. Connect your USB fingerprint scanner and try again.');
-      else if (err.name === 'SecurityError') setMessage('USB access denied. Allow USB access in browser settings.');
-      else setMessage(err.message || 'Failed to capture fingerprint.');
-    }
-  };
-
-  return (
-    <div className="flex flex-col items-center gap-4">
-      {/* Canvas preview */}
-      <div className={`relative rounded-xl overflow-hidden flex items-center justify-center border-2 ${
-        capturedImage ? 'border-amber-400 bg-slate-900' : 'border-dashed border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800'
-      }`} style={{ width: 180, height: 200 }}>
-        <canvas ref={canvasRef} className={`w-full h-full object-contain ${capturedImage ? 'opacity-100' : 'opacity-0'}`} width={256} height={288} />
-        {!capturedImage && status === 'idle' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 gap-1">
-            <Fingerprint size={40} strokeWidth={1.2} />
-            <span className="text-[10px] font-medium">No scan yet</span>
-          </div>
-        )}
-        {status === 'connecting' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 gap-1">
-            <Usb size={28} className="animate-pulse text-amber-500" />
-            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">Connecting...</span>
-          </div>
-        )}
-        {status === 'scanning' && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-slate-900/80 gap-1">
-            <Fingerprint size={32} className="animate-pulse text-amber-500" />
-            <span className="text-[10px] font-semibold text-amber-700 dark:text-amber-400">Place thumb...</span>
-          </div>
-        )}
-      </div>
-
-      {/* Status */}
-      {message && (
-        <p className={`text-xs font-medium text-center max-w-xs ${
-          status === 'success' ? 'text-green-600 dark:text-green-400' :
-          status === 'error' ? 'text-red-500 dark:text-red-400' :
-          'text-amber-600 dark:text-amber-400'
-        }`}>{message}</p>
-      )}
-
-      {/* Action */}
-      <button
-        type="button"
-        onClick={startTestScan}
-        disabled={status === 'connecting' || status === 'scanning'}
-        className="flex items-center gap-2 px-5 py-2.5 bg-amber-600 text-white rounded-xl text-xs font-bold hover:bg-amber-700 shadow-md shadow-amber-200 dark:shadow-amber-900/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <Usb size={14} />
-        {status === 'error' ? 'Retry Scan' : status === 'success' ? 'Scan Again' : 'Test Scan'}
-      </button>
-    </div>
-  );
-}
-
 export default function ConfigurationPage() {
   const { nfcEnabled, setNfcEnabled, showToast } = useUIStore();
+  const [testFingerprintUrl, setTestFingerprintUrl] = useState<string | null>(null);
   const { hasPermission, currentUser } = useAuthStore();
 
   // ====== THEME STATE ======
@@ -1561,7 +1436,7 @@ const COLOR_PALETTES_DARK = [
             </div>
           </div>
 
-          {/* --- USB Fingerprint Scanner --- */}
+          {/* --- USB Fingerprint Scanner (U.are.U 4500 via Bridge) --- */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
               <Fingerprint size={14} className="text-amber-600" />
@@ -1569,10 +1444,126 @@ const COLOR_PALETTES_DARK = [
               <span className="text-[9px] font-bold text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-100 dark:border-amber-800 uppercase tracking-wider">Test Mode</span>
             </div>
             <p className="text-[10px] text-slate-400">
-              Test the USB fingerprint scanner connection via WebUSB. Click "Test Scan" to connect to the device and perform a test capture. Ensure the scanner is plugged in before testing.
+              Test the USB fingerprint scanner connection via the Fingerprint Bridge service. Click the scan button to capture a fingerprint image. The image will be displayed below for verification.
             </p>
-            <div className="border border-slate-200 dark:border-slate-700 rounded-2xl p-5 bg-slate-50/30 dark:bg-slate-900/30">
-              <FingerprintScannerTest />
+            <ThumbprintCapture
+              value={testFingerprintUrl}
+              onChange={(url) => {
+                setTestFingerprintUrl(url);
+                if (url) console.log('[CONFIG TEST] Fingerprint captured:', url.substring(0, 80) + '...');
+              }}
+              seniorId="test-config"
+            />
+          </div>
+
+          {/* --- Setup Guide: How to Install Fingerprint Scanner --- */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
+              <HelpCircle size={14} className="text-indigo-600" />
+              <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">Setup Guide: Fingerprint Scanner</h6>
+            </div>
+            
+            <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 space-y-4">
+              {/* Requirements */}
+              <div>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Requirements</h6>
+                <ul className="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 list-none">
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold mt-0.5">1.</span>
+                    <span><strong>DigitalPersona U.are.U 4500</strong> USB fingerprint scanner (or compatible: ZK4500, SLK20R)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold mt-0.5">2.</span>
+                    <span><strong>DigitalPersona SDK</strong> — download from <a href="https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">HID Global Developer Center</a> (free with device)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold mt-0.5">3.</span>
+                    <span><strong>FingerprintBridge.exe</strong> — local service na nagco-connect ng scanner sa web app</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* Installation Steps */}
+              <div>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Installation Steps</h6>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Install U.are.U 4500 Driver</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">I-plug ang USB scanner. Automatic dapat mag-install ang driver. Kung hindi, download from HID Global website. Check sa Device Manager → Biometric devices.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Download & Install DigitalPersona SDK</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Mag-register sa HID Global Developer Center (free). Download ang "ZKFinger SDK for Windows" or "U.are.U SDK". I-install para makuha ang DLL files.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Copy SDK DLLs to Bridge Folder</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Hanapin ang <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dpfpdd.dll</code> at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dpfj.dll</code> sa SDK install folder (typically <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">C:\Program Files\DigitalPersona\Bin\</code>). I-copy sa same folder ng FingerprintBridge.exe.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">4</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Run FingerprintBridge.exe</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Double-click ang <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">FingerprintBridge.exe</code> (or run <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dotnet run</code> sa project folder). Makikita mo "DigitalPersona SDK initialized ✓" at "Listening on http://localhost:8000".</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">5</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Test Scanner Above ↑</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Kapag green na ang "Bridge connected" indicator sa taas, click ang fingerprint button at ilagay ang daliri sa scanner. Dapat lumabas ang fingerprint image.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Troubleshooting */}
+              <div>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Troubleshooting</h6>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]">
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200">"Bridge disconnected"</p>
+                    <p className="text-slate-500 dark:text-slate-400">Hindi pa nakabukas ang FingerprintBridge.exe. I-run muna bago mag-test.</p>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200">"dpfpdd.dll not found"</p>
+                    <p className="text-slate-500 dark:text-slate-400">Wala pang DLL files sa bridge folder. I-copy ang dpfpdd.dll at dpfj.dll from SDK.</p>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200">"No device detected"</p>
+                    <p className="text-slate-500 dark:text-slate-400">Unplug at replug ang USB scanner. Check sa Device Manager kung naka-detect ang Biometric device.</p>
+                  </div>
+                  <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
+                    <p className="font-semibold text-slate-700 dark:text-slate-200">"Timeout — walang finger"</p>
+                    <p className="text-slate-500 dark:text-slate-400">Hindi na-detect ang daliri within 12 seconds. Ilagay nang maigi ang daliri sa glass ng scanner.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* File Structure */}
+              <div>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Bridge Folder Structure</h6>
+                <pre className="text-[10px] bg-slate-900 text-green-400 rounded-lg p-3 font-mono overflow-x-auto">
+{`fingerprint-bridge/
+├── FingerprintBridge.exe      ← Main executable (run this)
+├── dpfpdd.dll                 ← DigitalPersona Device Driver (from SDK)
+├── dpfj.dll                   ← DigitalPersona Feature Extraction (from SDK)
+├── appsettings.json           ← Configuration
+└── ...other .NET runtime files`}
+                </pre>
+              </div>
             </div>
           </div>
         </div>
