@@ -484,7 +484,7 @@ export default function SeniorProfilePage() {
   };
 
   const isPending =
-    senior.status === "Pending" || senior.status === "For Verification";
+    senior.status === "Pending";
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans w-full max-w-full overflow-hidden">

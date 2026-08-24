@@ -66,10 +66,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
   )}`;
 
   const handleExportPDF = async () => {
-    if (senior.status !== 'Approved') {
-      showToast('Cannot download ID for a senior citizen that is not yet approved.', 'error');
-      return;
-    }
 
     setIsExporting(true);
     showToast('Preparing PDF layout for ID Card...', 'info');
