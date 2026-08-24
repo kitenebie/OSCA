@@ -129,7 +129,7 @@ export default function SignaturePad({ value, onChange, fieldId, showUsbButton =
           className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 bg-teal-600 text-white hover:bg-teal-700 shadow-sm hover:shadow-md cursor-pointer"
         >
           <PenTool size={16} />
-          <span>{value ? 'Baguhin ang Signature' : 'Gumawa ng Signature'}</span>
+          <span>{value ? 'Baguhin ang Signature' : 'Create Signature'}</span>
         </button>
       )}
 
@@ -341,7 +341,7 @@ function SignatureModal({ onComplete, onCancel }: SignatureModalProps) {
         <div className="flex items-center gap-3">
           <PenTool size={20} className="text-teal-400" />
           <div>
-            <h3 className="text-white font-bold text-sm uppercase tracking-wide">Gumawa ng Signature</h3>
+            <h3 className="text-white font-bold text-sm uppercase tracking-wide">Create Signature</h3>
           </div>
         </div>
         <div className="flex items-center gap-2">

@@ -110,7 +110,7 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
         <div className="text-[13px] text-indigo-600 leading-relaxed space-y-1">
           <p>These details will appear on the NCSC Data Form signature block. Assisting Person 1 is typically the family member or caregiver present during registration.</p>
           <p className="font-semibold text-indigo-700">
-            🖊️ Pindutin ang "Gumawa ng Signature" para mag-open ng fullscreen signing canvas. Matapos mag-sign, pindutin ang "Complete" para ma-save.
+            🖊️ Pindutin ang "Create Signature" para mag-open ng fullscreen signing canvas. Matapos mag-sign, pindutin ang "Complete" para ma-save.
           </p>
         </div>
       </div>

@@ -1552,17 +1552,139 @@ const COLOR_PALETTES_DARK = [
                 </div>
               </div>
 
-              {/* File Structure */}
+              {/* Building FingerprintBridge.exe */}
               <div>
-                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Bridge Folder Structure</h6>
-                <pre className="text-[10px] bg-slate-900 text-green-400 rounded-lg p-3 font-mono overflow-x-auto">
-{`fingerprint-bridge/
-├── FingerprintBridge.exe      ← Main executable (run this)
-├── dpfpdd.dll                 ← DigitalPersona Device Driver (from SDK)
-├── dpfj.dll                   ← DigitalPersona Feature Extraction (from SDK)
-├── appsettings.json           ← Configuration
-└── ...other .NET runtime files`}
-                </pre>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">How to Build & Setup FingerprintBridge.exe</h6>
+                <div className="space-y-2">
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">A</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Install .NET 8 SDK</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Download and install from <a href="https://dotnet.microsoft.com/download/dotnet/8.0" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">dotnet.microsoft.com/download/dotnet/8.0</a>. Choose <strong>"SDK"</strong> (not Runtime). After install, open CMD and verify: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dotnet --version</code> — should show 8.x.x.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">B</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Build the Bridge (one-time only)</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Open CMD or Terminal sa <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">fingerprint-bridge</code> folder:</p>
+                      <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 mt-1 font-mono overflow-x-auto">{`cd fingerprint-bridge
+dotnet publish -c Release -r win-x64 --self-contained`}</pre>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Ang output ay nasa: <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">bin/Release/net8.0/win-x64/publish/FingerprintBridge.exe</code></p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">C</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Copy DLLs to Publish Folder</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">I-copy ang <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dpfpdd.dll</code> at <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">dpfj.dll</code> sa same folder kung nasaan ang FingerprintBridge.exe (yung publish folder).</p>
+                    </div>
+                  </div>
+
+              {/* Quick Dev Mode */}
+              <div>
+                <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">Quick Dev Mode (Walang Build)</h6>
+                <div className="bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">Kung naka-install na ang .NET 8 SDK, pwede i-run ang bridge directly without publishing (para sa testing):</p>
+                  <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 mt-1.5 font-mono overflow-x-auto">{`cd fingerprint-bridge
+dotnet run`}</pre>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5">Auto nang mag-li-listen sa <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">http://localhost:8000</code>. Para sa production/deployment, gamitin ang publish command sa Step B.</p>
+                </div>
+              </div>
+
+                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
+                    <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">D</span>
+                    <div>
+                      <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">Auto-Start on PC Boot (via PowerShell)</p>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400">Para automatic mag-start ang FingerprintBridge.exe kapag binuksan ang computer. Pumili ng isa sa tatlong paraan. Open <strong>PowerShell as Administrator</strong> at i-paste ang command:</p>
+                      
+                      <div className="mt-2 space-y-3">
+                        {/* Method 1: Startup Folder */}
+                        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
+                          <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">Option 1: Startup Folder (Pinaka-madali)</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">Mag-create ng shortcut sa Startup folder — auto-run pag nag-login ang user:</p>
+                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path sa actual location ng FingerprintBridge.exe mo
+$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
+$BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
+
+# Create shortcut sa Startup folder
+$WshShell = New-Object -ComObject WScript.Shell
+$StartupFolder = "$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
+$Shortcut = $WshShell.CreateShortcut("$StartupFolder\\FingerprintBridge.lnk")
+$Shortcut.TargetPath = $BridgePath
+$Shortcut.WorkingDirectory = $BridgeDir
+$Shortcut.Description = "OSCA Fingerprint Bridge Service"
+$Shortcut.WindowStyle = 7  # Minimized
+$Shortcut.Save()
+
+Write-Host "Done! FingerprintBridge will auto-start on next login." -ForegroundColor Green`}</pre>
+                        </div>
+
+                        {/* Method 2: Task Scheduler */}
+                        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
+                          <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">Option 2: Scheduled Task (Recommended — runs kahit walang naka-login)</p>
+                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path
+$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
+$BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
+
+# Create Scheduled Task na mag-start on system boot
+$Action   = New-ScheduledTaskAction -Execute $BridgePath -WorkingDirectory $BridgeDir
+$Trigger  = New-ScheduledTaskTrigger -AtStartup
+$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
+$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
+
+Register-ScheduledTask -TaskName "OSCA Fingerprint Bridge" -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "OSCA Fingerprint Bridge - localhost:8000"
+
+# Start now
+Start-ScheduledTask -TaskName "OSCA Fingerprint Bridge"
+
+Write-Host "Done! Bridge registered as Scheduled Task." -ForegroundColor Green`}</pre>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Manage commands:</p>
+                          <pre className="text-[10px] bg-slate-900 text-slate-300 rounded p-1.5 font-mono overflow-x-auto mt-0.5">{`Get-ScheduledTask -TaskName "OSCA Fingerprint Bridge"   # Check status
+Stop-ScheduledTask -TaskName "OSCA Fingerprint Bridge"  # Stop
+Start-ScheduledTask -TaskName "OSCA Fingerprint Bridge" # Start
+Unregister-ScheduledTask -TaskName "OSCA Fingerprint Bridge" -Confirm:$false  # Remove`}</pre>
+                        </div>
+
+                        {/* Method 3: Windows Service */}
+                        <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
+                          <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">Option 3: Windows Service (Pinaka-reliable — auto-restart on crash)</p>
+                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Palitan ang path
+$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
+
+# Install as Windows Service
+sc.exe create "OSCAFingerprintBridge" binPath= $BridgePath start= auto DisplayName= "OSCA Fingerprint Bridge"
+sc.exe description "OSCAFingerprintBridge" "Local fingerprint scanner bridge for OSCA web app (port 8000)"
+
+# Auto-restart on failure (after 5s, 10s, 30s)
+sc.exe failure "OSCAFingerprintBridge" reset= 86400 actions= restart/5000/restart/10000/restart/30000
+
+# Start the service immediately
+sc.exe start "OSCAFingerprintBridge"
+
+Write-Host "Done! Service installed and running." -ForegroundColor Green`}</pre>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Manage commands:</p>
+                          <pre className="text-[10px] bg-slate-900 text-slate-300 rounded p-1.5 font-mono overflow-x-auto mt-0.5">{`sc.exe query OSCAFingerprintBridge    # Check status
+sc.exe stop OSCAFingerprintBridge     # Stop
+sc.exe start OSCAFingerprintBridge    # Start
+sc.exe delete OSCAFingerprintBridge   # Uninstall (stop first)`}</pre>
+                        </div>
+
+                        {/* Verify */}
+                        <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-2 border border-emerald-200 dark:border-emerald-800">
+                          <p className="text-[10px] font-bold text-emerald-800 dark:text-emerald-200 mb-1">✓ Verify kung gumagana:</p>
+                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`# Open PowerShell at i-test kung active ang bridge:
+Invoke-RestMethod -Uri "http://localhost:8000/api/status" | ConvertTo-Json
+
+# Expected output: { "service": "OSCA Fingerprint Bridge", "status": "running", ... }`}</pre>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">Or open browser: <a href="http://localhost:8000/api/status" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">http://localhost:8000/api/status</a></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

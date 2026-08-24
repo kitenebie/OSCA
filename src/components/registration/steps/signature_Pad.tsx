@@ -27,7 +27,7 @@ export default function SignaturePadStep({ form, setForm }: StepProps) {
       <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-start gap-2">
         <PenTool size={14} className="text-indigo-500 shrink-0 mt-0.5" />
         <p className="text-[12px] text-indigo-600 leading-relaxed">
-          Pindutin ang <strong>"Gumawa ng Signature"</strong> para mag-open ng fullscreen signing canvas. Matapos mag-sign, pindutin ang <strong>"Complete"</strong> para ma-auto-crop at ma-save ang iyong signature.
+          Pindutin ang <strong>"Create Signature"</strong> para mag-open ng fullscreen signing canvas. Matapos mag-sign, pindutin ang <strong>"Complete"</strong> para ma-auto-crop at ma-save ang iyong signature.
         </p>
       </div>
 
