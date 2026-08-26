@@ -125,13 +125,25 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
           <div className="pt-2 border-t border-slate-200">
             <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Children ({form.children?.length || 0})</span>
             {form.children?.length > 0 ? form.children.map((c: any, i: number) => (
-              <p key={i} className="text-xs text-slate-700">{c.name || 'Unnamed'} — Age: {c.age || '?'}, {c.occupation || 'N/A'}</p>
+              <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 p-2 bg-white rounded-lg border border-slate-100">
+                <ReviewField label="Name" value={c.name} />
+                <ReviewField label="Contact Number" value={c.contactNumber} />
+                <ReviewField label="Occupation" value={c.occupation} />
+                <ReviewField label="Income" value={c.income} />
+                <ReviewField label="Age" value={c.age} />
+              </div>
             )) : <span className="text-xs text-slate-400 italic">None</span>}
           </div>
           <div className="pt-2 border-t border-slate-200">
             <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Dependents ({form.dependents?.length || 0})</span>
             {form.dependents?.length > 0 ? form.dependents.map((d: any, i: number) => (
-              <p key={i} className="text-xs text-slate-700">{d.name || 'Unnamed'} — Age: {d.age || '?'}, {d.occupation || 'N/A'}</p>
+              <div key={i} className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 p-2 bg-white rounded-lg border border-slate-100">
+                <ReviewField label="Name" value={d.name} />
+                <ReviewField label="Occupation" value={d.occupation} />
+                <ReviewField label="Income" value={d.income} />
+                <ReviewField label="Age" value={d.age} />
+                <ReviewField label="Status" value={d.workingStatus} />
+              </div>
             )) : <span className="text-xs text-slate-400 italic">None</span>}
           </div>
         </ReviewSection>
@@ -225,7 +237,11 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
           <div className="pt-2 border-t border-slate-200">
             <span className="text-xs text-slate-400 uppercase tracking-wider block mb-1">Medicines</span>
             {form.medicines?.filter((m: any) => m.name).length > 0 ? form.medicines.filter((m: any) => m.name).map((m: any, i: number) => (
-              <p key={i} className="text-xs text-slate-700">{m.name} — {m.dosage || 'no dosage'} {m.notes ? `(${m.notes})` : ''}</p>
+              <div key={i} className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-2 p-2 bg-white rounded-lg border border-slate-100">
+                <ReviewField label="Medicine Name" value={m.name} />
+                <ReviewField label="Dosage" value={m.dosage} />
+                <ReviewField label="Notes" value={m.notes} />
+              </div>
             )) : <span className="text-xs text-slate-400 italic">None</span>}
           </div>
         </ReviewSection>
