@@ -13,7 +13,7 @@ export interface SeniorCitizen {
   birthdate: string;
   age: number;
   sex: "Male" | "Female";
-  civilStatus: "Single" | "Married" | "Widowed" | "Separated" | "Divorced";
+  civilStatus: "Single" | "Married" | "Widowed" | "Common-Law" | "Others";
   contactNumber: string;
   barangay: string;
   address: string;
@@ -26,7 +26,8 @@ export interface SeniorCitizen {
   registeredBy: string;         // encoder name/id
   pensionBeneficiary: boolean;
   remarks?: string;
-
+  addressZip?: string;
+  
   // New Registration Fields
   region?: string;
   province?: string;
