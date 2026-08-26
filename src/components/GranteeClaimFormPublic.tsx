@@ -1,0 +1,1284 @@
+import React, { useState } from 'react';
+
+import { supabase } from '../../utils/supabase';
+
+import { useUIStore } from '../store/uiStore';
+
+import { ArrowLeft, ArrowRight, Check, User, Users, Wallet, Heart, ClipboardCheck, FileText, CheckCircle, Upload } from 'lucide-react';
+
+import CustomDatePicker from './ui/CustomDatePicker';
+
+import CustomSelect from './ui/CustomSelect';
+
+interface ChildEntry {
+
+  name: string;
+
+  sex: string;
+
+  age: string;
+
+  contactNumber: string;
+
+  occupation: string;
+
+  income: string;
+
+}
+
+const INITIAL_CHILD: ChildEntry = { name: '', sex: '', age: '', contactNumber: '', occupation: '', income: '' };
+
+interface Step { id: number; label: string; icon: any; }
+
+interface Props { onBack: () => void; }
+
+// ===== REUSABLE FIELD COMPONENTS (matches Registration Form UI) =====
+
+const InputField = ({ label, value, onChange, required = false, placeholder = '', type = 'text' }: {
+
+    label: string; value: string; onChange: (v: string) => void; required?: boolean; placeholder?: string; type?: string;
+
+}) => (
+
+    <div className="space-y-1.5">
+
+      <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">{label} {required && <span className="text-red-500">*</span>}</label>
+
+      {type === 'date' ? (
+
+        <CustomDatePicker value={value} onChange={onChange} placeholder={placeholder || 'Select date'} />
+
+      ) : (
+
+        <input type={type} value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder}
+
+          className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+
+      )}
+
+    </div>
+
+);
+
+const SelectField = ({ label, value, onChange, options, required = false }: {
+
+    label: string; value: string; onChange: (v: string) => void; options: { value: string; label: string }[]; required?: boolean;
+
+}) => (
+
+    <div className="space-y-1.5">
+
+      <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">{label} {required && <span className="text-red-500">*</span>}</label>
+
+      <CustomSelect value={value} onChange={onChange} options={options} placeholder="— Select —" />
+
+    </div>
+
+);
+
+const CheckboxField = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) => (
+
+    <label className="flex items-center gap-2.5 cursor-pointer group">
+
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+
+      <span className="text-[13px] text-slate-600 font-medium group-hover:text-slate-800 transition-colors">{label}</span>
+
+    </label>
+
+);
+
+
+
+// File Upload Field Component (compact card with image preview)
+
+const FileUploadField = ({ label, files, onChange }: { label: string; files: File[]; onChange: (files: File[]) => void }) => (
+
+    <div className="p-3 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-2.5 h-full flex flex-col">
+
+      <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wide leading-tight">{label}</label>
+
+      <label className="cursor-pointer flex items-center justify-center gap-2 px-3 py-2 bg-white border border-dashed border-slate-300 rounded-xl hover:border-teal-400 hover:bg-teal-50/30 transition-all text-xs font-semibold text-slate-500 hover:text-teal-600">
+
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+
+        {files.length === 0 ? 'Upload' : `Add more`}
+
+        <input type="file" multiple accept="image/*,.pdf,.doc,.docx" className="hidden"
+
+          onChange={(e) => { if (e.target.files) onChange([...files, ...Array.from(e.target.files)]); }} />
+
+      </label>
+
+      {files.length > 0 && (
+
+        <div className="flex flex-wrap gap-1.5 mt-auto">
+
+          {files.map((file, idx) => {
+
+            const isImage = file.type.startsWith('image/');
+
+            return (
+
+              <div key={idx} className="relative group">
+
+                {isImage ? (
+
+                  <img src={URL.createObjectURL(file)} alt={file.name} className="w-12 h-12 object-cover rounded-lg border border-slate-200" />
+
+                ) : (
+
+                  <div className="w-12 h-12 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center">
+
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+
+                    <span className="text-[7px] text-slate-400 font-bold mt-0.5 uppercase">{file.name.split('.').pop()}</span>
+
+                  </div>
+
+                )}
+
+                <button type="button" onClick={() => onChange(files.filter((_, i) => i !== idx))}
+
+                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-sm"><svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
+
+      )}
+
+      {files.length > 0 && <span className="text-[10px] text-teal-600 font-semibold">{files.length} file(s)</span>}
+
+    </div>
+
+);
+
+// Upload files to Supabase Storage and return URLs
+
+const uploadDocFiles = async (files: File[], docKey: string, formId: string): Promise<string[]> => {
+
+    const urls: string[] = [];
+
+    for (const file of files) {
+
+      const filePath = `${formId}/${docKey}/${Date.now()}-${file.name}`;
+
+      const { error } = await supabase.storage.from('centenarian-docs').upload(filePath, file);
+
+      if (!error) {
+
+        const { data } = supabase.storage.from('centenarian-docs').getPublicUrl(filePath);
+
+        urls.push(data.publicUrl);
+
+      }
+
+    }
+
+    return urls;
+
+};
+
+const SectionHeader = ({ title }: { title: string }) => (
+
+    <h6 className="text-sm font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+      <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>{title}
+
+    </h6>
+
+);
+
+const SubHeader = ({ title }: { title: string }) => (
+
+    <h6 className="text-[13px] font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+      <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>{title}
+
+    </h6>
+
+);
+
+
+
+export default function GranteeClaimFormPublic({ onBack }: Props) {
+
+  const showToast = useUIStore((state) => state.showToast);
+
+  const [currentStep, setCurrentStep] = useState(1);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // ===== FORM STATE =====
+
+  const [dataPrivacyConsent, setDataPrivacyConsent] = useState<'Consent' | 'Dissent' | ''>('');
+
+  const [placeOfSubmission, setPlaceOfSubmission] = useState<'Local' | 'Abroad' | ''>('');
+
+  const [ncscReferenceCode, setNcscReferenceCode] = useState('');
+
+  const [oscaNumber, setOscaNumber] = useState('');
+
+  const [firstName, setFirstName] = useState('');
+
+  const [middleName, setMiddleName] = useState('');
+
+  const [lastName, setLastName] = useState('');
+
+  const [suffix, setSuffix] = useState('');
+
+  const [birthdate, setBirthdate] = useState('');
+
+  const [age, setAge] = useState<number | ''>('');
+
+  const [contactNumber, setContactNumber] = useState('');
+
+  const [address, setAddress] = useState('');
+
+  const [barangay, setBarangay] = useState('');
+
+  const [cityTown, setCityTown] = useState('');
+
+  const [province, setProvince] = useState('');
+
+  const [region, setRegion] = useState('');
+
+  const [zipCode, setZipCode] = useState('');
+
+  const [abroadHouseNo, setAbroadHouseNo] = useState('');
+
+  const [abroadStreet, setAbroadStreet] = useState('');
+
+  const [abroadCity, setAbroadCity] = useState('');
+
+  const [abroadState, setAbroadState] = useState('');
+
+  const [abroadCountry, setAbroadCountry] = useState('');
+
+  const [abroadZipCode, setAbroadZipCode] = useState('');
+
+  const [sex, setSex] = useState<'Male' | 'Female' | ''>('');
+
+  const [civilStatus, setCivilStatus] = useState<'Single' | 'Married' | 'Widowed' | 'Common-Law' | 'Others' | ''>('');
+
+  const [citizenship, setCitizenship] = useState<'Filipino' | 'Dual' | ''>('');
+
+  const [dualCitizenDetails, setDualCitizenDetails] = useState('');
+
+  const [physicalDisability, setPhysicalDisability] = useState(false);
+
+  const [physicalDisabilityText, setPhysicalDisabilityText] = useState('');
+
+  const [ethnicOrigin, setEthnicOrigin] = useState('');
+
+  const [spouseLastName, setSpouseLastName] = useState('');
+
+  const [spouseFirstName, setSpouseFirstName] = useState('');
+
+  const [spouseMiddleName, setSpouseMiddleName] = useState('');
+
+  const [spouseExtension, setSpouseExtension] = useState('');
+
+  const [spouseContactNumber, setSpouseContactNumber] = useState('');
+
+  const [children, setChildren] = useState<ChildEntry[]>([{ ...INITIAL_CHILD }]);
+
+  // "Is Deceased?" — moved to Step 2
+
+  const [isDeceased, setIsDeceased] = useState(false);
+
+  // E. Transaction Account (only for living grantees)
+
+  const [preferredPaymentMode, setPreferredPaymentMode] = useState<'Landbank' | 'Other Banks' | 'GCash' | 'Palawan PSP' | ''>('');
+
+  const [accountNumber, setAccountNumber] = useState('');
+
+  const [bankName, setBankName] = useState('');
+
+  const [branchName, setBranchName] = useState('');
+
+  const [bankAddress, setBankAddress] = useState('');
+
+  const [isJointAccount, setIsJointAccount] = useState<'Yes' | 'No' | ''>('');
+
+  const [bicSwiftCode, setBicSwiftCode] = useState('');
+
+  const [iban, setIban] = useState('');
+
+  // F. Deceased Grantees
+
+  const [dateOfDeath, setDateOfDeath] = useState('');
+
+  const [claimantContactNumber, setClaimantContactNumber] = useState('');
+
+  const [claimantEmail, setClaimantEmail] = useState('');
+
+  const [claimantLastName, setClaimantLastName] = useState('');
+
+  const [claimantFirstName, setClaimantFirstName] = useState('');
+
+  const [claimantMiddleName, setClaimantMiddleName] = useState('');
+
+  const [claimantExtension, setClaimantExtension] = useState('');
+
+  const [claimantHouseNo, setClaimantHouseNo] = useState('');
+
+  const [claimantStreet, setClaimantStreet] = useState('');
+
+  const [claimantBarangay, setClaimantBarangay] = useState('');
+
+  const [claimantCity, setClaimantCity] = useState('');
+
+  const [claimantProvince, setClaimantProvince] = useState('');
+
+  const [claimantZipCode, setClaimantZipCode] = useState('');
+
+  const [claimantRelationship, setClaimantRelationship] = useState('');
+
+  const [claimantPaymentMode, setClaimantPaymentMode] = useState<'Landbank' | 'Other Banks' | 'GCash' | 'Palawan PSP' | ''>('');
+
+  const [claimantAccountNumber, setClaimantAccountNumber] = useState('');
+
+  const [claimantBankName, setClaimantBankName] = useState('');
+
+  const [claimantBranchName, setClaimantBranchName] = useState('');
+
+  const [claimantBankAddress, setClaimantBankAddress] = useState('');
+
+  const [claimantIsJointAccount, setClaimantIsJointAccount] = useState<'Yes' | 'No' | ''>('');
+
+  const [claimantBicSwiftCode, setClaimantBicSwiftCode] = useState('');
+
+  const [claimantIban, setClaimantIban] = useState('');
+
+  // G. Attestation
+
+  const [granteeSigned, setGranteeSigned] = useState('');
+
+  const [dateSigned, setDateSigned] = useState('');
+
+  // H. Documents
+
+  const [doc1Files, setDoc1Files] = useState<File[]>([]);
+
+  const [doc2Files, setDoc2Files] = useState<File[]>([]);
+
+  const [doc3Files, setDoc3Files] = useState<File[]>([]);
+
+  const [doc4Files, setDoc4Files] = useState<File[]>([]);
+
+  const [doc5Files, setDoc5Files] = useState<File[]>([]);
+
+  const [doc6Files, setDoc6Files] = useState<File[]>([]);
+
+  const [doc7Files, setDoc7Files] = useState<File[]>([]);
+
+  const [doc8Files, setDoc8Files] = useState<File[]>([]);
+
+  const [doc9Files, setDoc9Files] = useState<File[]>([]);
+
+  const [doc10Files, setDoc10Files] = useState<File[]>([]);
+
+  const [doc11Files, setDoc11Files] = useState<File[]>([]);
+
+  
+
+  // I. Verification
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  // ===== DYNAMIC STEPS based on isDeceased =====
+
+  const STEPS: Step[] = isDeceased
+
+    ? [
+
+        { id: 1, label: 'Personal Information', icon: User },
+
+        { id: 2, label: 'Family Information', icon: Users },
+
+        { id: 3, label: 'Deceased Grantees', icon: Heart },
+
+        { id: 4, label: 'Attestation & Docs', icon: ClipboardCheck },
+
+      ]
+
+    : [
+
+        { id: 1, label: 'Personal Information', icon: User },
+
+        { id: 2, label: 'Family Information', icon: Users },
+
+        { id: 3, label: 'Transaction Account', icon: Wallet },
+
+        { id: 4, label: 'Attestation & Docs', icon: ClipboardCheck },
+
+      ];
+
+  // ===== HANDLERS =====
+
+  const addChild = () => { if (children.length < 5) setChildren([...children, { ...INITIAL_CHILD }]); };
+
+  const removeChild = (idx: number) => setChildren(children.filter((_, i) => i !== idx));
+
+  const updateChild = (idx: number, field: keyof ChildEntry, value: string) => {
+
+    const updated = [...children]; updated[idx] = { ...updated[idx], [field]: value }; setChildren(updated);
+
+  };
+
+  const handleNext = () => { if (currentStep < STEPS.length) setCurrentStep(currentStep + 1); };
+
+  const handleBack = () => { if (currentStep > 1) setCurrentStep(currentStep - 1); };
+
+  const handleSubmit = async () => {
+
+    if (!firstName || !lastName) { showToast('Please fill in required fields (First Name, Last Name)', 'error'); return; }
+
+    setIsSubmitting(true);
+
+    try {
+
+      const id = `cen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const { error } = await supabase.from('centenarian_honoring').insert({
+
+        id, status: 'Pending', data_privacy_consent: dataPrivacyConsent || null, place_of_submission: placeOfSubmission || null,
+
+        ncsc_reference_code: ncscReferenceCode || null, osca_number: oscaNumber || null,
+
+        first_name: firstName, middle_name: middleName || null, last_name: lastName, suffix: suffix || null,
+
+        birthdate: birthdate || null, age: age || null, contact_number: contactNumber || null,
+
+        address: address || null, barangay: barangay || null, city_town: cityTown || null,
+
+        province: province || null, region: region || null, zip_code: zipCode || null,
+
+        abroad_house_no: abroadHouseNo || null, abroad_street: abroadStreet || null,
+
+        abroad_city: abroadCity || null, abroad_state: abroadState || null,
+
+        abroad_country: abroadCountry || null, abroad_zip_code: abroadZipCode || null,
+
+        sex: sex || null, civil_status: civilStatus || null, citizenship: citizenship || null,
+
+        dual_citizen_details: dualCitizenDetails || null, physical_disability: physicalDisability,
+
+        physical_disability_text: physicalDisabilityText || null, ethnic_origin: ethnicOrigin || null,
+
+        spouse_last_name: spouseLastName || null, spouse_first_name: spouseFirstName || null,
+
+        spouse_middle_name: spouseMiddleName || null, spouse_extension: spouseExtension || null,
+
+        spouse_contact_number: spouseContactNumber || null,
+
+        children: children.filter(c => c.name.trim() !== ''),
+
+        // E. Transaction Account — NULL if deceased
+
+        preferred_payment_mode: isDeceased ? null : (preferredPaymentMode || null),
+
+        account_number: isDeceased ? null : (accountNumber || null),
+
+        bank_name: isDeceased ? null : (bankName || null),
+
+        branch_name: isDeceased ? null : (branchName || null),
+
+        bank_address: isDeceased ? null : (bankAddress || null),
+
+        is_joint_account: isDeceased ? null : (isJointAccount || null),
+
+        bic_swift_code: isDeceased ? null : (bicSwiftCode || null),
+
+        iban: isDeceased ? null : (iban || null),
+
+        // F. Deceased Grantees
+
+        is_deceased: isDeceased,
+
+        date_of_death: isDeceased ? (dateOfDeath || null) : null,
+
+        claimant_contact_number: isDeceased ? (claimantContactNumber || null) : null,
+
+        claimant_email: isDeceased ? (claimantEmail || null) : null,
+
+        claimant_last_name: isDeceased ? (claimantLastName || null) : null,
+
+        claimant_first_name: isDeceased ? (claimantFirstName || null) : null,
+
+        claimant_middle_name: isDeceased ? (claimantMiddleName || null) : null,
+
+        claimant_extension: isDeceased ? (claimantExtension || null) : null,
+
+        claimant_house_no: isDeceased ? (claimantHouseNo || null) : null,
+
+        claimant_street: isDeceased ? (claimantStreet || null) : null,
+
+        claimant_barangay: isDeceased ? (claimantBarangay || null) : null,
+
+        claimant_city: isDeceased ? (claimantCity || null) : null,
+
+        claimant_province: isDeceased ? (claimantProvince || null) : null,
+
+        claimant_zip_code: isDeceased ? (claimantZipCode || null) : null,
+
+        claimant_relationship: isDeceased ? (claimantRelationship || null) : null,
+
+        claimant_payment_mode: isDeceased ? (claimantPaymentMode || null) : null,
+
+        claimant_account_number: isDeceased ? (claimantAccountNumber || null) : null,
+
+        claimant_bank_name: isDeceased ? (claimantBankName || null) : null,
+
+        claimant_branch_name: isDeceased ? (claimantBranchName || null) : null,
+
+        claimant_bank_address: isDeceased ? (claimantBankAddress || null) : null,
+
+        claimant_is_joint_account: isDeceased ? (claimantIsJointAccount || null) : null,
+
+        claimant_bic_swift_code: isDeceased ? (claimantBicSwiftCode || null) : null,
+
+        claimant_iban: isDeceased ? (claimantIban || null) : null,
+
+        grantee_signed: granteeSigned || null, date_signed: dateSigned || null,
+
+        doc1: await uploadDocFiles(doc1Files, 'doc1', id),
+
+        doc2: await uploadDocFiles(doc2Files, 'doc2', id),
+
+        doc3: await uploadDocFiles(doc3Files, 'doc3', id),
+
+        doc4: await uploadDocFiles(doc4Files, 'doc4', id),
+
+        doc5: await uploadDocFiles(doc5Files, 'doc5', id),
+
+        doc6: await uploadDocFiles(doc6Files, 'doc6', id),
+
+        doc7: await uploadDocFiles(doc7Files, 'doc7', id),
+
+        doc8: await uploadDocFiles(doc8Files, 'doc8', id),
+
+        doc9: await uploadDocFiles(doc9Files, 'doc9', id),
+
+        doc10: await uploadDocFiles(doc10Files, 'doc10', id),
+
+        doc11: await uploadDocFiles(doc11Files, 'doc11', id),
+
+        
+
+        
+
+        
+
+        
+
+      });
+
+      if (error) throw error;
+
+      setIsSubmitted(true);
+
+      showToast('Grantee Claim Form submitted successfully!', 'success');
+
+    } catch (err: any) { showToast(`Failed to submit: ${err.message}`, 'error'); }
+
+    finally { setIsSubmitting(false); }
+
+  };
+
+  // ===== SUCCESS VIEW =====
+
+  if (isSubmitted) {
+
+    return (
+
+      <div className="space-y-6 animate-fadeIn font-sans">
+
+        <div className="bg-white p-10 rounded-3xl border border-slate-200/80 shadow-sm text-center space-y-4">
+
+          <div className="w-16 h-16 mx-auto bg-emerald-100 rounded-full flex items-center justify-center">
+
+            <CheckCircle size={32} className="text-emerald-600" />
+
+          </div>
+
+          <h2 className="text-2xl font-black text-slate-800 uppercase">Form Submitted!</h2>
+
+          <p className="text-sm text-slate-500 max-w-md mx-auto">Your Grantee Claim Form has been submitted successfully. Please wait for verification from the OSCA office.</p>
+
+          <button onClick={onBack} className="mt-4 px-6 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-sm font-bold rounded-xl shadow-md shadow-teal-600/10 transition-all active:scale-95">Back to Home</button>
+
+        </div>
+
+      </div>
+
+    );
+
+  }
+
+  // ===== STEP RENDERERS =====
+
+  // STEP 1: Personal Information
+
+  const renderStep1 = () => (
+
+    <div className="space-y-6 animate-fadeIn">
+
+      <div className="p-4 bg-amber-50/60 border border-amber-200/60 rounded-2xl">
+
+        <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wide mb-3">A. Data Privacy Consent</h4>
+
+        <div className="flex gap-5">
+
+          {['Consent', 'Dissent'].map(opt => (
+
+            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+
+              <input type="radio" name="consent" value={opt} checked={dataPrivacyConsent === opt} onChange={() => setDataPrivacyConsent(opt as any)} className="w-4 h-4 text-teal-600 focus:ring-teal-500" />
+
+              <span className="text-sm font-medium text-slate-700">{opt}</span>
+
+            </label>
+
+          ))}
+
+        </div>
+
+      </div>
+
+      <SelectField label="B. Place of Submission" value={placeOfSubmission} onChange={(v) => setPlaceOfSubmission(v as any)} options={[{ value: 'Local', label: 'Local' }, { value: 'Abroad', label: 'Abroad' }]} />
+
+      <SectionHeader title="C. Personal Information" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <InputField label="C.1 NCSC Registration Reference No." value={ncscReferenceCode} onChange={setNcscReferenceCode} placeholder="NCSC-V-SOR-2025-001234" />
+
+        <InputField label="C.2 LGU OSCA ID Number" value={oscaNumber} onChange={setOscaNumber} placeholder="OSCA-2025-JBN-00123" />
+
+        <InputField label="C.3 First Name" value={firstName} onChange={setFirstName} required placeholder="Maria" />
+
+        <InputField label="C.4 Middle Name" value={middleName} onChange={setMiddleName} placeholder="Santos" />
+
+        <InputField label="C.5 Last Name" value={lastName} onChange={setLastName} required placeholder="Dela Cruz" />
+
+        <SelectField label="C.6 Suffix" value={suffix} onChange={setSuffix} options={[
+
+          { value: 'N/A', label: 'N/A' }, { value: 'Jr.', label: 'Jr.' }, { value: 'Sr.', label: 'Sr.' },
+
+          { value: 'III', label: 'III' }, { value: 'IV', label: 'IV' }, { value: 'V', label: 'V' },
+
+        ]} />
+
+        <InputField label="C.7 Date of Birth" value={birthdate} onChange={setBirthdate} type="date" />
+
+        <InputField label="Age" value={String(age)} onChange={(v) => setAge(v ? parseInt(v) : '')} type="number" />
+
+        <InputField label="C.8 Cellphone Number" value={contactNumber} onChange={setContactNumber} placeholder="09171234567" />
+
+      </div>
+
+      <SubHeader title="C.9.1 Address in the Philippines" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+        <InputField label="House No./Street/Purok" value={address} onChange={setAddress} placeholder="123 Pedro St Purok 3" />
+
+        <InputField label="Barangay" value={barangay} onChange={setBarangay} />
+
+        <InputField label="City/Town" value={cityTown} onChange={setCityTown} />
+
+        <InputField label="Province" value={province} onChange={setProvince} />
+
+        <InputField label="Region" value={region} onChange={setRegion} />
+
+        <InputField label="Zip Code" value={zipCode} onChange={setZipCode} />
+
+      </div>
+
+      {placeOfSubmission === 'Abroad' && (
+
+        <>
+
+          <SubHeader title="C.9.2 Address Abroad" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <InputField label="House No." value={abroadHouseNo} onChange={setAbroadHouseNo} />
+
+            <InputField label="Street" value={abroadStreet} onChange={setAbroadStreet} />
+
+            <InputField label="City" value={abroadCity} onChange={setAbroadCity} />
+
+            <InputField label="State" value={abroadState} onChange={setAbroadState} />
+
+            <InputField label="Country" value={abroadCountry} onChange={setAbroadCountry} />
+
+            <InputField label="Zip Code" value={abroadZipCode} onChange={setAbroadZipCode} />
+
+          </div>
+
+        </>
+
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 pt-2">
+
+        <SelectField label="C.10 Sex" value={sex} onChange={(v) => setSex(v as any)} options={[{ value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }]} />
+
+        <SelectField label="C.11 Civil Status" value={civilStatus} onChange={(v) => setCivilStatus(v as any)} options={[
+
+          { value: 'Single', label: 'Single' }, { value: 'Married', label: 'Married' },
+
+          { value: 'Widowed', label: 'Widowed' }, { value: 'Common-Law', label: 'Common-Law' }, { value: 'Others', label: 'Others' },
+
+        ]} />
+
+        <SelectField label="C.12 Citizenship" value={citizenship} onChange={(v) => setCitizenship(v as any)} options={[{ value: 'Filipino', label: 'Filipino' }, { value: 'Dual', label: 'Dual Citizenship' }]} />
+
+      </div>
+
+      {citizenship === 'Dual' && <InputField label="Dual Citizenship Details" value={dualCitizenDetails} onChange={setDualCitizenDetails} placeholder="Specify details..." />}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <div className="space-y-2">
+
+          <CheckboxField label="C.13 Has Physical Disability" checked={physicalDisability} onChange={setPhysicalDisability} />
+
+          {physicalDisability && <InputField label="Disability Details" value={physicalDisabilityText} onChange={setPhysicalDisabilityText} />}
+
+        </div>
+
+        <InputField label="C.14 Ethnicity / IP (leave blank if N/A)" value={ethnicOrigin} onChange={setEthnicOrigin} placeholder="e.g. Tribal" />
+
+      </div>
+
+    </div>
+
+  );
+
+  // STEP 2: Family Information + "Is Deceased?" toggle
+
+  const renderStep2 = () => (
+
+    <div className="space-y-6 animate-fadeIn">
+
+      <SectionHeader title="D. Family Information" />
+
+      <SubHeader title="D.1 Name of Spouse" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+        <InputField label="Last Name" value={spouseLastName} onChange={setSpouseLastName} />
+
+        <InputField label="First Name" value={spouseFirstName} onChange={setSpouseFirstName} />
+
+        <InputField label="Middle Name" value={spouseMiddleName} onChange={setSpouseMiddleName} />
+
+        <InputField label="Extension (Jr., Sr.)" value={spouseExtension} onChange={setSpouseExtension} />
+
+      </div>
+
+      <InputField label="D.2 Spouse Contact Number" value={spouseContactNumber} onChange={setSpouseContactNumber} placeholder="09191234567" />
+
+      <div className="flex items-center justify-between pt-2">
+
+        <SubHeader title="D.3-D.6 Children (max 5)" />
+
+        {children.length < 5 && (
+
+          <button onClick={addChild} className="text-xs font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer">+ Add Child</button>
+
+        )}
+
+      </div>
+
+      {children.map((child, idx) => (
+
+        <div key={idx} className="p-4 bg-slate-50/80 rounded-2xl border border-slate-100 space-y-3">
+
+          <div className="flex items-center justify-between">
+
+            <span className="text-xs font-bold text-slate-500 font-mono">Child #{idx + 1}</span>
+
+            {children.length > 1 && <button onClick={() => removeChild(idx)} className="text-[11px] font-bold text-red-500 hover:text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100">Remove</button>}
+
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+            <InputField label="Full Name" value={child.name} onChange={(v) => updateChild(idx, 'name', v)} />
+
+            <SelectField label="Sex" value={child.sex} onChange={(v) => updateChild(idx, 'sex', v)} options={[{ value: 'Male', label: 'Male' }, { value: 'Female', label: 'Female' }]} />
+
+            <InputField label="Age" value={child.age} onChange={(v) => updateChild(idx, 'age', v)} type="number" />
+
+            <InputField label="Contact No." value={child.contactNumber} onChange={(v) => updateChild(idx, 'contactNumber', v)} />
+
+            <InputField label="Occupation" value={child.occupation} onChange={(v) => updateChild(idx, 'occupation', v)} />
+
+            <InputField label="Income" value={child.income} onChange={(v) => updateChild(idx, 'income', v)} />
+
+          </div>
+
+        </div>
+
+      ))}
+
+      {/* Is Deceased? — determines the next step */}
+
+      <div className="mt-6 p-4 bg-rose-50/60 border border-rose-200/60 rounded-2xl space-y-2">
+
+        <h6 className="text-[13px] font-bold text-rose-700 uppercase tracking-wider flex items-center gap-1.5">
+
+          <Heart size={14} className="text-rose-500" /> Grantee Status
+
+        </h6>
+
+        <p className="text-[11px] text-rose-600/80">If deceased, the next step will be the Claimant's information. Transaction Account (Section E) will be skipped.</p>
+
+        <CheckboxField label="Is the Grantee Deceased?" checked={isDeceased} onChange={setIsDeceased} />
+
+      </div>
+
+    </div>
+
+  );
+
+  // STEP 3 (dynamic): E. Transaction Account OR F. Deceased Grantees
+
+  const renderStep3 = () => {
+
+    if (isDeceased) {
+
+      // F. Deceased Grantees
+
+      return (
+
+        <div className="space-y-6 animate-fadeIn">
+
+          <SectionHeader title="F. For Deceased Grantees" />
+
+          <InputField label="F.1 Date of Death" value={dateOfDeath} onChange={setDateOfDeath} type="date" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <InputField label="F.2 Claimant Contact Number" value={claimantContactNumber} onChange={setClaimantContactNumber} />
+
+            <InputField label="Claimant Email" value={claimantEmail} onChange={setClaimantEmail} />
+
+          </div>
+
+          <SubHeader title="F.3 Name of Claimant" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <InputField label="Last Name" value={claimantLastName} onChange={setClaimantLastName} />
+
+            <InputField label="First Name" value={claimantFirstName} onChange={setClaimantFirstName} />
+
+            <InputField label="Middle Name" value={claimantMiddleName} onChange={setClaimantMiddleName} />
+
+            <InputField label="Extension" value={claimantExtension} onChange={setClaimantExtension} />
+
+          </div>
+
+          <SubHeader title="F.4 Permanent Address of Claimant" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+            <InputField label="House No." value={claimantHouseNo} onChange={setClaimantHouseNo} />
+
+            <InputField label="Street" value={claimantStreet} onChange={setClaimantStreet} />
+
+            <InputField label="Barangay" value={claimantBarangay} onChange={setClaimantBarangay} />
+
+            <InputField label="City/Town" value={claimantCity} onChange={setClaimantCity} />
+
+            <InputField label="Province" value={claimantProvince} onChange={setClaimantProvince} />
+
+            <InputField label="Zip Code" value={claimantZipCode} onChange={setClaimantZipCode} />
+
+          </div>
+
+          <InputField label="F.5 Relationship to the Deceased" value={claimantRelationship} onChange={setClaimantRelationship} placeholder="e.g. Daughter, Son, Spouse" />
+
+          <SubHeader title="F.6 Claimant's Payment Mode" />
+
+          <SelectField label="Payment Mode" value={claimantPaymentMode} onChange={(v) => setClaimantPaymentMode(v as any)} options={[
+
+            { value: 'Landbank', label: 'Landbank' }, { value: 'Other Banks', label: 'Other Banks' },
+
+            { value: 'GCash', label: 'GCash' }, { value: 'Palawan PSP', label: 'Palawan PSP' },
+
+          ]} />
+
+          <SubHeader title="F.7 Claimant Account Details" />
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+            <InputField label="Account Number" value={claimantAccountNumber} onChange={setClaimantAccountNumber} />
+
+            <InputField label="Bank/Account Name" value={claimantBankName} onChange={setClaimantBankName} />
+
+            <InputField label="Branch Name" value={claimantBranchName} onChange={setClaimantBranchName} />
+
+            <InputField label="Bank Address" value={claimantBankAddress} onChange={setClaimantBankAddress} />
+
+            <SelectField label="Joint Account?" value={claimantIsJointAccount} onChange={(v) => setClaimantIsJointAccount(v as any)} options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]} />
+
+            <InputField label="BIC/SWIFT Code" value={claimantBicSwiftCode} onChange={setClaimantBicSwiftCode} />
+
+            <InputField label="IBAN" value={claimantIban} onChange={setClaimantIban} />
+
+          </div>
+
+        </div>
+
+      );
+
+    }
+
+    // E. Transaction Account (living grantee)
+
+    return (
+
+      <div className="space-y-6 animate-fadeIn">
+
+        <SectionHeader title="E. Grantee's Transaction Account" />
+
+        <SelectField label="E.1 Preferred Mode to Receive Cash Gift" value={preferredPaymentMode} onChange={(v) => setPreferredPaymentMode(v as any)} options={[
+
+          { value: 'Landbank', label: 'Landbank' }, { value: 'Other Banks', label: 'Other Banks' },
+
+          { value: 'GCash', label: 'GCash' }, { value: 'Palawan PSP', label: 'Palawan PSP' },
+
+        ]} />
+
+        <SubHeader title="E.2 Account Details" />
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+          <InputField label="Account Number" value={accountNumber} onChange={setAccountNumber} />
+
+          <InputField label="Bank Name" value={bankName} onChange={setBankName} />
+
+          <InputField label="Branch Name" value={branchName} onChange={setBranchName} />
+
+          <InputField label="Bank Address" value={bankAddress} onChange={setBankAddress} />
+
+          <SelectField label="Joint Account?" value={isJointAccount} onChange={(v) => setIsJointAccount(v as any)} options={[{ value: 'Yes', label: 'Yes' }, { value: 'No', label: 'No' }]} />
+
+        </div>
+
+        {placeOfSubmission === 'Abroad' && (
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-2">
+
+            <InputField label="BIC/SWIFT Code" value={bicSwiftCode} onChange={setBicSwiftCode} />
+
+            <InputField label="IBAN" value={iban} onChange={setIban} />
+
+          </div>
+
+        )}
+
+      </div>
+
+    );
+
+  };
+
+  // STEP 4: Attestation & Documents
+
+  const renderStep4 = () => (
+
+    <div className="space-y-6 animate-fadeIn">
+
+      <SectionHeader title="G. Attestation" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+        <InputField label="Printed Name of Grantee/Claimant" value={granteeSigned} onChange={setGranteeSigned} placeholder="FULL NAME IN CAPS" />
+
+        <InputField label="Date Signed" value={dateSigned} onChange={setDateSigned} type="date" />
+
+      </div>
+
+      <SectionHeader title="H. Verification Document Checklist" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
+        <FileUploadField label="1. Accomplished Annex A Grantee/Claimant Form" files={doc1Files} onChange={setDoc1Files} />
+
+        <FileUploadField label="2. Primary ID for Local Applicants (PSA/LCR Birth Cert, PhilSys/National ID, or Valid PH Passport)" files={doc2Files} onChange={setDoc2Files} />
+
+        <FileUploadField label="3. Primary ID for Applicants Abroad (Valid PH Passport or Identification Certificate)" files={doc3Files} onChange={setDoc3Files} />
+
+        <FileUploadField label="4. Secondary IDs (Two valid secondary IDs)" files={doc4Files} onChange={setDoc4Files} />
+
+        <FileUploadField label="5. Whole-body/half-upper body photo" files={doc5Files} onChange={setDoc5Files} />
+
+        <FileUploadField label="6. Photocopy of bank deposit slip / GCash Profile Info" files={doc6Files} onChange={setDoc6Files} />
+
+        {isDeceased && (
+
+          <>
+
+            <div className="border-t border-slate-200 pt-4 mt-2">
+
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-4">For Deceased Grantees:</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-3">
+
+            </div>
+
+            <FileUploadField label="7. PSA/LCR Death Certificate" files={doc7Files} onChange={setDoc7Files} />
+
+            <FileUploadField label="8. Proof of Relationship (PSA/LCR certificates)" files={doc8Files} onChange={setDoc8Files} />
+
+            <FileUploadField label="9. Claimant's Bank deposit slip / GCash Profile" files={doc9Files} onChange={setDoc9Files} />
+
+            <FileUploadField label="10. Original Warranty and Release From Liability Form" files={doc10Files} onChange={setDoc10Files} />
+
+            <FileUploadField label="11. Original LGU/RCF Certification of No Relative" files={doc11Files} onChange={setDoc11Files} />
+
+            </div>
+
+          </>
+
+        )}
+
+      </div>
+
+      
+
+    </div>
+
+  );
+
+  const renderCurrentStep = () => {
+
+    switch (currentStep) {
+
+      case 1: return renderStep1();
+
+      case 2: return renderStep2();
+
+      case 3: return renderStep3();
+
+      case 4: return renderStep4();
+
+      
+
+      default: return renderStep1();
+
+    }
+
+  };
+
+  // ===== MAIN RENDER =====
+
+  return (
+
+    <div className="space-y-6 animate-fadeIn font-sans">
+
+      {/* Page Title Card */}
+
+      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+
+        <div className="flex items-center gap-3">
+
+          <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-xl transition-colors active:scale-95">
+
+            <ArrowLeft size={18} className="text-slate-600" />
+
+          </button>
+
+          <div className="flex-1">
+
+            <h4 className="font-bold text-slate-800 text-base">Grantee Claim Form</h4>
+
+            <p className="text-sm text-slate-400">R.A. 11982 — Honoring Filipino Octogenarians, Nonagenarians, and Centenarians</p>
+
+          </div>
+
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 border border-amber-200 rounded-lg">
+
+            <FileText size={14} className="text-amber-600" />
+
+            <span className="text-[10px] font-bold text-amber-700 uppercase">Annex A</span>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* Desktop Stepper */}
+
+      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-sm lg:block hidden">
+
+        <div className="relative flex flex-row justify-between items-center w-full">
+
+          <div className="absolute left-[5.5%] right-[5.5%] top-[14px] h-[2px] bg-slate-100 z-0">
+
+            <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }} />
+
+          </div>
+
+          {STEPS.map((step) => {
+
+            const isCompleted = currentStep > step.id;
+
+            const isActive = currentStep === step.id;
+
+            return (
+
+              <div key={step.id} onClick={() => { if (step.id < currentStep) setCurrentStep(step.id); }}
+
+                className={`relative z-10 flex flex-col items-center gap-1.5 cursor-pointer transition-all duration-150 flex-1
+
+                  ${isActive ? 'text-teal-700 font-bold scale-[1.03]' : isCompleted ? 'text-emerald-600 hover:text-emerald-700' : 'text-slate-400 cursor-not-allowed'}`}>
+
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] font-bold font-mono transition-colors shadow-sm
+
+                  ${isActive ? 'bg-teal-600 text-white ring-4 ring-teal-500/10' : isCompleted ? 'bg-emerald-500 text-white' : 'bg-slate-100 border border-slate-200 text-slate-400'}`}>
+
+                  {isCompleted ? <Check size={12} className="stroke-[3]" /> : step.id}
+
+                </div>
+
+                <span className={`text-xs text-center font-bold tracking-tight max-w-[85px] leading-tight block truncate
+
+                  ${isActive ? 'text-teal-800' : isCompleted ? 'text-emerald-700' : 'text-slate-400'}`}>
+
+                  {step.label}
+
+                </span>
+
+              </div>
+
+            );
+
+          })}
+
+        </div>
+
+      </div>
+
+      {/* Form Step Container */}
+
+      <div className="bg-white p-5 sm:p-6 md:p-8 rounded-3xl border border-slate-200/80 shadow-sm min-h-[400px] flex flex-col justify-between">
+
+        <div>
+
+          {/* Mobile Stepper */}
+
+          <div className="lg:hidden flex flex-col gap-3 pb-4 border-b border-slate-100 mb-6">
+
+            <div className="flex items-center justify-between">
+
+              <div className="flex items-center gap-2.5">
+
+                <div className="w-8 h-8 rounded-full bg-teal-600 text-white flex items-center justify-center text-sm font-bold font-mono shadow-sm">{currentStep}</div>
+
+                <div>
+
+                  <span className="text-xs font-bold text-slate-400 font-mono uppercase tracking-wider block leading-none">Step {currentStep} of {STEPS.length}</span>
+
+                  <h5 className="text-sm font-extrabold text-slate-800 uppercase tracking-tight mt-1 leading-none">{STEPS[currentStep - 1].label}</h5>
+
+                </div>
+
+              </div>
+
+              {currentStep > 1 && (
+
+                <button type="button" onClick={handleBack} className="text-[13px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2.5 py-1.5 rounded-lg border border-teal-100 transition-all cursor-pointer">← Back</button>
+
+              )}
+
+            </div>
+
+            <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden">
+
+              <div className="h-full bg-teal-600 transition-all duration-300" style={{ width: `${(currentStep / STEPS.length) * 100}%` }} />
+
+            </div>
+
+          </div>
+
+          {/* Active Step Content */}
+
+          {renderCurrentStep()}
+
+          {/* Navigation Buttons */}
+
+          <div className="flex items-center justify-between pt-6 border-t border-slate-100 mt-6">
+
+            {currentStep > 1 ? (
+
+              <button type="button" onClick={handleBack}
+
+                className="hidden lg:flex items-center gap-1.5 px-4.5 py-2.5 border border-slate-200 hover:border-slate-400 text-sm font-semibold text-slate-600 rounded-xl hover:bg-slate-50 transition-all duration-150 active:scale-95">
+
+                <ArrowLeft size={13} /><span>Back</span>
+
+              </button>
+
+            ) : (<div></div>)}
+
+            {currentStep < STEPS.length ? (
+
+              <button type="button" onClick={handleNext}
+
+                className="flex items-center gap-1.5 px-5 py-2.5 bg-teal-600 hover:bg-teal-500 text-sm font-bold text-white rounded-xl shadow-md shadow-teal-600/10 transition-all duration-150 active:scale-95 cursor-pointer">
+
+                <span>Next</span><ArrowRight size={13} />
+
+              </button>
+
+            ) : (
+
+              <button type="button" onClick={handleSubmit} disabled={isSubmitting}
+
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-sm font-bold text-white rounded-xl shadow-md shadow-emerald-600/10 transition-all duration-150 active:scale-95 cursor-pointer">
+
+                <Check size={13} /><span>{isSubmitting ? 'Submitting...' : 'Submit Application'}</span>
+
+              </button>
+
+            )}
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  );
+
+}
+

@@ -11,6 +11,7 @@ export type AppPages =
   | 'FindUser'
   | 'Configuration'
   | 'Mapping'
+  | 'GranteeClaimForms'
 
 interface Toast {
   id: string;

@@ -59,6 +59,12 @@ export default function Sidebar() {
       permission: 'canAccessReports' as const 
     },
     { 
+      id: 'GranteeClaimForms' as AppPages, 
+      label: 'Grantee Claim Forms', 
+      icon: FileSpreadsheet, 
+      permission: 'canAccessReports' as const 
+    },
+    { 
       id: 'SMSCenter' as AppPages, 
       label: 'SMS Center', 
       icon: MessageSquare, 
