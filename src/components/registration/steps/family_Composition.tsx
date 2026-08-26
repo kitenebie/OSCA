@@ -100,7 +100,7 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                     <p className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">24. Children</p>
 
-                    <button type="button" onClick={() => setForm({ ...form, children: [...form.children, { name: '', occupation: '', income: '', age: '', workingStatus: '' }] })} className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-lg border border-teal-100 hover:bg-teal-100 transition-all cursor-pointer">+ Add Child</button>
+                    <button type="button" onClick={() => setForm({ ...form, children: [...form.children, { name: '', contactNumber: '', occupation: '', income: '', age: '', workingStatus: '' }] })} className="text-xs font-bold text-teal-600 bg-teal-50 px-2 py-1 rounded-lg border border-teal-100 hover:bg-teal-100 transition-all cursor-pointer">+ Add Child</button>
 
                   </div>
 
@@ -108,9 +108,11 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                   {form.children.map((child: any, idx: number) => (
 
-                    <div key={idx} className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 items-end">
+                    <div key={idx} className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-2 items-end">
 
                       <input type="text" value={child.name} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], name: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Full Name" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+
+                      <input type="text" value={child.contactNumber} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], contactNumber: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Contact Number" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
 
                       <input type="text" value={child.occupation} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], occupation: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Occupation" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
 
