@@ -242,7 +242,7 @@ const getProfileMarkerIcon = (inRiskArea?: string, riskSeverity?: string) => {
 
 export default function SeniorProfilePage() {
 
-  const { seniors, approveSenior, rejectSenior, updateSenior } =
+  const { seniors, approveSenior, rejectSenior, updateSenior, sendSMS } =
 
     useSeniorsStore();
 
@@ -490,14 +490,28 @@ export default function SeniorProfilePage() {
 
 
 
+
+
   const handleApprove = async () => {
 
     if (!currentUser) return;
+    if (!senior) return;
 
 
 
     await approveSenior(senior.id, currentUser.fullName);
 
+    // Send SMS notification
+    if (senior.contactNumber) {
+      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "For Verification".`;
+      await sendSMS(
+        `${senior.firstName} ${senior.lastName}`,
+        senior.contactNumber,
+        senior.barangay,
+        smsMessage,
+        currentUser.fullName
+      );
+    }
 
 
     showToast(`Successfully approved si ${senior.firstName}!`, "success");
@@ -509,6 +523,7 @@ export default function SeniorProfilePage() {
   const handleReject = () => {
 
     if (!currentUser) return;
+    if (!senior) return;
 
 
 
@@ -543,6 +558,19 @@ export default function SeniorProfilePage() {
     );
 
 
+
+
+    // Send SMS notification
+    if (senior.contactNumber) {
+      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "Rejected".`;
+      sendSMS(
+        `${senior.firstName} ${senior.lastName}`,
+        senior.contactNumber,
+        senior.barangay,
+        smsMessage,
+        currentUser.fullName
+      );
+    }
 
     showToast(`Application rejected for ${senior.firstName}.`, "warning");
 

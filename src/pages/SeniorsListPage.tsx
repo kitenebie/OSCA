@@ -50,6 +50,7 @@ export default function SeniorsListPage() {
 
   const {
     seniors,
+    sendSMS,
     selectedStatus,
     setSelectedStatus,
     selectedPension,
@@ -459,6 +460,19 @@ export default function SeniorsListPage() {
 
     try {
       await updateSenior(statusModal.id, { status: newStatus });
+
+      // Send SMS notification to the senior
+      const senior = seniors.find((s) => s.id === statusModal.id);
+      if (senior && senior.contactNumber) {
+        const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "${newStatus}".`;
+        await sendSMS(
+          `${senior.firstName} ${senior.lastName}`,
+          senior.contactNumber,
+          senior.barangay,
+          smsMessage,
+          currentUser?.fullName || 'OSCA System'
+        );
+      }
 
       showToast(
         `${statusModal.name}'s status updated to "${newStatus}"!`,

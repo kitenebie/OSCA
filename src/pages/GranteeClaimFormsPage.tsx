@@ -2,11 +2,29 @@ import React, { useState, useEffect } from 'react';
 
 
 
+
+
+
+
 import { supabase } from '../../utils/supabase';
 
 
 
+
+
+
+
 import { useUIStore } from '../store/uiStore';
+
+import { useAuthStore } from '../store/authStore';
+
+import { useSeniorsStore } from '../store/seniorsStore';
+
+import { auditLogsService } from '../services/supabaseService';
+
+
+
+
 
 
 
@@ -14,7 +32,15 @@ import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, 
 
 
 
+
+
+
+
 // Document labels
+
+
+
+
 
 
 
@@ -22,7 +48,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc1: 'Accomplished Annex A Grantee/Claimant Form',
+
+
+
+
 
 
 
@@ -30,7 +64,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc3: 'Primary ID for Applicants Abroad: Valid PH Passport or Identification Certificate',
+
+
+
+
 
 
 
@@ -38,7 +80,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc5: 'Whole-body/half-upper body photo',
+
+
+
+
 
 
 
@@ -46,7 +96,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc7: 'PSA/LCR Death Certificate or apostilled equivalent document issued overseas',
+
+
+
+
 
 
 
@@ -54,7 +112,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc9: 'Photocopy of Claimant\'s Bank-verified deposit slip or screenshot of GCash Profile Information',
+
+
+
+
 
 
 
@@ -62,7 +128,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
+
+
+
+
   doc11: 'Original LGU/RCF Certification of no relative',
+
+
+
+
 
 
 
@@ -70,7 +144,15 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
-const STATUS_OPTIONS = ['All', 'Pending', 'Under Review', 'Verified', 'Approved', 'Rejected'];
+
+
+
+
+const STATUS_OPTIONS = ['All', 'Pending', 'Under Review', 'Verified', 'Approved', 'Rejected', 'Claimed', 'Unclaimed'];
+
+
+
+
 
 
 
@@ -78,7 +160,15 @@ const STATUS_BADGE: Record<string, string> = {
 
 
 
+
+
+
+
   'Pending': 'bg-amber-50 text-amber-700 border-amber-200',
+
+
+
+
 
 
 
@@ -86,7 +176,15 @@ const STATUS_BADGE: Record<string, string> = {
 
 
 
+
+
+
+
   'Verified': 'bg-teal-50 text-teal-700 border-teal-200',
+
+
+
+
 
 
 
@@ -94,7 +192,17 @@ const STATUS_BADGE: Record<string, string> = {
 
 
 
+
+
+
+
   'Rejected': 'bg-red-50 text-red-700 border-red-200',
+  'Claimed': 'bg-purple-50 text-purple-700 border-purple-200',
+  'Unclaimed': 'bg-orange-50 text-orange-700 border-orange-200',
+
+
+
+
 
 
 
@@ -102,11 +210,31 @@ const STATUS_BADGE: Record<string, string> = {
 
 
 
+
+
+
+
 export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const { showToast } = useUIStore();
+  const { currentUser, login } = useAuthStore();
+  const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
+
+  // Password confirmation modal state
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [processingToggle, setProcessingToggle] = useState(false);
+
+
+
+
 
 
 
@@ -114,7 +242,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [loading, setLoading] = useState(true);
+
+
+
+
 
 
 
@@ -122,7 +258,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [statusFilter, setStatusFilter] = useState('All');
+
+
+
+
 
 
 
@@ -130,7 +274,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [drawerOpen, setDrawerOpen] = useState(false);
+
+
+
+
 
 
 
@@ -138,7 +290,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [remarks, setRemarks] = useState('');
+
+
+
+
 
 
 
@@ -146,7 +306,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [showRejectInput, setShowRejectInput] = useState(false);
+
+
+
+
 
 
 
@@ -154,7 +322,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [updatingStatus, setUpdatingStatus] = useState(false);
+
+
+
+
 
 
 
@@ -162,7 +338,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   // Verification form fields
+
+
+
+
 
 
 
@@ -170,7 +354,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [isNotEligible, setIsNotEligible] = useState(false);
+
+
+
+
 
 
 
@@ -178,7 +370,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [verificationDate, setVerificationDate] = useState('');
+
+
+
+
 
 
 
@@ -186,7 +386,17 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const [verifierContactInfo, setVerifierContactInfo] = useState('');
+  const [registrationEnabled, setRegistrationEnabled] = useState(false);
+  const [togglingRegistration, setTogglingRegistration] = useState(false);
+
+
+
+
 
 
 
@@ -194,7 +404,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setLoading(true);
+
+
+
+
 
 
 
@@ -202,7 +420,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       .from('centenarian_honoring')
+
+
+
+
 
 
 
@@ -210,7 +436,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       .order('created_at', { ascending: false });
+
+
+
+
 
 
 
@@ -218,7 +452,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     else setRecords(data || []);
+
+
+
+
 
 
 
@@ -226,11 +468,128 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   };
 
 
 
+
+
+
+
   useEffect(() => { fetchRecords(); }, []);
+
+  // Load registration toggle setting
+  useEffect(() => {
+    const loadSetting = async () => {
+      const { data } = await supabase.from('system_settings').select('setting_value').eq('setting_key', 'grantee_form_registration_enabled').maybeSingle();
+      setRegistrationEnabled(data?.setting_value === 'true');
+    };
+    loadSetting();
+  }, []);
+
+  // Toggle registration ON/OFF
+  const handleToggleRegistration = async () => {
+    if (!registrationEnabled) {
+      // Turning ON — show password modal first
+      setConfirmPassword('');
+      setPasswordError('');
+      setShowPasswordModal(true);
+    } else {
+      // Turning OFF — just disable directly
+      setTogglingRegistration(true);
+      await supabase.from('system_settings').upsert({ setting_key: 'grantee_form_registration_enabled', setting_value: 'false' }, { onConflict: 'setting_key' });
+      setRegistrationEnabled(false);
+      setTogglingRegistration(false);
+      showToast('Registration disabled', 'success');
+    }
+  };
+
+  // Generate random 10-character password (uppercase + numbers)
+  const generatePassword = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 10; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  // Confirm password and process toggle ON
+  const handleConfirmToggleOn = async () => {
+    if (!confirmPassword.trim()) {
+      setPasswordError('Please enter your password.');
+      return;
+    }
+    if (!currentUser) return;
+
+    setProcessingToggle(true);
+    setPasswordError('');
+
+    try {
+      // Verify admin password via login attempt
+      const success = await login(currentUser.username || currentUser.fullName, confirmPassword, false);
+      if (!success) {
+        setPasswordError('Incorrect password. Please try again.');
+        setProcessingToggle(false);
+        return;
+      }
+
+      // 1. Enable registration setting
+      await supabase.from('system_settings').upsert({ setting_key: 'grantee_form_registration_enabled', setting_value: 'true' }, { onConflict: 'setting_key' });
+      setRegistrationEnabled(true);
+
+      // 2. Get all seniors with status "Qualified for Honoring"
+      const qualifiedSeniors = seniors.filter(s => s.status === 'Qualified for Honoring' && s.contactNumber);
+
+      // 3. Generate passwords and update + send SMS
+      let smsCount = 0;
+      for (const senior of qualifiedSeniors) {
+        const newPassword = generatePassword();
+
+        // Update password in seniors table
+        await supabase.from('seniors').update({ password: newPassword }).eq('id', senior.id);
+
+        // Send SMS
+        const smsMessage = `Ang OSCA Grantee Claim Forms is now OPEN. Go to OSCA official page, click "Register for Grantee Claim Form". Enter your OSCA ID: ${senior.oscaNumber} and this is your password: ${newPassword}. Start to fill up your form.`;
+        await sendSMS(
+          `${senior.firstName} ${senior.lastName}`,
+          senior.contactNumber,
+          senior.barangay,
+          smsMessage,
+          currentUser.fullName
+        );
+        smsCount++;
+      }
+
+      // 4. Audit log
+      auditLogsService.log({
+        action: 'TOGGLE',
+        entity: 'Grantee Registration',
+        details: `${currentUser.fullName} enabled Grantee Claim Form registration. Generated passwords and sent SMS to ${smsCount} qualified seniors.`,
+        actorName: currentUser.fullName,
+        actorRole: currentUser.role || 'admin',
+        barangay: '',
+        severity: 'success',
+      });
+
+      setShowPasswordModal(false);
+      showToast(`Registration enabled! SMS sent to ${smsCount} qualified senior(s).`, 'success');
+    } catch (err) {
+      console.error('Toggle ON error:', err);
+      showToast('Something went wrong. Please try again.', 'error');
+    } finally {
+      setProcessingToggle(false);
+    }
+  };
+
+
+
+
+
 
 
 
@@ -238,7 +597,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const matchesSearch = searchQuery === '' ||
+
+
+
+
 
 
 
@@ -246,7 +613,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       (r.osca_number || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+
+
+
+
 
 
 
@@ -254,7 +629,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const matchesStatus = statusFilter === 'All' || r.status === statusFilter;
+
+
+
+
 
 
 
@@ -262,7 +645,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   });
+
+
+
+
 
 
 
@@ -270,7 +661,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const openDrawer = (record: any) => {
+
+
+
+
 
 
 
@@ -278,7 +677,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setRemarks(record.remarks_note_lacking_docs || '');
+
+
+
+
 
 
 
@@ -286,7 +693,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setIsNotEligible(record.is_not_eligible || false);
+
+
+
+
 
 
 
@@ -294,7 +709,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setVerificationDate(record.verification_date || '');
+
+
+
+
 
 
 
@@ -302,11 +725,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setVerifierContactInfo(record.verifier_contact_info || '');
 
 
 
+
+
+
+
     setShowRejectInput(false);
+
+
+
+
 
 
 
@@ -314,7 +749,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     // Load doc validation (simple boolean per doc)
+
+
+
+
 
 
 
@@ -322,7 +765,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     for (let i = 1; i <= 11; i++) {
+
+
+
+
 
 
 
@@ -330,7 +781,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -338,11 +797,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setDrawerOpen(true);
 
 
 
+
+
+
+
   };
+
+
+
+
 
 
 
@@ -350,7 +821,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   // Toggle file validation
+
+
+
+
 
 
 
@@ -358,30 +837,61 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const setDocValid = (docKey: string, isValid: boolean | null) => {
+
     setDocValidation(prev => ({ ...prev, [docKey]: isValid }));
+
     // Auto-append/remove invalid doc name in remarks
+
     const docLabel = DOC_LABELS[docKey];
+
     const invalidTag = `invalid ${docLabel}`;
+
     if (isValid === false) {
+
       // Append if not already in remarks
+
       setRemarks(prev => {
+
         if (prev.includes(invalidTag)) return prev;
+
         return prev ? `${prev}\n${invalidTag}` : invalidTag;
+
       });
+
     } else {
+
       // Remove from remarks if previously added
+
       setRemarks(prev => prev.split('\n').filter(line => line.trim() !== invalidTag).join('\n'));
+
     }
+
   };
 
 
 
+
+
+
+
   // Get list of invalid document names
 
 
 
+
+
+
+
   // Get list of invalid document names
+
+
+
+
 
 
 
@@ -389,11 +899,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const invalidDocs: string[] = [];
 
 
 
+
+
+
+
     for (let i = 1; i <= 11; i++) {
+
+
+
+
 
 
 
@@ -401,7 +923,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       if (docValidation[key] === false) {
+
+
+
+
 
 
 
@@ -409,11 +939,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       }
 
 
 
+
+
+
+
     }
+
+
+
+
 
 
 
@@ -421,7 +963,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   };
+
+
+
+
 
 
 
@@ -429,7 +979,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const handleSave = async () => {
+
+
+
+
 
 
 
@@ -437,7 +995,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setUpdatingStatus(true);
+
+
+
+
 
 
 
@@ -445,7 +1011,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const updatePayload: any = {
+
+
+
+
 
 
 
@@ -453,7 +1027,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       is_eligible: isEligible,
+
+
+
+
 
 
 
@@ -461,7 +1043,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       verifier_signature_name: verifierName || null,
+
+
+
+
 
 
 
@@ -469,7 +1059,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       ncsc_reg_no: ncscRegNo || null,
+
+
+
+
 
 
 
@@ -477,11 +1075,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       invalid_documents: invalidDocNames || null,
 
 
 
+
+
+
+
     };
+
+
+
+
 
 
 
@@ -489,7 +1099,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     for (let i = 1; i <= 11; i++) {
+
+
+
+
 
 
 
@@ -497,11 +1115,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     }
 
 
 
+
+
+
+
     const { error } = await supabase.from('centenarian_honoring').update(updatePayload).eq('id', selectedRecord.id);
+
+
+
+
 
 
 
@@ -509,7 +1139,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     else { showToast('Verification saved', 'success'); fetchRecords(); }
+
+
+
+
 
 
 
@@ -517,7 +1155,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   };
+
+
+
+
 
 
 
@@ -525,55 +1171,41 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const handleApprove = async () => {
-
-
-
     if (!selectedRecord) return;
-
-
-
     setUpdatingStatus(true);
 
+    const hasInvalidDocs = getInvalidDocNames() !== '';
 
-
-    await handleSave();
-
-
-
-    const { error } = await supabase.from('centenarian_honoring').update({ status: 'Approved' }).eq('id', selectedRecord.id);
-
-
-
-    if (error) showToast('Failed to approve', 'error');
-
-
-
-    else {
-
-
-
-      showToast('Claim form APPROVED', 'success');
-
-
-
-      setSelectedRecord({ ...selectedRecord, status: 'Approved' });
-
-
-
+    if (hasInvalidDocs) {
+      // If there are invalid docs, just save and set status to Pending
+      await handleSave();
+      await supabase.from('centenarian_honoring').update({ status: 'Pending' }).eq('id', selectedRecord.id);
+      showToast('Documents saved. Status set to Pending due to invalid documents.', 'info');
+      setSelectedRecord({ ...selectedRecord, status: 'Pending' });
       fetchRecords();
-
-
-
+      setUpdatingStatus(false);
+      return;
     }
 
-
-
+    await handleSave();
+    const { error } = await supabase.from('centenarian_honoring').update({ status: 'Approved' }).eq('id', selectedRecord.id);
+    if (error) showToast('Failed to approve', 'error');
+    else {
+      showToast('Claim form APPROVED', 'success');
+      setSelectedRecord({ ...selectedRecord, status: 'Approved' });
+      fetchRecords();
+    }
     setUpdatingStatus(false);
-
-
-
   };
+
+
+
+
 
 
 
@@ -581,7 +1213,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   const handleReject = async () => {
+
+
+
+
 
 
 
@@ -589,7 +1229,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     if (!selectedRecord) return;
+
+
+
+
 
 
 
@@ -597,7 +1245,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const invalidDocNames = getInvalidDocNames();
+
+
+
+
 
 
 
@@ -605,7 +1261,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     const updatePayload: any = {
+
+
+
+
 
 
 
@@ -613,7 +1277,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       remarks_note_lacking_docs: fullRemarks || null,
+
+
+
+
 
 
 
@@ -621,7 +1293,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       is_eligible: false,
+
+
+
+
 
 
 
@@ -629,7 +1309,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     };
+
+
+
+
 
 
 
@@ -637,11 +1325,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      updatePayload[`doc${i}_valid`] = docValidation[`doc${i}`] || [];
+
+
+
+
+      updatePayload[`is_doc${i}_valid`] = docValidation[`doc${i}`] ?? null;
+
+
+
+
 
 
 
     }
+
+
+
+
 
 
 
@@ -649,7 +1349,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     if (error) showToast('Failed to reject', 'error');
+
+
+
+
 
 
 
@@ -657,7 +1365,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       showToast('Claim form REJECTED', 'success');
+
+
+
+
 
 
 
@@ -665,7 +1381,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       fetchRecords();
+
+
+
+
 
 
 
@@ -673,7 +1397,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     setUpdatingStatus(false);
+
+
+
+
 
 
 
@@ -681,7 +1413,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   };
+
+
+
+
 
 
 
@@ -689,7 +1429,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     try { return new Date(d).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }); }
+
+
+
+
 
 
 
@@ -697,7 +1445,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   };
+
+
+
+
 
 
 
@@ -705,7 +1461,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     <div className="flex flex-col">
+
+
+
+
 
 
 
@@ -713,7 +1477,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       <span className="text-sm font-semibold text-slate-800">{value || '—'}</span>
+
+
+
+
 
 
 
@@ -721,7 +1493,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   );
+
+
+
+
 
 
 
@@ -729,7 +1509,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
     <div className="space-y-6 animate-fadeIn font-sans">
+
+
+
+
 
 
 
@@ -737,7 +1525,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm">
+
+
+
+
 
 
 
@@ -745,7 +1541,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="flex items-center gap-3">
+
+
+
+
 
 
 
@@ -753,11 +1557,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <FileText size={20} className="text-amber-600" />
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -765,7 +1581,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <h4 className="font-bold text-slate-800 text-base">Grantee Claim Forms</h4>
+
+
+
+
 
 
 
@@ -773,7 +1597,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -781,7 +1613,27 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="flex items-center gap-2">
+            {/* Registration Toggle */}
+            <div className="flex items-center gap-2 mr-3 pr-3 border-r border-slate-200">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Registration</span>
+              <button
+                onClick={handleToggleRegistration}
+                disabled={togglingRegistration}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus:outline-none cursor-pointer ${registrationEnabled ? 'bg-emerald-500' : 'bg-slate-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${registrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+              <span className={`text-[11px] font-bold ${registrationEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>{registrationEnabled ? 'ON' : 'OFF'}</span>
+            </div>
+
+
+
+
 
 
 
@@ -789,7 +1641,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             <button onClick={fetchRecords} className="p-2 hover:bg-slate-100 rounded-xl transition-colors" title="Refresh">
+
+
+
+
 
 
 
@@ -797,7 +1657,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </button>
+
+
+
+
 
 
 
@@ -805,11 +1673,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
         </div>
 
 
 
+
+
+
+
       </div>
+
+
+
+
 
 
 
@@ -817,7 +1697,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row gap-3">
+
+
+
+
 
 
 
@@ -825,7 +1713,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+
+
+
+
 
 
 
@@ -833,7 +1729,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             placeholder="Search by name, OSCA No., or NCSC Ref..."
+
+
+
+
 
 
 
@@ -841,7 +1745,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
         </div>
+
+
+
+
 
 
 
@@ -849,7 +1761,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <Filter size={14} className="text-slate-400" />
+
+
+
+
 
 
 
@@ -857,7 +1777,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             <button key={s} onClick={() => setStatusFilter(s)}
+
+
+
+
 
 
 
@@ -865,7 +1793,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               {s}
+
+
+
+
 
 
 
@@ -873,7 +1809,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           ))}
+
+
+
+
 
 
 
@@ -881,7 +1825,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       </div>
+
+
+
+
 
 
 
@@ -889,7 +1841,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+
+
+
+
 
 
 
@@ -897,7 +1857,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="flex items-center justify-center p-12">
+
+
+
+
 
 
 
@@ -905,11 +1873,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             <span className="text-sm text-slate-400 font-medium ml-3">Loading records...</span>
 
 
 
+
+
+
+
           </div>
+
+
+
+
 
 
 
@@ -917,7 +1897,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="flex items-center justify-center p-12">
+
+
+
+
 
 
 
@@ -925,7 +1913,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <FileText size={32} className="text-slate-300 mx-auto" />
+
+
+
+
 
 
 
@@ -933,11 +1929,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </div>
 
 
 
+
+
+
+
           </div>
+
+
+
+
 
 
 
@@ -945,7 +1953,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="overflow-x-auto">
+
+
+
+
 
 
 
@@ -953,7 +1969,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <thead>
+
+
+
+
 
 
 
@@ -961,7 +1985,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <th className="text-left px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Name</th>
+
+
+
+
 
 
 
@@ -969,7 +2001,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <th className="text-left px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Barangay</th>
+
+
+
+
 
 
 
@@ -977,7 +2017,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <th className="text-left px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Type</th>
+
+
+
+
 
 
 
@@ -985,7 +2033,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <th className="text-left px-4 py-3 text-[11px] font-bold text-slate-500 uppercase tracking-wider">Date Filed</th>
+
+
+
+
 
 
 
@@ -993,7 +2049,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </tr>
+
+
+
+
 
 
 
@@ -1001,7 +2065,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <tbody>
+
+
+
+
 
 
 
@@ -1009,11 +2081,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <tr key={record.id} className="border-b border-slate-50 hover:bg-teal-50/30 transition-colors">
 
 
 
+
+
+
+
                     <td className="px-4 py-3">
+
+
+
+
 
 
 
@@ -1021,11 +2105,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                       {record.suffix && record.suffix !== 'N/A' && <span className="text-xs text-slate-400 ml-1">{record.suffix}</span>}
 
 
 
+
+
+
+
                     </td>
+
+
+
+
 
 
 
@@ -1033,7 +2129,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <td className="px-4 py-3 text-xs text-slate-600 font-medium">{record.barangay || '—'}</td>
+
+
+
+
 
 
 
@@ -1041,7 +2145,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <td className="px-4 py-3">
+
+
+
+
 
 
 
@@ -1049,7 +2161,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         {record.is_deceased ? 'Deceased' : 'Living'}
+
+
+
+
 
 
 
@@ -1057,7 +2177,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     </td>
+
+
+
+
 
 
 
@@ -1065,7 +2193,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                       <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full border ${STATUS_BADGE[record.status] || 'bg-slate-50 text-slate-600 border-slate-200'}`}>
+
+
+
+
 
 
 
@@ -1073,11 +2209,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                       </span>
 
 
 
+
+
+
+
                     </td>
+
+
+
+
 
 
 
@@ -1085,11 +2233,24 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <td className="px-4 py-3 text-center">
 
 
 
+
+
+
+
+                      <div className="flex items-center justify-center gap-1.5">
                       <button onClick={() => openDrawer(record)}
+
+
+
+
 
 
 
@@ -1097,7 +2258,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         <Eye size={13} className="text-teal-600" />
+
+
+
+
 
 
 
@@ -1105,11 +2274,37 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                       </button>
-
-
-
+                {record.status === 'Approved' && (
+                  <>
+                    <button onClick={async () => {
+                      await supabase.from('centenarian_honoring').update({ status: 'Claimed' }).eq('id', record.id);
+                      showToast('Marked as Claimed', 'success');
+                      fetchRecords();
+                    }} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Claimed">
+                      <CheckCircle size={13} className="text-emerald-600" />
+                      <span className="text-[11px] font-bold text-emerald-700">Claimed</span>
+                    </button>
+                    <button onClick={async () => {
+                      await supabase.from('centenarian_honoring').update({ status: 'Unclaimed' }).eq('id', record.id);
+                      showToast('Marked as Unclaimed', 'success');
+                      fetchRecords();
+                    }} className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Unclaimed">
+                      <Clock size={13} className="text-amber-600" />
+                      <span className="text-[11px] font-bold text-amber-700">Unclaimed</span>
+                    </button>
+                  </>
+                )}
+                      </div>
                     </td>
+
+
+
+
 
 
 
@@ -1117,7 +2312,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 ))}
+
+
+
+
 
 
 
@@ -1125,11 +2328,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </table>
 
 
 
+
+
+
+
           </div>
+
+
+
+
 
 
 
@@ -1137,7 +2352,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       </div>
+
+
+
+
 
 
 
@@ -1145,7 +2368,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       <div className={`fixed inset-0 z-50 flex transition-all duration-300 ${drawerOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+
+
+
+
 
 
 
@@ -1153,7 +2384,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-500" onClick={closeDrawer} />
+
+
+
+
 
 
 
@@ -1161,13 +2400,27 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <div className={`relative ml-auto w-[95%] h-full bg-white shadow-2xl overflow-y-auto transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] ${drawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+
+
+
+
 
 
 
             {selectedRecord && (<>
 
+
+
             {/* Drawer Header */}
+
+
+
+
 
 
 
@@ -1175,7 +2428,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <div className="flex items-center gap-3">
+
+
+
+
 
 
 
@@ -1183,11 +2444,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <FileText size={18} className="text-amber-600" />
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -1195,7 +2468,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <h3 className="font-bold text-lg text-slate-800">{selectedRecord.first_name} {selectedRecord.middle_name || ''} {selectedRecord.last_name} {selectedRecord.suffix && selectedRecord.suffix !== 'N/A' ? selectedRecord.suffix : ''}</h3>
+
+
+
+
 
 
 
@@ -1203,7 +2484,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -1211,7 +2500,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               </div>
+
+
+
+
 
 
 
@@ -1219,7 +2516,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 {/* Approve / Reject buttons */}
+
+
+
+
 
 
 
@@ -1227,7 +2532,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 <button onClick={closeDrawer} className="p-2 hover:bg-slate-100 rounded-xl transition-colors ml-2">
+
+
+
+
 
 
 
@@ -1235,7 +2548,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </button>
+
+
+
+
 
 
 
@@ -1243,7 +2564,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
@@ -1251,7 +2580,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             {showRejectInput && (
+
+
+
+
 
 
 
@@ -1259,7 +2596,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 <input type="text" value={rejectRemarks} onChange={(e) => setRejectRemarks(e.target.value)}
+
+
+
+
 
 
 
@@ -1267,7 +2612,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   className="flex-1 px-4 py-2 bg-white border border-red-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-red-400 focus:outline-none" autoFocus />
+
+
+
+
 
 
 
@@ -1275,7 +2628,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl disabled:opacity-50">Confirm Reject</button>
+
+
+
+
 
 
 
@@ -1283,7 +2644,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               </div>
+
+
+
+
 
 
 
@@ -1291,7 +2660,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             {/* Drawer Content */}
+
+
+
+
 
 
 
@@ -1299,7 +2676,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               {/* === SECTION: Personal Information === */}
+
+
+
+
 
 
 
@@ -1307,7 +2692,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 <h6 className="text-sm font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+
+
+
 
 
 
@@ -1315,7 +2708,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </h6>
+
+
+
+
 
 
 
@@ -1323,7 +2724,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="NCSC Ref Code" value={selectedRecord.ncsc_reference_code} />
+
+
+
+
 
 
 
@@ -1331,7 +2740,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="First Name" value={selectedRecord.first_name} />
+
+
+
+
 
 
 
@@ -1339,7 +2756,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Last Name" value={selectedRecord.last_name} />
+
+
+
+
 
 
 
@@ -1347,7 +2772,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Birthdate" value={selectedRecord.birthdate} />
+
+
+
+
 
 
 
@@ -1355,7 +2788,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Sex" value={selectedRecord.sex} />
+
+
+
+
 
 
 
@@ -1363,7 +2804,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Citizenship" value={selectedRecord.citizenship} />
+
+
+
+
 
 
 
@@ -1371,7 +2820,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Address" value={selectedRecord.address} />
+
+
+
+
 
 
 
@@ -1379,7 +2836,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="City/Town" value={selectedRecord.city_town} />
+
+
+
+
 
 
 
@@ -1387,7 +2852,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Region" value={selectedRecord.region} />
+
+
+
+
 
 
 
@@ -1395,7 +2868,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   {selectedRecord.ethnic_origin && <InfoRow label="Ethnicity / IP" value={selectedRecord.ethnic_origin} />}
+
+
+
+
 
 
 
@@ -1403,7 +2884,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -1411,7 +2900,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 pt-2">
+
+
+
+
 
 
 
@@ -1419,7 +2916,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Abroad Street" value={selectedRecord.abroad_street} />
+
+
+
+
 
 
 
@@ -1427,7 +2932,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Abroad State" value={selectedRecord.abroad_state} />
+
+
+
+
 
 
 
@@ -1435,7 +2948,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Abroad Zip" value={selectedRecord.abroad_zip_code} />
+
+
+
+
 
 
 
@@ -1443,11 +2964,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 )}
 
 
 
+
+
+
+
               </section>
+
+
+
+
 
 
 
@@ -1455,11 +2988,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <section className="space-y-4">
 
 
 
+
+
+
+
                 <h6 className="text-sm font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+
+
+
 
 
 
@@ -1467,7 +3012,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </h6>
+
+
+
+
 
 
 
@@ -1475,7 +3028,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Spouse Last Name" value={selectedRecord.spouse_last_name} />
+
+
+
+
 
 
 
@@ -1483,7 +3044,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <InfoRow label="Spouse Middle Name" value={selectedRecord.spouse_middle_name} />
+
+
+
+
 
 
 
@@ -1491,7 +3060,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -1499,7 +3076,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <div className="space-y-2">
+
+
+
+
 
 
 
@@ -1507,7 +3092,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+
+
+
+
 
 
 
@@ -1515,7 +3108,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         <div key={idx} className="p-2.5 bg-slate-50 rounded-xl border border-slate-100 text-xs">
+
+
+
+
 
 
 
@@ -1523,11 +3124,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                           <span className="text-slate-400 ml-2">{child.age}yrs • {child.sex} • {child.occupation || 'N/A'}</span>
 
 
 
+
+
+
+
                         </div>
+
+
+
+
 
 
 
@@ -1535,7 +3148,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     </div>
+
+
+
+
 
 
 
@@ -1543,11 +3164,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 )}
 
 
 
+
+
+
+
               </section>
+
+
+
+
 
 
 
@@ -1555,7 +3188,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               {selectedRecord.is_deceased ? (
+
+
+
+
 
 
 
@@ -1563,7 +3204,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <h6 className="text-sm font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+
+
+
 
 
 
@@ -1571,7 +3220,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </h6>
+
+
+
+
 
 
 
@@ -1579,7 +3236,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Date of Death" value={selectedRecord.date_of_death} />
+
+
+
+
 
 
 
@@ -1587,7 +3252,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Relationship" value={selectedRecord.claimant_relationship} />
+
+
+
+
 
 
 
@@ -1595,7 +3268,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Claimant Email" value={selectedRecord.claimant_email} />
+
+
+
+
 
 
 
@@ -1603,7 +3284,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Account No." value={selectedRecord.claimant_account_number} />
+
+
+
+
 
 
 
@@ -1611,7 +3300,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Branch" value={selectedRecord.claimant_branch_name} />
+
+
+
+
 
 
 
@@ -1619,7 +3316,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </section>
+
+
+
+
 
 
 
@@ -1627,7 +3332,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 <section className="space-y-4">
+
+
+
+
 
 
 
@@ -1635,7 +3348,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>E. Grantee's Transaction Account
+
+
+
+
 
 
 
@@ -1643,7 +3364,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+
+
+
+
 
 
 
@@ -1651,7 +3380,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Account No." value={selectedRecord.account_number} />
+
+
+
+
 
 
 
@@ -1659,7 +3396,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Branch" value={selectedRecord.branch_name} />
+
+
+
+
 
 
 
@@ -1667,11 +3412,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <InfoRow label="Joint Account?" value={selectedRecord.is_joint_account} />
 
 
 
+
+
+
+
                   </div>
+
+
+
+
 
 
 
@@ -1679,7 +3436,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               )}
+
+
+
+
 
 
 
@@ -1687,11 +3452,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <section className="space-y-4">
 
 
 
+
+
+
+
                 <h6 className="text-sm font-bold text-teal-700 uppercase tracking-wider border-b border-teal-50/50 pb-1 flex items-center gap-1.5">
+
+
+
+
 
 
 
@@ -1699,7 +3476,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </h6>
+
+
+
+
 
 
 
@@ -1707,7 +3492,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   {Object.entries(DOC_LABELS).map(([key, label]) => {
+
+
+
+
 
 
 
@@ -1715,11 +3508,22 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     const docNum = parseInt(key.replace('doc', ''));
 
 
 
-                    if (docNum >= 7 && !selectedRecord.is_deceased) return null;
+
+
+
+
+
+
+
+
 
 
 
@@ -1727,7 +3531,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     return (
+
+
+
+
 
 
 
@@ -1735,7 +3547,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         <div className="flex items-start justify-between gap-2">
+
+
+
+
 
 
 
@@ -1743,7 +3563,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                           {validStatus === true && <span className="shrink-0 w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center"><CheckCircle size={12} className="text-white" /></span>}
+
+
+
+
 
 
 
@@ -1751,7 +3579,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         </div>
+
+
+
+
 
 
 
@@ -1759,7 +3595,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                           <span className="text-xs text-slate-400 italic">No files uploaded</span>
+
+
+
+
 
 
 
@@ -1767,7 +3611,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                           <div className="flex flex-wrap gap-1.5">
+
+
+
+
 
 
 
@@ -1775,7 +3627,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                               const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(fileUrl);
+
+
+
+
 
 
 
@@ -1783,7 +3643,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                 <div key={idx} className="relative group cursor-pointer" onClick={() => setFullscreenImage(fileUrl)}>
+
+
+
+
 
 
 
@@ -1791,7 +3659,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                     <img src={fileUrl} alt="" className="w-16 h-16 object-cover rounded-lg border border-slate-200 hover:border-teal-400 transition-colors" />
+
+
+
+
 
 
 
@@ -1799,7 +3675,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                     <div className="w-16 h-16 rounded-lg border border-slate-200 bg-white flex flex-col items-center justify-center hover:border-teal-400 transition-colors">
+
+
+
+
 
 
 
@@ -1807,7 +3691,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                       <span className="text-[7px] text-slate-400 font-bold mt-0.5 uppercase">{fileUrl.split('.').pop()}</span>
+
+
+
+
 
 
 
@@ -1815,7 +3707,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                   )}
+
+
+
+
 
 
 
@@ -1823,7 +3723,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                     <Maximize2 size={14} className="text-white" />
+
+
+
+
 
 
 
@@ -1831,7 +3739,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                                 </div>
+
+
+
+
 
 
 
@@ -1839,7 +3755,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                             })}
+
+
+
+
 
 
 
@@ -1847,7 +3771,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         )}
+
+
+
+
 
 
 
@@ -1855,7 +3787,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                           <div className="flex gap-2 pt-1">
+
+
+
+
 
 
 
@@ -1863,7 +3803,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                               className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all ${validStatus === true ? 'bg-emerald-600 text-white shadow-sm' : 'bg-emerald-50 border border-emerald-200 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-400'}`}>
+
+
+
+
 
 
 
@@ -1871,7 +3819,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                             </button>
+
+
+
+
 
 
 
@@ -1879,7 +3835,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                               className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 text-[11px] font-bold rounded-lg transition-all ${validStatus === false ? 'bg-red-600 text-white shadow-sm' : 'bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 hover:border-red-400'}`}>
+
+
+
+
 
 
 
@@ -1887,7 +3851,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                             </button>
+
+
+
+
 
 
 
@@ -1895,7 +3867,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                         )}
+
+
+
+
 
 
 
@@ -1903,7 +3883,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     );
+
+
+
+
 
 
 
@@ -1911,7 +3899,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -1919,7 +3915,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 {getInvalidDocNames() && (
+
+
+
+
 
 
 
@@ -1927,7 +3931,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <span className="text-[11px] font-bold text-red-700 uppercase">Invalid Documents:</span>
+
+
+
+
 
 
 
@@ -1935,7 +3947,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </div>
+
+
+
+
 
 
 
@@ -1943,7 +3963,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               </section>
+
+
+
+
 
 
 
@@ -1951,7 +3979,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
               <section className="space-y-4">
+
+
+
+
 
 
 
@@ -1959,7 +3995,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>I. Verification Result
+
+
+
+
 
 
 
@@ -1967,11 +4011,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 <div className="flex gap-5">
 
 
 
+
+
+
+
                   <label className="flex items-center gap-2 cursor-pointer">
+
+
+
+
 
 
 
@@ -1979,11 +4035,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <span className="text-[13px] text-slate-600 font-medium">Eligible</span>
 
 
 
+
+
+
+
                   </label>
+
+
+
+
 
 
 
@@ -1991,7 +4059,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <input type="checkbox" checked={isNotEligible} onChange={(e) => setIsNotEligible(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+
+
+
+
 
 
 
@@ -1999,11 +4075,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </label>
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -2011,7 +4099,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <div className="space-y-1.5">
+
+
+
+
 
 
 
@@ -2019,7 +4115,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <input type="text" value={verifierName} onChange={(e) => setVerifierName(e.target.value)}
+
+
+
+
 
 
 
@@ -2027,11 +4131,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </div>
 
 
 
+
+
+
+
                   <div className="space-y-1.5">
+
+
+
+
 
 
 
@@ -2039,7 +4155,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <input type="date" value={verificationDate} onChange={(e) => setVerificationDate(e.target.value)}
+
+
+
+
 
 
 
@@ -2047,11 +4171,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </div>
 
 
 
+
+
+
+
                   <div className="space-y-1.5">
+
+
+
+
 
 
 
@@ -2059,7 +4195,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <input type="text" value={ncscRegNo} onChange={(e) => setNcscRegNo(e.target.value)}
+
+
+
+
 
 
 
@@ -2067,7 +4211,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   </div>
+
+
+
+
 
 
 
@@ -2075,7 +4227,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Verifier Contact Info</label>
+
+
+
+
 
 
 
@@ -2083,7 +4243,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                       className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" placeholder="Office, Phone, Email" />
+
+
+
+
 
 
 
@@ -2091,7 +4259,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
@@ -2099,7 +4275,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                   <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Remarks / Notes</label>
+
+
+
+
 
 
 
@@ -2107,7 +4291,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                     className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none"
+
+
+
+
 
 
 
@@ -2115,29 +4307,59 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
                 </div>
+
+
+
+
 
 
 
                 <div className="flex gap-3 pt-2">
 
+
+
                 <button onClick={handleApprove} disabled={updatingStatus}
+
+
 
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-emerald-600/10 transition-all active:scale-[0.98]">
 
-                  <CheckCircle size={16} /> {updatingStatus ? 'Processing...' : 'Approve'}
+
+
+                  <CheckCircle size={16} /> {updatingStatus ? 'Processing...' : (getInvalidDocNames() ? 'Save Document' : 'Approve')}
+
+
 
                 </button>
+
+
 
                 <button onClick={() => setShowRejectInput(true)} disabled={updatingStatus}
 
+
+
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-red-500/10 transition-all active:scale-[0.98]">
+
+
 
                   <XCircle size={16} /> Reject
 
+
+
                 </button>
 
+
+
               </div>
+
+
+
+
 
 
 
@@ -2145,17 +4367,35 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             </div>
+
+
+
+
 
 
 
           </>)}
 
+
+
           </div>
 
 
 
+
+
+
+
         </div>
+
+
+
+
 
 
 
@@ -2163,7 +4403,92 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       {/* Fullscreen Image Viewer */}
+
+      {/* Password Confirmation Modal */}
+      {showPasswordModal && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fadeIn">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <ShieldCheck size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-sm">Confirm Action</h3>
+                    <p className="text-teal-100 text-[11px]">Enter your password to enable registration</p>
+                  </div>
+                </div>
+                <button onClick={() => { setShowPasswordModal(false); setProcessingToggle(false); }} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
+                  <X size={18} className="text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-4">
+              <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                <p className="text-xs text-amber-700 leading-relaxed">
+                  <strong>This will:</strong> Generate unique passwords for all seniors with status <strong>"Qualified for Honoring"</strong> and send them an SMS with their credentials to access the Grantee Claim Form.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">
+                  Your Password
+                </label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => { setConfirmPassword(e.target.value); setPasswordError(''); }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleConfirmToggleOn(); }}
+                  placeholder="Enter your account password"
+                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                  disabled={processingToggle}
+                  autoFocus
+                />
+                {passwordError && (
+                  <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1">
+                    <XCircle size={12} /> {passwordError}
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  onClick={() => { setShowPasswordModal(false); setProcessingToggle(false); }}
+                  disabled={processingToggle}
+                  className="flex-1 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmToggleOn}
+                  disabled={processingToggle || !confirmPassword.trim()}
+                  className="flex-1 px-4 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {processingToggle ? (
+                    <><RefreshCw size={14} className="animate-spin" /> Processing...</>
+                  ) : (
+                    <><CheckCircle size={14} /> Confirm & Enable</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
+
+
 
 
 
@@ -2171,7 +4496,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
         <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4" onClick={() => setFullscreenImage(null)}>
+
+
+
+
 
 
 
@@ -2179,7 +4512,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
             <X size={24} className="text-white" />
+
+
+
+
 
 
 
@@ -2187,7 +4528,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
           <img src={fullscreenImage} alt="Document Preview" className="max-w-full max-h-full object-contain rounded-lg" />
+
+
+
+
 
 
 
@@ -2195,7 +4544,15 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
       )}
+
+
+
+
 
 
 
@@ -2203,11 +4560,23 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+
+
+
   );
 
 
 
+
+
+
+
 }
+
+
+
+
 
 
 
