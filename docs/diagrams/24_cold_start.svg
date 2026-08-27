@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1070" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-24_cold_start" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-24_cold_start" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-24_cold_start" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1100" height="1070" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="550.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">24. App Initialization (Cold Start)</text>
+  <line x1="50" y1="50" x2="1050" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Participant: Browser -->
+  <rect x="-15.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="50.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Browser</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: main.tsx -->
+  <rect x="185.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="250.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">main.tsx</text>
+  <line x1="250.0" y1="140" x2="250.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: App.tsx -->
+  <rect x="385.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="450.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">App.tsx</text>
+  <line x1="450.0" y1="140" x2="450.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: authStore -->
+  <rect x="585.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="650.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">authStore</text>
+  <line x1="650.0" y1="140" x2="650.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: seniorsStore -->
+  <rect x="785.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="850.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">seniorsStore</text>
+  <line x1="850.0" y1="140" x2="850.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="985.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-24_cold_start)"/>
+  <text x="1050.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="1050.0" y1="140" x2="1050.0" y2="1040" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="242.0" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="150.0" y="163" text-anchor="middle" font-size="9" fill="#334155">Load application bundle</text>
+  <line x1="250.0" y1="220" x2="442.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="350.0" y="213" text-anchor="middle" font-size="9" fill="#334155">Render <App /></text>
+  <path d="M 450.0 270 L 480.0 270 L 480.0 290 L 450.0 290" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="485.0" y="283" font-size="9" fill="#334155">Show spinner: "Verifying session..."</text>
+  <line x1="450.0" y1="320" x2="642.0" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="550.0" y="313" text-anchor="middle" font-size="9" fill="#334155">initAuth()</text>
+  <path d="M 650.0 370 L 680.0 370 L 680.0 390 L 650.0 390" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="685.0" y="383" font-size="9" fill="#334155">Check localStorage for token</text>
+  <line x1="650.0" y1="420" x2="1042.0" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="850.0" y="413" text-anchor="middle" font-size="9" fill="#334155">Validate session (SELECT user_sessions)</text>
+  <line x1="1050.0" y1="470" x2="658.0" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
+  <text x="850.0" y="463" text-anchor="middle" font-size="9" fill="#64748b">Session valid + user data</text>
+  <path d="M 650.0 520 L 680.0 520 L 680.0 540 L 650.0 540" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="685.0" y="533" font-size="9" fill="#334155">Set currentUser + start monitor</text>
+  <line x1="650.0" y1="570" x2="458.0" y2="570" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
+  <text x="550.0" y="563" text-anchor="middle" font-size="9" fill="#64748b">Auth initialized</text>
+  <line x1="450.0" y1="620" x2="842.0" y2="620" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="650.0" y="613" text-anchor="middle" font-size="9" fill="#334155">initSeniors()</text>
+  <line x1="850.0" y1="670" x2="1042.0" y2="670" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="950.0" y="663" text-anchor="middle" font-size="9" fill="#334155">SELECT * FROM seniors</text>
+  <line x1="1050.0" y1="720" x2="858.0" y2="720" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
+  <text x="950.0" y="713" text-anchor="middle" font-size="9" fill="#64748b">All records</text>
+  <path d="M 850.0 770 L 880.0 770 L 880.0 790 L 850.0 790" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="885.0" y="783" font-size="9" fill="#334155">Cache in store</text>
+  <line x1="450.0" y1="820" x2="1042.0" y2="820" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="750.0" y="813" text-anchor="middle" font-size="9" fill="#334155">userSettingsService.get(userId)</text>
+  <line x1="1050.0" y1="870" x2="458.0" y2="870" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
+  <text x="750.0" y="863" text-anchor="middle" font-size="9" fill="#64748b">Theme config</text>
+  <path d="M 450.0 920 L 480.0 920 L 480.0 940 L 450.0 940" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
+  <text x="485.0" y="933" font-size="9" fill="#334155">applySystemTheme(config)</text>
+  <line x1="450.0" y1="970" x2="58.0" y2="970" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
+  <text x="250.0" y="963" text-anchor="middle" font-size="9" fill="#64748b">Render DashboardLayout + DashboardPage</text>
+</svg>

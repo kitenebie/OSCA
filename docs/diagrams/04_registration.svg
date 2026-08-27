@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1300 1320" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-04_registration" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-04_registration" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-04_registration" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1300" height="1320" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="650.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">4. Senior Registration (11-Step NCSC-SCDF Form)</text>
+  <line x1="50" y1="50" x2="1250" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: Encoder -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">Encoder</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: RegistrationPage -->
+  <rect x="156.42857142857142" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="221.42857142857142" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">RegistrationPage</text>
+  <line x1="221.42857142857142" y1="140" x2="221.42857142857142" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Step Components -->
+  <rect x="327.85714285714283" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="392.85714285714283" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Step Components</text>
+  <line x1="392.85714285714283" y1="140" x2="392.85714285714283" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Zod Validation -->
+  <rect x="499.2857142857142" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="564.2857142857142" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Zod Validation</text>
+  <line x1="564.2857142857142" y1="140" x2="564.2857142857142" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Fingerprint Bridge -->
+  <rect x="670.7142857142857" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="735.7142857142857" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Fingerprint Bridge</text>
+  <line x1="735.7142857142857" y1="140" x2="735.7142857142857" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: seniorsStore -->
+  <rect x="842.1428571428571" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="907.1428571428571" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">seniorsStore</text>
+  <line x1="907.1428571428571" y1="140" x2="907.1428571428571" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: supabaseService -->
+  <rect x="1013.5714285714284" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="1078.5714285714284" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">supabaseService</text>
+  <line x1="1078.5714285714284" y1="140" x2="1078.5714285714284" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="1185.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-04_registration)"/>
+  <text x="1250.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="1250.0" y1="140" x2="1250.0" y2="1290" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="213.42857142857142" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="135.71428571428572" y="163" text-anchor="middle" font-size="9" fill="#334155">Click "Register New Senior"</text>
+  <line x1="221.42857142857142" y1="220" x2="384.85714285714283" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="307.1428571428571" y="213" text-anchor="middle" font-size="9" fill="#334155">Render Step 1 (Identifying Info)</text>
+  <line x1="50.0" y1="270" x2="384.85714285714283" y2="270" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="221.42857142857142" y="263" text-anchor="middle" font-size="9" fill="#334155">Fill form fields (Steps 1-7)</text>
+  <line x1="392.85714285714283" y1="320" x2="556.2857142857142" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="478.57142857142856" y="313" text-anchor="middle" font-size="9" fill="#334155">Validate step fields</text>
+  <line x1="564.2857142857142" y1="370" x2="400.85714285714283" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="478.57142857142856" y="363" text-anchor="middle" font-size="9" fill="#64748b">Valid → Next step</text>
+  <line x1="50.0" y1="420" x2="384.85714285714283" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="221.42857142857142" y="413" text-anchor="middle" font-size="9" fill="#334155">Step 8: Capture photo (webcam → Base64)</text>
+  <line x1="392.85714285714283" y1="470" x2="727.7142857142857" y2="470" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="564.2857142857142" y="463" text-anchor="middle" font-size="9" fill="#334155">POST /api/capture (fingerprint)</text>
+  <line x1="735.7142857142857" y1="520" x2="400.85714285714283" y2="520" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="564.2857142857142" y="513" text-anchor="middle" font-size="9" fill="#64748b">{template: "Base64..."}</text>
+  <line x1="50.0" y1="570" x2="384.85714285714283" y2="570" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="221.42857142857142" y="563" text-anchor="middle" font-size="9" fill="#334155">Step 9: Fill assisting person details</text>
+  <line x1="50.0" y1="620" x2="384.85714285714283" y2="620" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="221.42857142857142" y="613" text-anchor="middle" font-size="9" fill="#334155">Step 10: Draw signature (canvas → Base64)</text>
+  <line x1="50.0" y1="670" x2="384.85714285714283" y2="670" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="221.42857142857142" y="663" text-anchor="middle" font-size="9" fill="#334155">Step 11: Review → Click "Submit"</text>
+  <line x1="392.85714285714283" y1="720" x2="899.1428571428571" y2="720" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="650.0" y="713" text-anchor="middle" font-size="9" fill="#334155">Collect all step data</text>
+  <line x1="907.1428571428571" y1="770" x2="1070.5714285714284" y2="770" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="992.8571428571428" y="763" text-anchor="middle" font-size="9" fill="#334155">seniorsService.create(formData)</text>
+  <path d="M 1078.5714285714284 820 L 1108.5714285714284 820 L 1108.5714285714284 840 L 1078.5714285714284 840" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="1113.5714285714284" y="833" font-size="9" fill="#334155">Map camelCase → snake_case</text>
+  <line x1="1078.5714285714284" y1="870" x2="1242.0" y2="870" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="1164.2857142857142" y="863" text-anchor="middle" font-size="9" fill="#334155">Upload photo to Storage</text>
+  <line x1="1250.0" y1="920" x2="1086.5714285714284" y2="920" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="1164.2857142857142" y="913" text-anchor="middle" font-size="9" fill="#64748b">photo_url</text>
+  <line x1="1078.5714285714284" y1="970" x2="1242.0" y2="970" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="1164.2857142857142" y="963" text-anchor="middle" font-size="9" fill="#334155">INSERT INTO seniors (100+ cols)</text>
+  <line x1="1250.0" y1="1020" x2="1086.5714285714284" y2="1020" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="1164.2857142857142" y="1013" text-anchor="middle" font-size="9" fill="#64748b">New record (auto OSCA#)</text>
+  <line x1="1078.5714285714284" y1="1070" x2="1242.0" y2="1070" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-04_registration)"/>
+  <text x="1164.2857142857142" y="1063" text-anchor="middle" font-size="9" fill="#334155">INSERT INTO audit_logs</text>
+  <line x1="1078.5714285714284" y1="1120" x2="915.1428571428571" y2="1120" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="992.8571428571428" y="1113" text-anchor="middle" font-size="9" fill="#64748b">Success</text>
+  <line x1="907.1428571428571" y1="1170" x2="229.42857142857142" y2="1170" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="564.2857142857142" y="1163" text-anchor="middle" font-size="9" fill="#64748b">Update local cache</text>
+  <line x1="221.42857142857142" y1="1220" x2="58.0" y2="1220" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-04_registration)"/>
+  <text x="135.71428571428572" y="1213" text-anchor="middle" font-size="9" fill="#64748b">Toast: "Senior registered!"</text>
+</svg>

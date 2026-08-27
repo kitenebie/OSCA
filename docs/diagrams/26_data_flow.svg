@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 700" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow-df" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#475569"/>
+    </marker>
+    <filter id="shadow-df" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="700" fill="#f8fafc" rx="12"/>
+  <text x="600" y="40" text-anchor="middle" font-size="20" font-weight="bold" fill="#0f172a">OSCA Data Flow Diagram</text>
+  <text x="600" y="62" text-anchor="middle" font-size="11" fill="#64748b">End-to-End: Input → Processing → Storage → Output</text>
+
+  <!-- INPUT SECTION -->
+  <rect x="30" y="85" width="220" height="560" rx="12" fill="#eff6ff" stroke="#3b82f6" stroke-width="2" filter="url(#shadow-df)"/>
+  <text x="140" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#1e40af">📥 DATA INPUT</text>
+
+  <rect x="55" y="130" width="170" height="60" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="150" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">📋 11-Step NCSC Form</text>
+  <text x="140" y="168" text-anchor="middle" font-size="8" fill="#475569">Identifying, Family, Education,</text>
+  <text x="140" y="180" text-anchor="middle" font-size="8" fill="#475569">Economic, Health, Disaster Risk</text>
+
+  <rect x="55" y="210" width="170" height="55" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="230" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">📷 Webcam Photo</text>
+  <text x="140" y="248" text-anchor="middle" font-size="8" fill="#475569">WebRTC getUserMedia</text>
+  <text x="140" y="260" text-anchor="middle" font-size="8" fill="#475569">→ Canvas → Base64 PNG</text>
+
+  <rect x="55" y="285" width="170" height="55" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="305" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">🖐️ Fingerprint Sensor</text>
+  <text x="140" y="323" text-anchor="middle" font-size="8" fill="#475569">Windows Biometric Framework</text>
+  <text x="140" y="335" text-anchor="middle" font-size="8" fill="#475569">→ .NET Bridge → Base64</text>
+
+  <rect x="55" y="360" width="170" height="55" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="380" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">✍️ Digital Signature</text>
+  <text x="140" y="398" text-anchor="middle" font-size="8" fill="#475569">Canvas / USB Signature Pad</text>
+  <text x="140" y="410" text-anchor="middle" font-size="8" fill="#475569">→ toDataURL → Base64 PNG</text>
+
+  <rect x="55" y="435" width="170" height="55" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="455" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">📍 GPS Coordinates</text>
+  <text x="140" y="473" text-anchor="middle" font-size="8" fill="#475569">Manual pin or geolocation</text>
+  <text x="140" y="485" text-anchor="middle" font-size="8" fill="#475569">lat, lng per senior</text>
+
+  <rect x="55" y="510" width="170" height="55" rx="8" fill="#fff" stroke="#93c5fd"/>
+  <text x="140" y="530" text-anchor="middle" font-size="10" font-weight="bold" fill="#1e40af">👤 Admin Actions</text>
+  <text x="140" y="548" text-anchor="middle" font-size="8" fill="#475569">User CRUD, SMS send,</text>
+  <text x="140" y="560" text-anchor="middle" font-size="8" fill="#475569">Config, Signatories</text>
+
+  <!-- PROCESSING SECTION -->
+  <rect x="290" y="85" width="240" height="560" rx="12" fill="#fefce8" stroke="#eab308" stroke-width="2" filter="url(#shadow-df)"/>
+  <text x="410" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#854d0e">⚙️ PROCESSING</text>
+
+  <rect x="310" y="135" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">Zod Schema Validation</text>
+  <text x="410" y="172" text-anchor="middle" font-size="8" fill="#475569">Per-step field validation</text>
+
+  <rect x="310" y="205" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="225" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">Base64 Encoding</text>
+  <text x="410" y="242" text-anchor="middle" font-size="8" fill="#475569">Photo, Fingerprint, Signature</text>
+
+  <rect x="310" y="275" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="295" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">camelCase → snake_case</text>
+  <text x="410" y="312" text-anchor="middle" font-size="8" fill="#475569">Field mapping for DB insert</text>
+
+  <rect x="310" y="345" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="365" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">OSCA # Generation</text>
+  <text x="410" y="382" text-anchor="middle" font-size="8" fill="#475569">JUBAN-YYYY-XXXXX (auto)</text>
+
+  <rect x="310" y="415" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="435" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">Session Token Gen</text>
+  <text x="410" y="452" text-anchor="middle" font-size="8" fill="#475569">crypto 64-byte hex (60-min TTL)</text>
+
+  <rect x="310" y="485" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="505" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">RBAC Permission Check</text>
+  <text x="410" y="522" text-anchor="middle" font-size="8" fill="#475569">Encoder / Supervisor / Admin</text>
+
+  <rect x="310" y="555" width="200" height="50" rx="8" fill="#fff" stroke="#fde047"/>
+  <text x="410" y="575" text-anchor="middle" font-size="10" font-weight="bold" fill="#854d0e">Statistics Computation</text>
+  <text x="410" y="592" text-anchor="middle" font-size="8" fill="#475569">Age/Gender/Barangay aggregation</text>
+
+  <!-- STORAGE SECTION -->
+  <rect x="570" y="85" width="220" height="560" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2" filter="url(#shadow-df)"/>
+  <text x="680" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#166534">💾 STORAGE (Supabase)</text>
+
+  <rect x="590" y="135" width="180" height="100" rx="8" fill="#fff" stroke="#86efac"/>
+  <text x="680" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">PostgreSQL Tables</text>
+  <text x="605" y="173" font-size="8" fill="#475569">• seniors (100+ cols)</text>
+  <text x="605" y="186" font-size="8" fill="#475569">• users, user_sessions</text>
+  <text x="605" y="199" font-size="8" fill="#475569">• audit_logs, sms_logs</text>
+  <text x="605" y="212" font-size="8" fill="#475569">• role_permissions</text>
+  <text x="605" y="225" font-size="8" fill="#475569">• system_settings, signatories</text>
+
+  <rect x="590" y="255" width="180" height="65" rx="8" fill="#fff" stroke="#86efac"/>
+  <text x="680" y="275" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">Storage Buckets</text>
+  <text x="605" y="293" font-size="8" fill="#475569">• profile-photos/</text>
+  <text x="605" y="306" font-size="8" fill="#475569">• system-assets/</text>
+
+  <rect x="590" y="340" width="180" height="50" rx="8" fill="#fff" stroke="#86efac"/>
+  <text x="680" y="360" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">Realtime Channels</text>
+  <text x="605" y="378" font-size="8" fill="#475569">• user_sessions (force-logout)</text>
+
+  <rect x="590" y="410" width="180" height="50" rx="8" fill="#fff" stroke="#86efac"/>
+  <text x="680" y="430" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">localStorage</text>
+  <text x="605" y="448" font-size="8" fill="#475569">• session token, user data</text>
+
+  <!-- OUTPUT SECTION -->
+  <rect x="830" y="85" width="340" height="560" rx="12" fill="#fdf2f8" stroke="#ec4899" stroke-width="2" filter="url(#shadow-df)"/>
+  <text x="1000" y="110" text-anchor="middle" font-size="13" font-weight="bold" fill="#9d174d">📤 OUTPUT GENERATION</text>
+
+  <rect x="855" y="135" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="927" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📊 Dashboard</text>
+  <text x="927" y="172" text-anchor="middle" font-size="8" fill="#475569">ApexCharts</text>
+  <text x="927" y="184" text-anchor="middle" font-size="8" fill="#475569">Bar, Pie, Line</text>
+
+  <rect x="1015" y="135" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="1087" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">🗺️ GIS Map</text>
+  <text x="1087" y="172" text-anchor="middle" font-size="8" fill="#475569">Leaflet +</text>
+  <text x="1087" y="184" text-anchor="middle" font-size="8" fill="#475569">MarkerCluster</text>
+
+  <rect x="855" y="210" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="927" y="230" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📄 NCSC PDF</text>
+  <text x="927" y="247" text-anchor="middle" font-size="8" fill="#475569">pdf-lib drawText</text>
+  <text x="927" y="259" text-anchor="middle" font-size="8" fill="#475569">overlay (100+ fields)</text>
+
+  <rect x="1015" y="210" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="1087" y="230" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📄 Centenarian</text>
+  <text x="1087" y="247" text-anchor="middle" font-size="8" fill="#475569">Claim Form PDF</text>
+  <text x="1087" y="259" text-anchor="middle" font-size="8" fill="#475569">with signatories</text>
+
+  <rect x="855" y="285" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="927" y="305" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">🪪 NFC ID Card</text>
+  <text x="927" y="322" text-anchor="middle" font-size="8" fill="#475569">Front/Back layout</text>
+  <text x="927" y="334" text-anchor="middle" font-size="8" fill="#475569">html2canvas → PNG</text>
+
+  <rect x="1015" y="285" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="1087" y="305" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📱 SMS Notifs</text>
+  <text x="1087" y="322" text-anchor="middle" font-size="8" fill="#475569">Template-based</text>
+  <text x="1087" y="334" text-anchor="middle" font-size="8" fill="#475569">Bulk send</text>
+
+  <rect x="855" y="360" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="927" y="380" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📑 Reports</text>
+  <text x="927" y="397" text-anchor="middle" font-size="8" fill="#475569">jsPDF + html2canvas</text>
+  <text x="927" y="409" text-anchor="middle" font-size="8" fill="#475569">PDF / Screenshot</text>
+
+  <rect x="1015" y="360" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
+  <text x="1087" y="380" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📋 Audit Trail</text>
+  <text x="1087" y="397" text-anchor="middle" font-size="8" fill="#475569">All actions logged</text>
+  <text x="1087" y="409" text-anchor="middle" font-size="8" fill="#475569">with timestamp</text>
+
+  <!-- FLOW ARROWS -->
+  <!-- Input → Processing -->
+  <line x1="250" y1="160" x2="308" y2="160" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="250" y1="237" x2="308" y2="230" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="250" y1="312" x2="308" y2="300" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="250" y1="387" x2="308" y2="370" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="250" y1="462" x2="308" y2="440" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+
+  <!-- Processing → Storage -->
+  <line x1="530" y1="160" x2="588" y2="170" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="530" y1="230" x2="588" y2="270" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="530" y1="300" x2="588" y2="200" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="530" y1="440" x2="588" y2="430" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+
+  <!-- Storage → Output -->
+  <line x1="790" y1="170" x2="853" y2="160" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="790" y1="200" x2="853" y2="237" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="790" y1="285" x2="853" y2="312" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+  <line x1="790" y1="350" x2="853" y2="387" stroke="#475569" stroke-width="2" marker-end="url(#arrow-df)"/>
+
+  <!-- Footer -->
+  <text x="600" y="680" text-anchor="middle" font-size="10" fill="#64748b">OSCA — Bayan ng Juban, Lalawigan ng Sorsogon • Office for Senior Citizens Affairs</text>
+
+</svg>

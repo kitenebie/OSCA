@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 770" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-22_search_filter" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-22_search_filter" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-22_search_filter" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="750" height="770" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="375.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">22. Seniors List Search & Filter</text>
+  <line x1="50" y1="50" x2="700" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: User -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">User</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: SeniorsListPage -->
+  <rect x="310.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-22_search_filter)"/>
+  <text x="375.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">SeniorsListPage</text>
+  <line x1="375.0" y1="140" x2="375.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: seniorsStore -->
+  <rect x="635.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-22_search_filter)"/>
+  <text x="700.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">seniorsStore</text>
+  <line x1="700.0" y1="140" x2="700.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="367.0" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="212.5" y="163" text-anchor="middle" font-size="9" fill="#334155">Type search query (name / OSCA#)</text>
+  <line x1="375.0" y1="220" x2="692.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="537.5" y="213" text-anchor="middle" font-size="9" fill="#334155">Filter from cached seniors[]</text>
+  <path d="M 700.0 270 L 730.0 270 L 730.0 290 L 700.0 290" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="735.0" y="283" font-size="9" fill="#334155">Client-side: name.includes || oscaNumber.includes</text>
+  <line x1="700.0" y1="320" x2="383.0" y2="320" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-22_search_filter)"/>
+  <text x="537.5" y="313" text-anchor="middle" font-size="9" fill="#64748b">Filtered results</text>
+  <line x1="375.0" y1="370" x2="58.0" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-22_search_filter)"/>
+  <text x="212.5" y="363" text-anchor="middle" font-size="9" fill="#64748b">Updated list</text>
+  <line x1="50.0" y1="420" x2="367.0" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="212.5" y="413" text-anchor="middle" font-size="9" fill="#334155">Select filters (barangay, status, age, gender)</text>
+  <line x1="375.0" y1="470" x2="692.0" y2="470" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="537.5" y="463" text-anchor="middle" font-size="9" fill="#334155">Apply combined filters</text>
+  <path d="M 700.0 520 L 730.0 520 L 730.0 540 L 700.0 540" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="735.0" y="533" font-size="9" fill="#334155">Chain: barangay → status → age → search</text>
+  <line x1="700.0" y1="570" x2="383.0" y2="570" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-22_search_filter)"/>
+  <text x="537.5" y="563" text-anchor="middle" font-size="9" fill="#64748b">Filtered + sorted results</text>
+  <path d="M 375.0 620 L 405.0 620 L 405.0 640 L 375.0 640" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-22_search_filter)"/>
+  <text x="410.0" y="633" font-size="9" fill="#334155">Apply pagination (page size)</text>
+  <line x1="375.0" y1="670" x2="58.0" y2="670" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-22_search_filter)"/>
+  <text x="212.5" y="663" text-anchor="middle" font-size="9" fill="#64748b">Paginated filtered list with count</text>
+</svg>

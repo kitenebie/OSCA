@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 850 820" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-08_signature_capture" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-08_signature_capture" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-08_signature_capture" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="850" height="820" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="425.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">8. Digital Signature Capture</text>
+  <line x1="50" y1="50" x2="800" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: User -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">User</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="790" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: signature_Pad.tsx -->
+  <rect x="235.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-08_signature_capture)"/>
+  <text x="300.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">signature_Pad.tsx</text>
+  <line x1="300.0" y1="140" x2="300.0" y2="790" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: USB Pad Context -->
+  <rect x="485.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-08_signature_capture)"/>
+  <text x="550.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">USB Pad Context</text>
+  <line x1="550.0" y1="140" x2="550.0" y2="790" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: HTML5 Canvas -->
+  <rect x="735.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-08_signature_capture)"/>
+  <text x="800.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">HTML5 Canvas</text>
+  <line x1="800.0" y1="140" x2="800.0" y2="790" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="292.0" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="175.0" y="163" text-anchor="middle" font-size="9" fill="#334155">Navigate to Step 10</text>
+  <line x1="300.0" y1="220" x2="542.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="425.0" y="213" text-anchor="middle" font-size="9" fill="#334155">Check USB pad connected?</text>
+  <line x1="550.0" y1="270" x2="308.0" y2="270" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-08_signature_capture)"/>
+  <text x="425.0" y="263" text-anchor="middle" font-size="9" fill="#64748b">connected / not connected</text>
+  <line x1="300.0" y1="320" x2="792.0" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="550.0" y="313" text-anchor="middle" font-size="9" fill="#334155">Initialize drawing canvas</text>
+  <line x1="300.0" y1="370" x2="58.0" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-08_signature_capture)"/>
+  <text x="175.0" y="363" text-anchor="middle" font-size="9" fill="#64748b">"Draw your signature below"</text>
+  <line x1="50.0" y1="420" x2="792.0" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="425.0" y="413" text-anchor="middle" font-size="9" fill="#334155">Draw signature (mouse/touch)</text>
+  <path d="M 800.0 470 L 830.0 470 L 830.0 490 L 800.0 490" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="835.0" y="483" font-size="9" fill="#334155">Stroke events → render paths</text>
+  <line x1="50.0" y1="520" x2="292.0" y2="520" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="175.0" y="513" text-anchor="middle" font-size="9" fill="#334155">Click "Done"</text>
+  <line x1="300.0" y1="570" x2="792.0" y2="570" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="550.0" y="563" text-anchor="middle" font-size="9" fill="#334155">canvas.toDataURL('image/png')</text>
+  <line x1="800.0" y1="620" x2="308.0" y2="620" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-08_signature_capture)"/>
+  <text x="550.0" y="613" text-anchor="middle" font-size="9" fill="#64748b">Base64 PNG data</text>
+  <path d="M 300.0 670 L 330.0 670 L 330.0 690 L 300.0 690" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-08_signature_capture)"/>
+  <text x="335.0" y="683" font-size="9" fill="#334155">Save as signatureData in form state</text>
+  <line x1="300.0" y1="720" x2="58.0" y2="720" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-08_signature_capture)"/>
+  <text x="175.0" y="713" text-anchor="middle" font-size="9" fill="#64748b">Show signature preview</text>
+</svg>

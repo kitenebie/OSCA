@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 920" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-20_theme_persistence" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-20_theme_persistence" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-20_theme_persistence" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="950" height="920" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="475.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">20. Theme / Settings Persistence</text>
+  <line x1="50" y1="50" x2="900" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: User -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">User</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="890" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Settings UI -->
+  <rect x="197.5" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-20_theme_persistence)"/>
+  <text x="262.5" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Settings UI</text>
+  <line x1="262.5" y1="140" x2="262.5" y2="890" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: theme.ts -->
+  <rect x="410.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-20_theme_persistence)"/>
+  <text x="475.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">theme.ts</text>
+  <line x1="475.0" y1="140" x2="475.0" y2="890" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: userSettings -->
+  <rect x="622.5" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-20_theme_persistence)"/>
+  <text x="687.5" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">userSettings</text>
+  <line x1="687.5" y1="140" x2="687.5" y2="890" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="835.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-20_theme_persistence)"/>
+  <text x="900.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="900.0" y1="140" x2="900.0" y2="890" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="254.5" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="156.25" y="163" text-anchor="middle" font-size="9" fill="#334155">Change theme (colors, glassmorphism)</text>
+  <line x1="262.5" y1="220" x2="467.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="368.75" y="213" text-anchor="middle" font-size="9" fill="#334155">applySystemTheme(themeConfig)</text>
+  <path d="M 475.0 270 L 505.0 270 L 505.0 290 L 475.0 290" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="510.0" y="283" font-size="9" fill="#334155">Update CSS custom properties</text>
+  <line x1="475.0" y1="320" x2="58.0" y2="320" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="262.5" y="313" text-anchor="middle" font-size="9" fill="#64748b">Theme applied visually (immediate)</text>
+  <line x1="262.5" y1="370" x2="679.5" y2="370" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="475.0" y="363" text-anchor="middle" font-size="9" fill="#334155">userSettingsService.save(userId, config)</text>
+  <line x1="687.5" y1="420" x2="892.0" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="793.75" y="413" text-anchor="middle" font-size="9" fill="#334155">UPSERT INTO user_settings (user_id, theme_json)</text>
+  <line x1="900.0" y1="470" x2="695.5" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="793.75" y="463" text-anchor="middle" font-size="9" fill="#64748b">Saved</text>
+  <line x1="687.5" y1="520" x2="270.5" y2="520" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="475.0" y="513" text-anchor="middle" font-size="9" fill="#64748b">Persisted</text>
+  <line x1="262.5" y1="570" x2="679.5" y2="570" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="475.0" y="563" text-anchor="middle" font-size="9" fill="#334155">[Next Login] userSettingsService.get(userId)</text>
+  <line x1="687.5" y1="620" x2="892.0" y2="620" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="793.75" y="613" text-anchor="middle" font-size="9" fill="#334155">SELECT theme_json FROM user_settings</text>
+  <line x1="900.0" y1="670" x2="695.5" y2="670" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="793.75" y="663" text-anchor="middle" font-size="9" fill="#64748b">themeConfig</text>
+  <line x1="687.5" y1="720" x2="270.5" y2="720" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="475.0" y="713" text-anchor="middle" font-size="9" fill="#64748b">themeConfig</text>
+  <line x1="262.5" y1="770" x2="467.0" y2="770" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-20_theme_persistence)"/>
+  <text x="368.75" y="763" text-anchor="middle" font-size="9" fill="#334155">applySystemTheme(themeConfig)</text>
+  <line x1="475.0" y1="820" x2="58.0" y2="820" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-20_theme_persistence)"/>
+  <text x="262.5" y="813" text-anchor="middle" font-size="9" fill="#64748b">Theme restored from last session</text>
+</svg>

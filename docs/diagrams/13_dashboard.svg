@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 970" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-13_dashboard" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-13_dashboard" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-13_dashboard" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1100" height="970" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="550.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">13. Dashboard & Analytics Data Loading</text>
+  <line x1="50" y1="50" x2="1050" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: User -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">User</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: DashboardPage -->
+  <rect x="185.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-13_dashboard)"/>
+  <text x="250.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">DashboardPage</text>
+  <line x1="250.0" y1="140" x2="250.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: seniorsStore -->
+  <rect x="385.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-13_dashboard)"/>
+  <text x="450.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">seniorsStore</text>
+  <line x1="450.0" y1="140" x2="450.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: supabaseService -->
+  <rect x="585.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-13_dashboard)"/>
+  <text x="650.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">supabaseService</text>
+  <line x1="650.0" y1="140" x2="650.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="785.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-13_dashboard)"/>
+  <text x="850.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="850.0" y1="140" x2="850.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: ApexCharts -->
+  <rect x="985.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-13_dashboard)"/>
+  <text x="1050.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">ApexCharts</text>
+  <line x1="1050.0" y1="140" x2="1050.0" y2="940" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="242.0" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="150.0" y="163" text-anchor="middle" font-size="9" fill="#334155">Navigate to Dashboard</text>
+  <line x1="250.0" y1="220" x2="442.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="350.0" y="213" text-anchor="middle" font-size="9" fill="#334155">useSeniorsStore().seniors</text>
+  <line x1="450.0" y1="270" x2="642.0" y2="270" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="550.0" y="263" text-anchor="middle" font-size="9" fill="#334155">seniorsService.getAll() [if not cached]</text>
+  <line x1="650.0" y1="320" x2="842.0" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="750.0" y="313" text-anchor="middle" font-size="9" fill="#334155">SELECT * FROM seniors ORDER BY registered_date</text>
+  <line x1="850.0" y1="370" x2="658.0" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-13_dashboard)"/>
+  <text x="750.0" y="363" text-anchor="middle" font-size="9" fill="#64748b">All senior rows</text>
+  <path d="M 650.0 420 L 680.0 420 L 680.0 440 L 650.0 440" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="685.0" y="433" font-size="9" fill="#334155">Map DB rows → SeniorCitizen[]</text>
+  <line x1="650.0" y1="470" x2="458.0" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-13_dashboard)"/>
+  <text x="550.0" y="463" text-anchor="middle" font-size="9" fill="#64748b">Mapped records</text>
+  <path d="M 450.0 520 L 480.0 520 L 480.0 540 L 450.0 540" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="485.0" y="533" font-size="9" fill="#334155">Cache in store</text>
+  <line x1="450.0" y1="570" x2="258.0" y2="570" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-13_dashboard)"/>
+  <text x="350.0" y="563" text-anchor="middle" font-size="9" fill="#64748b">seniors[]</text>
+  <path d="M 250.0 620 L 280.0 620 L 280.0 640 L 250.0 640" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="285.0" y="633" font-size="9" fill="#334155">Compute: total, active, byAge, byGender, byBarangay</text>
+  <line x1="250.0" y1="670" x2="1042.0" y2="670" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="650.0" y="663" text-anchor="middle" font-size="9" fill="#334155">Render Age Distribution (Bar)</text>
+  <line x1="250.0" y1="720" x2="1042.0" y2="720" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="650.0" y="713" text-anchor="middle" font-size="9" fill="#334155">Render Gender Breakdown (Donut)</text>
+  <line x1="250.0" y1="770" x2="1042.0" y2="770" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="650.0" y="763" text-anchor="middle" font-size="9" fill="#334155">Render Barangay Distribution (Bar)</text>
+  <line x1="250.0" y1="820" x2="1042.0" y2="820" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-13_dashboard)"/>
+  <text x="650.0" y="813" text-anchor="middle" font-size="9" fill="#334155">Render Registration Trend (Line)</text>
+  <line x1="1050.0" y1="870" x2="58.0" y2="870" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-13_dashboard)"/>
+  <text x="550.0" y="863" text-anchor="middle" font-size="9" fill="#64748b">Interactive dashboard with charts</text>
+</svg>

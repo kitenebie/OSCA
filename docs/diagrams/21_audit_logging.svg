@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 460" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-21_audit_logging" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-21_audit_logging" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-21_audit_logging" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="700" height="460" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="350.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">21. Audit Logging (All System Actions)</text>
+  <line x1="50" y1="50" x2="650" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Participant: System Action -->
+  <rect x="-15.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-21_audit_logging)"/>
+  <text x="50.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">System Action</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="430" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: auditLogsService -->
+  <rect x="285.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-21_audit_logging)"/>
+  <text x="350.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">auditLogsService</text>
+  <line x1="350.0" y1="140" x2="350.0" y2="430" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="585.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-21_audit_logging)"/>
+  <text x="650.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="650.0" y1="140" x2="650.0" y2="430" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="342.0" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-21_audit_logging)"/>
+  <text x="200.0" y="163" text-anchor="middle" font-size="9" fill="#334155">Action performed (Login/Register/Edit/Delete)</text>
+  <path d="M 350.0 220 L 380.0 220 L 380.0 240 L 350.0 240" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-21_audit_logging)"/>
+  <text x="385.0" y="233" font-size="9" fill="#334155">Build: {userId, actionType, targetId, details, ip, device}</text>
+  <line x1="350.0" y1="270" x2="642.0" y2="270" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-21_audit_logging)"/>
+  <text x="500.0" y="263" text-anchor="middle" font-size="9" fill="#334155">INSERT INTO audit_logs</text>
+  <line x1="650.0" y1="320" x2="358.0" y2="320" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-21_audit_logging)"/>
+  <text x="500.0" y="313" text-anchor="middle" font-size="9" fill="#64748b">Logged with timestamp</text>
+</svg>

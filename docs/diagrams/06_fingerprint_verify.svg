@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 950 770" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrowhead-06_fingerprint_verify" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#334155"/>
+    </marker>
+    <marker id="arrowhead-dashed-06_fingerprint_verify" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#64748b"/>
+    </marker>
+    <filter id="shadow-06_fingerprint_verify" x="-2%" y="-2%" width="104%" height="104%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="950" height="770" fill="#f8fafc" rx="8"/>
+  
+  <!-- Title -->
+  <text x="475.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">6. Fingerprint Verification</text>
+  <line x1="50" y1="50" x2="900" y2="50" stroke="#e2e8f0" stroke-width="1"/>
+  <!-- Actor: User -->
+  <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="85" x2="50.0" y2="105" stroke="#0284c7" stroke-width="2"/>
+  <line x1="40.0" y1="95" x2="60.0" y2="95" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="42.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <line x1="50.0" y1="105" x2="58.0" y2="118" stroke="#0284c7" stroke-width="2"/>
+  <text x="50.0" y="132" text-anchor="middle" font-size="11" font-weight="600" fill="#0284c7">User</text>
+  <line x1="50.0" y1="140" x2="50.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Verify Component -->
+  <rect x="197.5" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-06_fingerprint_verify)"/>
+  <text x="262.5" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Verify Component</text>
+  <line x1="262.5" y1="140" x2="262.5" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Supabase -->
+  <rect x="410.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-06_fingerprint_verify)"/>
+  <text x="475.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Supabase</text>
+  <line x1="475.0" y1="140" x2="475.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Fingerprint Bridge -->
+  <rect x="622.5" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-06_fingerprint_verify)"/>
+  <text x="687.5" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Fingerprint Bridge</text>
+  <line x1="687.5" y1="140" x2="687.5" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <!-- Participant: Windows Biometric -->
+  <rect x="835.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-06_fingerprint_verify)"/>
+  <text x="900.0" y="91" text-anchor="middle" font-size="10" font-weight="600" fill="#1e40af">Windows Biometric</text>
+  <line x1="900.0" y1="140" x2="900.0" y2="740" stroke="#94a3b8" stroke-width="1" stroke-dasharray="4,4"/>
+  <line x1="50.0" y1="170" x2="254.5" y2="170" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="156.25" y="163" text-anchor="middle" font-size="9" fill="#334155">Click "Verify via Fingerprint"</text>
+  <line x1="262.5" y1="220" x2="467.0" y2="220" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="368.75" y="213" text-anchor="middle" font-size="9" fill="#334155">Fetch stored thumbprint_data</text>
+  <line x1="475.0" y1="270" x2="270.5" y2="270" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-06_fingerprint_verify)"/>
+  <text x="368.75" y="263" text-anchor="middle" font-size="9" fill="#64748b">stored_template (Base64)</text>
+  <line x1="262.5" y1="320" x2="679.5" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="475.0" y="313" text-anchor="middle" font-size="9" fill="#334155">POST /api/capture</text>
+  <line x1="687.5" y1="370" x2="892.0" y2="370" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="793.75" y="363" text-anchor="middle" font-size="9" fill="#334155">WinBioCaptureSample()</text>
+  <line x1="900.0" y1="420" x2="695.5" y2="420" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-06_fingerprint_verify)"/>
+  <text x="793.75" y="413" text-anchor="middle" font-size="9" fill="#64748b">New template</text>
+  <line x1="687.5" y1="470" x2="270.5" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-06_fingerprint_verify)"/>
+  <text x="475.0" y="463" text-anchor="middle" font-size="9" fill="#64748b">{template: new_scan}</text>
+  <line x1="262.5" y1="520" x2="679.5" y2="520" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="475.0" y="513" text-anchor="middle" font-size="9" fill="#334155">POST /api/verify {new, stored}</text>
+  <path d="M 687.5 570 L 717.5 570 L 717.5 590 L 687.5 590" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-06_fingerprint_verify)"/>
+  <text x="722.5" y="583" font-size="9" fill="#334155">Compare biometric templates</text>
+  <line x1="687.5" y1="620" x2="270.5" y2="620" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-06_fingerprint_verify)"/>
+  <text x="475.0" y="613" text-anchor="middle" font-size="9" fill="#64748b">{match: true, confidence: 95}</text>
+  <line x1="262.5" y1="670" x2="58.0" y2="670" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-06_fingerprint_verify)"/>
+  <text x="156.25" y="663" text-anchor="middle" font-size="9" fill="#64748b">"Identity Verified ✓"</text>
+</svg>
