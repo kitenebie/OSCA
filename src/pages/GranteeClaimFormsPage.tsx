@@ -554,7 +554,7 @@ export default function GranteeClaimFormsPage() {
         await supabase.from('seniors').update({ password: newPassword }).eq('id', senior.id);
 
         // Send SMS
-        const smsMessage = `Ang OSCA Grantee Claim Forms is now OPEN. Go to OSCA official page, click "Register for Grantee Claim Form". Enter your OSCA ID: ${senior.oscaNumber} and this is your password: ${newPassword}. Start to fill up your form.`;
+        const smsMessage = `The OSCA Grantee Claim Forms is now OPEN. Go to OSCA official page, click "Register for Grantee Claim Form". Enter your OSCA ID: ${senior.oscaNumber} and this is your password: ${newPassword}. Start to fill up your form.`;
         await sendSMS(
           `${senior.firstName} ${senior.lastName}`,
           senior.contactNumber,

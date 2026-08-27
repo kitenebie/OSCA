@@ -1276,8 +1276,8 @@ export default function SeniorsListPage() {
                 { label: "Approved Data Form", enabled: statusModal.currentStatus === "NSCS Form Submitted", color: "emerald" },
                 { label: "Disapproved Data Form", enabled: statusModal.currentStatus === "NSCS Form Submitted", color: "amber" },
                 { label: "Qualified for Honoring", enabled: statusModal.currentStatus === "Approved Data Form", color: "purple" },
-                { label: "Approved Honoring", enabled: statusModal.currentStatus === "Qualified for Honoring", color: "emerald" },
-                { label: "Disapproved Honoring", enabled: statusModal.currentStatus === "Qualified for Honoring", color: "amber" },
+                // { label: "Approved Honoring", enabled: statusModal.currentStatus === "Qualified for Honoring", color: "emerald" },
+                // { label: "Disapproved Honoring", enabled: statusModal.currentStatus === "Qualified for Honoring", color: "amber" },
               ]
                 .filter((opt) => opt.enabled)
                 .map((opt) => {
@@ -1468,18 +1468,18 @@ export default function SeniorsListPage() {
                   color: "bg-purple-400",
                   branch: true,
                 },
-                {
-                  status: "Approved Honoring",
-                  desc: "Honoring application approved",
-                  color: "bg-purple-500",
-                  isBranch: true,
-                },
-                {
-                  status: "Disapproved Honoring",
-                  desc: "Honoring application disapproved",
-                  color: "bg-red-400",
-                  isBranch: true,
-                },
+                // {
+                //   status: "Approved Honoring",
+                //   desc: "Honoring application approved",
+                //   color: "bg-purple-500",
+                //   isBranch: true,
+                // },
+                // {
+                //   status: "Disapproved Honoring",
+                //   desc: "Honoring application disapproved",
+                //   color: "bg-red-400",
+                //   isBranch: true,
+                // },
               ].map((item, idx) => (
                 <div
                   key={idx}
