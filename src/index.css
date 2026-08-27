@@ -1,3 +1,13 @@
+/* Arrow back-and-forth animation */
+@keyframes bounceX {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+.animate-bounce-x {
+  animation: bounceX 1s ease-in-out infinite;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 @import "leaflet/dist/leaflet.css";
