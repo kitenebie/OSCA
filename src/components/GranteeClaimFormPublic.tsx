@@ -8209,6 +8209,13 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  // ===== AUTH GATE STATE =====
+  const [isVerified, setIsVerified] = useState(false);
+  const [authOscaId, setAuthOscaId] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [existingRecordModal, setExistingRecordModal] = useState<{ open: boolean; status: string; date: string } | null>(null);
 
 
 
@@ -16952,6 +16959,65 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
   const handleNext = () => { if (currentStep < STEPS.length) setCurrentStep(currentStep + 1); };
+
+  // ===== AUTH GATE: Verify OSCA ID + Password before showing form =====
+  const handleAuthVerify = async () => {
+    const trimmedId = authOscaId.trim();
+    if (!trimmedId) { setAuthError('Please enter your OSCA LGU ID Number.'); return; }
+    if (!authPassword.trim()) { setAuthError('Please enter your password.'); return; }
+
+    setAuthLoading(true);
+    setAuthError('');
+
+    try {
+      const { data, error } = await supabase
+        .from('seniors')
+        .select('status, password, first_name, last_name')
+        .eq('osca_number', trimmedId)
+        .maybeSingle();
+
+      if (error) { setAuthError('Something went wrong. Please try again.'); setAuthLoading(false); return; }
+
+      if (!data || data.password !== authPassword.trim()) {
+        setAuthError('Invalid OSCA ID or password.');
+        setAuthLoading(false);
+        return;
+      }
+
+      if (data.status !== 'Qualified for Honoring') {
+        setAuthError('Your account is not qualified for the Grantee Claim Form at this time.');
+        setAuthLoading(false);
+        return;
+      }
+
+      // Auth success — pre-fill OSCA number and name
+      // Check if record already exists in centenarian_honoring
+      const { data: existingRecord } = await supabase
+        .from('centenarian_honoring')
+        .select('status, created_at')
+        .eq('osca_number', trimmedId)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (existingRecord) {
+        const dateStr = new Date(existingRecord.created_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' });
+        setExistingRecordModal({ open: true, status: existingRecord.status, date: dateStr });
+        setAuthLoading(false);
+        return;
+      }
+
+      setOscaNumber(trimmedId);
+      if (data.first_name) setFirstName(data.first_name);
+      if (data.last_name) setLastName(data.last_name);
+      setIsVerified(true);
+    } catch {
+      setAuthError('Connection error. Please check your internet.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
 
 
@@ -40865,6 +40931,112 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
+
+  // ===== AUTH GATE UI =====
+  if (!isVerified) {
+    return (
+      <div className="space-y-6 animate-fadeIn font-sans">
+        <div className="max-w-md mx-auto">
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div className="h-1.5 w-full" style={{ background: 'linear-gradient(to right, #0d9488 0%, #059669 50%, #10b981 100%)' }}></div>
+            <div className="p-6 sm:p-8 space-y-6">
+              <div className="text-center">
+                <div className="mx-auto w-14 h-14 bg-gradient-to-br from-teal-50 to-emerald-50 border-2 border-teal-100 rounded-2xl flex items-center justify-center mb-3">
+                  <FileText size={26} className="text-teal-600" />
+                </div>
+                <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight">Grantee Claim Form</h2>
+                <p className="text-xs text-slate-400 mt-1">R.A. 11982 — Enter your credentials to proceed</p>
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">OSCA LGU ID Number</label>
+                  <input
+                    type="text"
+                    value={authOscaId}
+                    onChange={(e) => { setAuthOscaId(e.target.value); setAuthError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAuthVerify(); }}
+                    placeholder="e.g. OSCA-2024-00123"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                    disabled={authLoading}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Password</label>
+                  <input
+                    type="password"
+                    value={authPassword}
+                    onChange={(e) => { setAuthPassword(e.target.value); setAuthError(''); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAuthVerify(); }}
+                    placeholder="Enter your password"
+                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
+                    disabled={authLoading}
+                  />
+                </div>
+
+                {authError && (
+                  <p className="text-xs text-red-600 font-medium flex items-center gap-1.5">
+                    <span className="w-3 h-3 rounded-full bg-red-100 flex items-center justify-center shrink-0"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span></span>
+                    {authError}
+                  </p>
+                )}
+
+                <button
+                  onClick={handleAuthVerify}
+                  disabled={authLoading}
+                  className="w-full py-2.5 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white font-bold text-sm rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.97]"
+                >
+                  {authLoading ? 'Verifying...' : 'Continue to Form'}
+                </button>
+              </div>
+
+              <button onClick={onBack} className="w-full text-center text-xs text-slate-400 hover:text-teal-600 font-medium transition-colors cursor-pointer">
+                ← Back to Landing Page
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Existing Record Modal */}
+        {existingRecordModal?.open && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fadeIn">
+              <div className="bg-gradient-to-r from-amber-500 to-orange-500 px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-white/20 rounded-lg">
+                    <FileText size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-bold text-sm">Record Already Exists</h3>
+                    <p className="text-amber-100 text-[11px]">A submission was found for this OSCA ID</p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center space-y-2">
+                  <p className="text-xs text-slate-500">You have already submitted a Grantee Claim Form.</p>
+                  <div className="inline-flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-1.5">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Status:</span>
+                    <span className="text-sm font-extrabold text-amber-700">{existingRecordModal.status}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">Submitted on {existingRecordModal.date}</p>
+                </div>
+                <p className="text-xs text-slate-500 text-center leading-relaxed">
+                  You cannot submit another form while your existing application is still being processed. Please visit the OSCA office or use <strong>"Check Honoring Status"</strong> to track your application.
+                </p>
+                <button
+                  onClick={() => { setExistingRecordModal(null); }}
+                  className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  OK, Go Back
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
 
