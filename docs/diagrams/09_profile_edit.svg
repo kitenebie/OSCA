@@ -15,7 +15,7 @@
   <rect width="1100" height="1070" fill="#f8fafc" rx="8"/>
   
   <!-- Title -->
-  <text x="550.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">9. Senior Profile View & Edit</text>
+  <text x="550.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">9. Senior Profile View &amp; Edit</text>
   <line x1="50" y1="50" x2="1050" y2="50" stroke="#e2e8f0" stroke-width="1"/>
   <!-- Actor: User -->
   <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>

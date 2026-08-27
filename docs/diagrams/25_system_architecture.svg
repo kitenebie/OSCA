@@ -63,13 +63,13 @@
   <text x="795" y="185" font-size="9" fill="#334155">• storageService</text>
   <text x="795" y="200" font-size="9" fill="#334155">• deviceInfoService</text>
 
-  <!-- Utils & Hooks -->
+  <!-- Utils &amp; Hooks -->
   <rect x="80" y="250" width="460" height="55" rx="8" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
   <text x="310" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">Utilities</text>
   <text x="95" y="290" font-size="9" fill="#334155">ncscFormFiller • centenarianFormFiller • idGenerator • nfcSimulator • pdfExport • theme</text>
 
   <rect x="560" y="250" width="420" height="55" rx="8" fill="#ffffff" stroke="#93c5fd" stroke-width="1.5"/>
-  <text x="770" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">Hooks & Context</text>
+  <text x="770" y="270" text-anchor="middle" font-size="11" font-weight="bold" fill="#1e40af">Hooks &amp; Context</text>
   <text x="575" y="290" font-size="9" fill="#334155">useBarangays • useNcscPdfExport • useCentenarianPdfExport • UsbSignaturePadContext</text>
 
   <!-- Tech badges -->

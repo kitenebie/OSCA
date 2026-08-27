@@ -15,7 +15,7 @@
   <rect width="800" height="710" fill="#f8fafc" rx="8"/>
   
   <!-- Title -->
-  <text x="400.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">2. Session Validation & Auto-Refresh</text>
+  <text x="400.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">2. Session Validation &amp; Auto-Refresh</text>
   <line x1="50" y1="50" x2="750" y2="50" stroke="#e2e8f0" stroke-width="1"/>
   <!-- Participant: App.tsx -->
   <rect x="-15.0" y="70" width="130" height="32" rx="6" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" filter="url(#shadow-02_session_validation)"/>

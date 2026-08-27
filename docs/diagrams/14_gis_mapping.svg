@@ -15,7 +15,7 @@
   <rect width="850" height="870" fill="#f8fafc" rx="8"/>
   
   <!-- Title -->
-  <text x="425.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">14. GIS Mapping & Geotagging</text>
+  <text x="425.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">14. GIS Mapping &amp; Geotagging</text>
   <line x1="50" y1="50" x2="800" y2="50" stroke="#e2e8f0" stroke-width="1"/>
   <!-- Actor: User -->
   <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>

@@ -15,7 +15,7 @@
   <rect width="950" height="1170" fill="#f8fafc" rx="8"/>
   
   <!-- Title -->
-  <text x="475.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">19. Configuration & Signatories Management</text>
+  <text x="475.0" y="35" text-anchor="middle" font-size="16" font-weight="bold" fill="#0f172a">19. Configuration &amp; Signatories Management</text>
   <line x1="50" y1="50" x2="900" y2="50" stroke="#e2e8f0" stroke-width="1"/>
   <!-- Actor: Admin -->
   <circle cx="50.0" cy="75" r="10" fill="none" stroke="#0284c7" stroke-width="2"/>
