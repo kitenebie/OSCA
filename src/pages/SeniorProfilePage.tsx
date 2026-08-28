@@ -436,6 +436,8 @@ export default function SeniorProfilePage() {
 
         "Disapproved Honoring",
 
+        "Qualified for Honoring",
+
       ].includes(senior.status) &&
 
       !centenarianPdfUrl &&
