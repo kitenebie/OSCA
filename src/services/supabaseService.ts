@@ -1057,6 +1057,61 @@ export const transmittalBarangayService = {
 };
 
 // ============================================================
+// PHILHEALTH TRANSMITTAL SERVICE
+// ============================================================
+
+export const philhealthTransmittalService = {
+  /** Get all selected senior IDs (optionally filtered by barangay) */
+  async getSelectedSeniors(barangayFilter = ''): Promise<string[]> {
+    const query = supabase
+      .from('philhealth_transmittal_seniors')
+      .select('senior_id')
+      .eq('barangay_filter', barangayFilter);
+    const { data, error } = await query;
+    if (error) throw error;
+    return (data || []).map((r: any) => r.senior_id);
+  },
+
+  /** Save selected seniors (replace all for a given barangay filter) */
+  async saveSelectedSeniors(seniorIds: string[], barangayFilter = ''): Promise<void> {
+    // Delete existing
+    const { error: delErr } = await supabase
+      .from('philhealth_transmittal_seniors')
+      .delete()
+      .eq('barangay_filter', barangayFilter);
+    if (delErr) throw delErr;
+
+    // Insert new
+    if (seniorIds.length > 0) {
+      const rows = seniorIds.map(id => ({ senior_id: id, barangay_filter: barangayFilter }));
+      const { error: insErr } = await supabase
+        .from('philhealth_transmittal_seniors')
+        .insert(rows);
+      if (insErr) throw insErr;
+    }
+  },
+
+  /** Get a setting value */
+  async getSetting(key: string): Promise<string> {
+    const { data, error } = await supabase
+      .from('philhealth_transmittal_settings')
+      .select('setting_value')
+      .eq('setting_key', key)
+      .single();
+    if (error) return '';
+    return data?.setting_value || '';
+  },
+
+  /** Save a setting */
+  async saveSetting(key: string, value: string): Promise<void> {
+    const { error } = await supabase
+      .from('philhealth_transmittal_settings')
+      .upsert({ setting_key: key, setting_value: value }, { onConflict: 'setting_key' });
+    if (error) throw error;
+  },
+};
+
+// ============================================================
 // NCSC DATA FORM SERVICE
 // ============================================================
 

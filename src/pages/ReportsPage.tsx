@@ -3,14 +3,17 @@ import { FileText, Send, ArrowRightLeft, Award, X, Printer, ClipboardList, Save,
 import { useSeniorsStore } from '../store/seniorsStore';
 import { signatoriesService, DocumentSignatory } from '../services/supabaseService';
 import { transmittalBarangayService } from '../services/supabaseService';
+import { philhealthTransmittalService } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import { useBarangays } from '../hooks/useBarangays';
 import { useUIStore } from '../store/uiStore';
 import { generateTransmittalDocx, downloadTransmittalDocx } from '../utils/transmittalDocxGenerator';
 import { generateCertificateTransferDocx, downloadCertificateTransferDocx } from '../utils/certificateTransferDocxGenerator';
+import { generateMasterlistDocx, downloadMasterlistDocx } from '../utils/masterlistDocxGenerator';
+import { generatePhilHealthTransmittalDocx, downloadPhilHealthTransmittalDocx } from '../utils/philhealthTransmittalDocxGenerator';
 import { renderAsync } from 'docx-preview';
 
-type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-transfer' | 'certification' | 'masterlist' | null;
+type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-transfer' | 'certification' | 'masterlist' | 'philhealth-transmittal' | null;
 
 export default function ReportsPage() {
   const [activeDoc, setActiveDoc] = useState<DocumentType>(null);
@@ -30,6 +33,23 @@ export default function ReportsPage() {
   const [certTransferBlob, setCertTransferBlob] = useState<Blob | null>(null);
   const [certTransferLoading, setCertTransferLoading] = useState(false);
   const certTransferPreviewRef = useRef<HTMLDivElement>(null);
+
+  // DOCX-based Masterlist
+  const [masterlistBlob, setMasterlistBlob] = useState<Blob | null>(null);
+  const [masterlistLoading, setMasterlistLoading] = useState(false);
+  const masterlistPreviewRef = useRef<HTMLDivElement>(null);
+
+  // Selected seniors for masterlist (user picks from qualified pool)
+  const [selectedMasterlistIds, setSelectedMasterlistIds] = useState<Set<string>>(new Set());
+  const [masterlistFormTab, setMasterlistFormTab] = useState<'seniors' | 'signatories'>('seniors');
+
+  // DOCX-based PhilHealth Transmittal
+  const [phBlob, setPhBlob] = useState<Blob | null>(null);
+  const [phLoading, setPhLoading] = useState(false);
+  const phPreviewRef = useRef<HTMLDivElement>(null);
+  const [phSelectedIds, setPhSelectedIds] = useState<Set<string>>(new Set());
+  const [phAddress, setPhAddress] = useState('Legazpi City, Albay');
+  const [phBarangay, setPhBarangay] = useState('');
 
   // Editable barangay rows for OSCA Transmittal
   const [transmittalBarangayRows, setTransmittalBarangayRows] = useState<{ name: string; count: string }[]>([{ name: '', count: '' }]);
@@ -89,14 +109,22 @@ export default function ReportsPage() {
   const handleSaveSignatories = async () => {
     if (!activeDoc) return;
     try {
-      await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'osca_head', fullName: sigs.oscaHead.name, title: sigs.oscaHead.position });
-      await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mswdo_head', fullName: sigs.mswdoHead.name, title: sigs.mswdoHead.position, designation: sigs.mswdoDesignation, licenseNo: sigs.mswdoLicense });
-      await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'recipient', fullName: sigs.recipient.name, title: sigs.recipient.position, address: sigs.recipientAddress });
-      await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mayor', fullName: sigs.notedBy.name, title: sigs.notedBy.position });
-      await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'admin_assistant', fullName: sigs.adminAssistant.name, title: sigs.adminAssistant.position });
+      // Save signatories common to most doc types
+      if (activeDoc !== 'philhealth-transmittal') {
+        await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'osca_head', fullName: sigs.oscaHead.name, title: sigs.oscaHead.position });
+        await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mswdo_head', fullName: sigs.mswdoHead.name, title: sigs.mswdoHead.position, designation: sigs.mswdoDesignation, licenseNo: sigs.mswdoLicense });
+        await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'recipient', fullName: sigs.recipient.name, title: sigs.recipient.position, address: sigs.recipientAddress });
+        await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mayor', fullName: sigs.notedBy.name, title: sigs.notedBy.position });
+        await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'admin_assistant', fullName: sigs.adminAssistant.name, title: sigs.adminAssistant.position });
+      }
       // Also save barangay signature rows for transmittal documents
       if (activeDoc === 'osca-transmittal' || activeDoc === 'mswdo-transmittal') {
         await transmittalBarangayService.saveAll(activeDoc, transmittalBarangayRows);
+      }
+      // Save PhilHealth transmittal data
+      if (activeDoc === 'philhealth-transmittal') {
+        await philhealthTransmittalService.saveSetting('ph_office_address', phAddress);
+        await philhealthTransmittalService.saveSelectedSeniors(Array.from(phSelectedIds), phBarangay);
       }
       showToast('Data saved successfully!', 'success');
     } catch (err) {
@@ -313,6 +341,155 @@ export default function ReportsPage() {
     }
   }, [activeDoc, sigLoading, formData.transferSeniorId, formData.transferTo, formData.transferSince, formData.date, formData.transferAddress, formData.municipalAddress, formData.oscaIdNo, formData.oscaIdDateIssued, sigs.oscaHead.name, sigs.mswdoHead.name, sigs.mswdoLicense, sigs.mswdoDesignation, sigs.mswdoHead.position]);
 
+  // ---- Masterlist DOCX handlers ----
+  const handleGenerateMasterlist = async () => {
+    setMasterlistLoading(true);
+    try {
+      const selected = seniors
+        .filter(s => {
+          const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970);
+          return age >= 80 && (s.status === 'Qualified for Honoring' || s.status === 'Approved') && selectedMasterlistIds.has(s.id);
+        })
+        .sort((a, b) => a.lastName.localeCompare(b.lastName));
+
+      const blob = await generateMasterlistDocx({
+        OSCA_Head: sigs.oscaHead.name,
+        MSWDO: sigs.mswdoHead.name,
+        seniors: selected.map((s, idx) => ({
+          no: idx + 1,
+          lastName: s.lastName,
+          firstName: s.firstName,
+          middleName: s.middleName || '',
+          sex: s.sex || '',
+          barangay: s.barangay || '',
+        })),
+      });
+      setMasterlistBlob(blob);
+    } catch (err) {
+      console.error('Generate masterlist error:', err);
+      showToast('Failed to generate masterlist.', 'error');
+    } finally {
+      setMasterlistLoading(false);
+    }
+  };
+
+  const handleDownloadMasterlist = () => {
+    if (masterlistBlob) {
+      downloadMasterlistDocx(masterlistBlob);
+      showToast('Downloading Masterlist...', 'success');
+    }
+  };
+
+  // Render Masterlist DOCX preview
+  useEffect(() => {
+    if (masterlistBlob && masterlistPreviewRef.current) {
+      masterlistPreviewRef.current.innerHTML = '';
+      renderAsync(masterlistBlob, masterlistPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('Masterlist preview error:', err));
+    }
+  }, [masterlistBlob]);
+
+  // Auto-generate when masterlist is selected
+  useEffect(() => {
+    if (activeDoc === 'masterlist' && !sigLoading && selectedMasterlistIds.size > 0) {
+      handleGenerateMasterlist();
+    } else if (activeDoc !== 'masterlist') {
+      setMasterlistBlob(null);
+      setSelectedMasterlistIds(new Set());
+      if (masterlistPreviewRef.current) {
+        masterlistPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, sigs.oscaHead.name, sigs.mswdoHead.name, seniors, selectedMasterlistIds.size]);
+
+  // Auto-select "Qualified for Honoring" seniors when masterlist is first opened
+  useEffect(() => {
+    if (activeDoc === 'masterlist' && selectedMasterlistIds.size === 0 && seniors.length > 0) {
+      const honoringIds = seniors
+        .filter(s => {
+          const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970);
+          return age >= 80 && s.status === 'Qualified for Honoring';
+        })
+        .map(s => s.id);
+      if (honoringIds.length > 0) setSelectedMasterlistIds(new Set(honoringIds));
+    }
+  }, [activeDoc, seniors]);
+
+  // ---- PhilHealth Transmittal handlers ----
+  const handleGeneratePhilHealth = async () => {
+    setPhLoading(true);
+    try {
+      const selected = seniors
+        .filter(s => phSelectedIds.has(s.id) && s.status === 'Approved')
+        .sort((a, b) => a.lastName.localeCompare(b.lastName));
+
+      const blob = await generatePhilHealthTransmittalDocx({
+        address: phAddress,
+        barangay: phBarangay,
+        OSCA_Head: sigs.oscaHead.name,
+        seniors: selected.map((s, idx) => ({
+          no: idx + 1,
+          fullName: `${s.lastName}, ${s.firstName} ${s.middleName || ''}`.trim(),
+          sex: s.sex || '',
+          birthdate: new Date(s.birthdate).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+          civilStatus: s.civilStatus || '',
+        })),
+      });
+      setPhBlob(blob);
+    } catch (err) {
+      console.error('Generate PhilHealth transmittal error:', err);
+      showToast('Failed to generate PhilHealth transmittal.', 'error');
+    } finally {
+      setPhLoading(false);
+    }
+  };
+
+  const handleDownloadPhilHealth = () => {
+    if (phBlob) {
+      downloadPhilHealthTransmittalDocx(phBlob, `PhilHealth-Transmittal-${phBarangay || 'All'}.docx`);
+      showToast('Downloading PhilHealth Transmittal...', 'success');
+    }
+  };
+
+  // Render PhilHealth preview
+  useEffect(() => {
+    if (phBlob && phPreviewRef.current) {
+      phPreviewRef.current.innerHTML = '';
+      renderAsync(phBlob, phPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('PhilHealth preview error:', err));
+    }
+  }, [phBlob]);
+
+  // Auto-generate when PhilHealth data changes
+  useEffect(() => {
+    if (activeDoc === 'philhealth-transmittal' && phSelectedIds.size > 0 && !sigLoading) {
+      handleGeneratePhilHealth();
+    } else if (activeDoc !== 'philhealth-transmittal') {
+      setPhBlob(null);
+      setPhSelectedIds(new Set());
+      if (phPreviewRef.current) {
+        phPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, phSelectedIds.size, phAddress, phBarangay, sigs.oscaHead.name]);
+
+  // Load saved PhilHealth data from DB when tab opens
+  useEffect(() => {
+    if (activeDoc === 'philhealth-transmittal') {
+      philhealthTransmittalService.getSetting('ph_office_address')
+        .then(addr => { if (addr) setPhAddress(addr); })
+        .catch(err => console.error('Load PH address error:', err));
+
+      philhealthTransmittalService.getSelectedSeniors(phBarangay)
+        .then(ids => { if (ids.length > 0) setPhSelectedIds(new Set(ids)); })
+        .catch(err => console.error('Load PH seniors error:', err));
+    }
+  }, [activeDoc]);
+
   const previewRef = useRef<HTMLDivElement>(null);
 
   const documentCards = [
@@ -355,6 +532,14 @@ export default function ReportsPage() {
       description: 'Masterlist of validated Octogenarian, Nonagenarian, and Centenarian seniors with their attachment checklist.',
       icon: ClipboardList,
       color: 'green',
+    },
+    {
+      id: 'philhealth-transmittal' as DocumentType,
+      title: 'PhilHealth Transmittal',
+      subtitle: 'PMRF Submission',
+      description: 'Transmittal letter for PhilHealth Office — PMRF submission for senior citizens per barangay.',
+      icon: FileText,
+      color: 'blue',
     },
   ];
 
@@ -473,6 +658,50 @@ export default function ReportsPage() {
                     </button>
                   )}
                 </>
+              ) : activeDoc === 'masterlist' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateMasterlist}
+                    disabled={masterlistLoading}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{masterlistLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {masterlistBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadMasterlist}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
+              ) : activeDoc === 'philhealth-transmittal' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGeneratePhilHealth}
+                    disabled={phLoading || phSelectedIds.size === 0}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{phLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {phBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadPhilHealth}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   type="button"
@@ -530,8 +759,44 @@ export default function ReportsPage() {
                 </div>
               )}
 
+              {/* DOCX-based preview for Masterlist */}
+              {activeDoc === 'masterlist' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {masterlistLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading masterlist...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={masterlistPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
+              {/* DOCX-based preview for PhilHealth Transmittal */}
+              {activeDoc === 'philhealth-transmittal' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {phSelectedIds.size === 0 && !phLoading && (
+                    <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
+                      <FileText size={40} className="text-slate-300 dark:text-slate-600" />
+                      <p className="text-xs text-slate-400 font-medium">Select seniors to generate the transmittal</p>
+                    </div>
+                  )}
+                  {phLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading document...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={phPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
               {/* HTML-based preview for other document types */}
-              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview" style={{ display: (activeDoc === 'osca-transmittal' || activeDoc === 'certificate-transfer') ? 'none' : undefined }}>
+              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview" style={{ display: (activeDoc === 'osca-transmittal' || activeDoc === 'certificate-transfer' || activeDoc === 'masterlist' || activeDoc === 'philhealth-transmittal') ? 'none' : undefined }}>
 
               {/* LETTERHEAD */}
               <div className="doc-letterhead">
@@ -683,7 +948,7 @@ export default function ReportsPage() {
                 const qualified = seniors
                   .filter(s => {
                     const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970);
-                    return age >= 80 && s.status === 'Approved';
+                    return age >= 80 && (s.status === 'Qualified for Honoring' || s.status === 'Approved');
                   })
                   .sort((a, b) => a.lastName.localeCompare(b.lastName));
                 return (
@@ -1137,29 +1402,297 @@ export default function ReportsPage() {
           
 
             {/* ===== MASTERLIST (Octogenarian/Nonagenarian/Centenarian) ===== */}
-            {activeDoc === 'masterlist' && (
+            {activeDoc === 'masterlist' && (() => {
+              const qualifiedPool = seniors
+                .filter(s => {
+                  const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970);
+                  return age >= 80 && (s.status === 'Qualified for Honoring' || s.status === 'Approved');
+                })
+                .sort((a, b) => a.lastName.localeCompare(b.lastName));
+              const selectedList = qualifiedPool.filter(s => selectedMasterlistIds.has(s.id));
+              return (
+              <div className="space-y-0">
+                {/* Sub-tabs */}
+                <div className="flex border-b border-slate-200 dark:border-slate-700 mb-4">
+                  <button type="button" onClick={() => setMasterlistFormTab('seniors')}
+                    className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      masterlistFormTab === 'seniors'
+                        ? 'text-teal-700 dark:text-teal-400 border-b-2 border-teal-600 dark:border-teal-400'
+                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                    }`}>
+                    Seniors List ({selectedMasterlistIds.size}/{qualifiedPool.length})
+                  </button>
+                  <button type="button" onClick={() => setMasterlistFormTab('signatories')}
+                    className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      masterlistFormTab === 'signatories'
+                        ? 'text-teal-700 dark:text-teal-400 border-b-2 border-teal-600 dark:border-teal-400'
+                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                    }`}>
+                    Signatories
+                  </button>
+                </div>
+
+                {/* ---- Seniors List Tab ---- */}
+                {masterlistFormTab === 'seniors' && (
+                  <div className="space-y-4">
+                    {/* Selected for Document */}
+                    <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl overflow-hidden">
+                      <div className="px-4 py-2.5 border-b border-green-200 dark:border-green-800 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">
+                          Selected for Document ({selectedList.length})
+                        </span>
+                        {selectedList.length > 0 && (
+                          <button type="button" onClick={() => setSelectedMasterlistIds(new Set())} className="text-[9px] text-red-500 hover:text-red-700 font-bold cursor-pointer">
+                            Clear All
+                          </button>
+                        )}
+                      </div>
+                      {selectedList.length === 0 ? (
+                        <div className="px-4 py-6 text-center text-[10px] text-slate-400">
+                          Select seniors from the pool below to add to the document
+                        </div>
+                      ) : (
+                        <div className="max-h-[180px] overflow-y-auto">
+                          <table className="w-full text-[10px]">
+                            <thead className="bg-green-100/50 dark:bg-green-900/30 sticky top-0">
+                              <tr>
+                                <th className="px-3 py-1.5 text-left font-bold text-green-700 dark:text-green-400">#</th>
+                                <th className="px-3 py-1.5 text-left font-bold text-green-700 dark:text-green-400">Name</th>
+                                <th className="px-3 py-1.5 text-left font-bold text-green-700 dark:text-green-400">Barangay</th>
+                                <th className="px-3 py-1.5 text-right font-bold text-green-700 dark:text-green-400"></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedList.map((s, idx) => (
+                                <tr key={s.id} className="border-t border-green-100 dark:border-green-900">
+                                  <td className="px-3 py-1.5 text-slate-500">{idx + 1}</td>
+                                  <td className="px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 uppercase">{s.lastName}, {s.firstName} {s.middleName || ''}</td>
+                                  <td className="px-3 py-1.5 text-slate-500">{s.barangay}</td>
+                                  <td className="px-3 py-1.5 text-right">
+                                    <button type="button" onClick={() => { const next = new Set(selectedMasterlistIds); next.delete(s.id); setSelectedMasterlistIds(next); }}
+                                      className="text-red-400 hover:text-red-600 cursor-pointer p-0.5" title="Remove">
+                                      <Trash2 size={11} />
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Qualified Pool */}
+                    <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                      <div className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                          Qualified Seniors 80+ ({qualifiedPool.length})
+                        </span>
+                        <button type="button" onClick={() => setSelectedMasterlistIds(new Set(qualifiedPool.map(s => s.id)))} className="text-[9px] text-teal-600 hover:text-teal-800 font-bold cursor-pointer">
+                          Select All
+                        </button>
+                      </div>
+                      <div className="max-h-[250px] overflow-y-auto">
+                        <table className="w-full text-[10px]">
+                          <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
+                            <tr>
+                              <th className="px-3 py-1.5 text-center font-bold text-slate-500 w-8"></th>
+                              <th className="px-3 py-1.5 text-left font-bold text-slate-500">Name</th>
+                              <th className="px-3 py-1.5 text-center font-bold text-slate-500">Age</th>
+                              <th className="px-3 py-1.5 text-center font-bold text-slate-500">Sex</th>
+                              <th className="px-3 py-1.5 text-left font-bold text-slate-500">Barangay</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {qualifiedPool.map((s) => {
+                              const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970);
+                              const isSelected = selectedMasterlistIds.has(s.id);
+                              return (
+                                <tr key={s.id} className={`border-t border-slate-100 dark:border-slate-700 cursor-pointer transition-colors ${isSelected ? 'bg-teal-50 dark:bg-teal-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-700/30'}`}
+                                  onClick={() => {
+                                    const next = new Set(selectedMasterlistIds);
+                                    if (isSelected) next.delete(s.id); else next.add(s.id);
+                                    setSelectedMasterlistIds(next);
+                                  }}>
+                                  <td className="px-3 py-1.5 text-center">
+                                    <input type="checkbox" checked={isSelected} readOnly className="w-3 h-3 rounded border-slate-300 text-teal-600 cursor-pointer" />
+                                  </td>
+                                  <td className="px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 uppercase">{s.lastName}, {s.firstName}</td>
+                                  <td className="px-3 py-1.5 text-center text-slate-500">{age}</td>
+                                  <td className="px-3 py-1.5 text-center text-slate-500">{s.sex === 'Male' ? 'M' : 'F'}</td>
+                                  <td className="px-3 py-1.5 text-slate-500">{s.barangay}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ---- Signatories Tab ---- */}
+                {masterlistFormTab === 'signatories' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Municipality</label>
+                        <input type="text" value="Juban" readOnly className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:outline-none" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Province</label>
+                        <input type="text" value="Sorsogon" readOnly className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:outline-none" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Selected / Qualified</label>
+                        <div className="px-4 py-2 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-700 rounded-xl text-xs font-bold text-green-700 dark:text-green-300">
+                          {selectedMasterlistIds.size} / {qualifiedPool.length} seniors
+                        </div>
+                      </div>
+                    </div>
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
+                      <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Prepared by (OSCA Head)</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500">Name</label>
+                            <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                            <input type="text" value={sigs.oscaHead.position} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Noted by (MSWDO)</span>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500">Name</label>
+                            <input type="text" value={sigs.mswdoHead.name} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                            <input type="text" value={sigs.mswdoHead.position} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              );
+            })()}
+
+            {/* ===== PHILHEALTH TRANSMITTAL ===== */}
+            {activeDoc === 'philhealth-transmittal' && (() => {
+              const approvedSeniors = seniors
+                .filter(s => s.status === 'Approved')
+                .sort((a, b) => a.lastName.localeCompare(b.lastName));
+              const filteredPool = phBarangay ? approvedSeniors.filter(s => s.barangay === phBarangay) : approvedSeniors;
+              const selectedList = approvedSeniors.filter(s => phSelectedIds.has(s.id));
+              return (
               <div className="space-y-4">
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-3 rounded-xl">
-                  Automatically retrieves seniors aged <strong>80 pataas</strong> (Octogenarian, Nonagenarian, Centenarian) from the database.
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Letter Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Municipality</label>
-                    <input type="text" value="Juban" readOnly className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:outline-none" />
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">PhilHealth Office Address</label>
+                    <input type="text" value={phAddress} onChange={(e) => setPhAddress(e.target.value)} placeholder="e.g. Legazpi City, Albay" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Province</label>
-                    <input type="text" value="Sorsogon" readOnly className="w-full px-4 py-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:outline-none" />
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Barangay</label>
+                    <select value={phBarangay} onChange={(e) => setPhBarangay(e.target.value)} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer">
+                      <option value="">— All Barangays —</option>
+                      {barangaysData.map(b => (
+                        <option key={b.id} value={b.name}>{b.name}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Qualified Count</label>
-                    <div className="px-4 py-2 bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-700 rounded-xl text-xs font-bold text-green-700 dark:text-green-300">
-                      {seniors.filter(s => { const age = Math.abs(new Date(Date.now() - new Date(s.birthdate).getTime()).getUTCFullYear() - 1970); return age >= 80 && s.status === 'Approved'; }).length} seniors
+                </div>
+                {/* OSCA Head */}
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">OSCA Head</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Name</label>
+                      <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                      <input type="text" value={sigs.oscaHead.position} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                     </div>
                   </div>
                 </div>
+                {/* Selected for Document */}
+                <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-green-200 dark:border-green-800 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-green-700 dark:text-green-400 uppercase tracking-wider">
+                      Selected for Transmittal ({selectedList.length})
+                    </span>
+                    {selectedList.length > 0 && (
+                      <button type="button" onClick={() => setPhSelectedIds(new Set())} className="text-[9px] text-red-500 hover:text-red-700 font-bold cursor-pointer">Clear All</button>
+                    )}
+                  </div>
+                  {selectedList.length === 0 ? (
+                    <div className="px-4 py-4 text-center text-[10px] text-slate-400">Select seniors from the pool below</div>
+                  ) : (
+                    <div className="max-h-[140px] overflow-y-auto">
+                      <table className="w-full text-[10px]">
+                        <tbody>
+                          {selectedList.map((s, idx) => (
+                            <tr key={s.id} className="border-t border-green-100 dark:border-green-900">
+                              <td className="px-3 py-1 text-slate-400">{idx + 1}</td>
+                              <td className="px-3 py-1 font-semibold text-slate-700 dark:text-slate-200 uppercase">{s.lastName}, {s.firstName}</td>
+                              <td className="px-3 py-1 text-slate-500">{s.barangay}</td>
+                              <td className="px-3 py-1 text-right">
+                                <button type="button" onClick={() => { const n = new Set(phSelectedIds); n.delete(s.id); setPhSelectedIds(n); }} className="text-red-400 hover:text-red-600 cursor-pointer"><Trash2 size={11} /></button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+                {/* Pool */}
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                  <div className="px-4 py-2.5 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                      Approved Seniors {phBarangay ? `\u2014 ${phBarangay}` : ''} ({filteredPool.length})
+                    </span>
+                    <button type="button" onClick={() => setPhSelectedIds(new Set(filteredPool.map(s => s.id)))} className="text-[9px] text-teal-600 hover:text-teal-800 font-bold cursor-pointer">Select All</button>
+                  </div>
+                  <div className="max-h-[220px] overflow-y-auto">
+                    <table className="w-full text-[10px]">
+                      <thead className="bg-slate-50 dark:bg-slate-900 sticky top-0">
+                        <tr>
+                          <th className="px-3 py-1.5 text-center w-8"></th>
+                          <th className="px-3 py-1.5 text-left font-bold text-slate-500">Name</th>
+                          <th className="px-3 py-1.5 text-center font-bold text-slate-500">Sex</th>
+                          <th className="px-3 py-1.5 text-left font-bold text-slate-500">Barangay</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredPool.map((s) => {
+                          const isSel = phSelectedIds.has(s.id);
+                          return (
+                            <tr key={s.id} className={`border-t border-slate-100 dark:border-slate-700 cursor-pointer transition-colors ${isSel ? 'bg-teal-50 dark:bg-teal-950/20' : 'hover:bg-slate-50 dark:hover:bg-slate-700/30'}`}
+                              onClick={() => { const n = new Set(phSelectedIds); if (isSel) n.delete(s.id); else n.add(s.id); setPhSelectedIds(n); }}>
+                              <td className="px-3 py-1.5 text-center"><input type="checkbox" checked={isSel} readOnly className="w-3 h-3 rounded border-slate-300 text-teal-600 cursor-pointer" /></td>
+                              <td className="px-3 py-1.5 font-semibold text-slate-700 dark:text-slate-200 uppercase">{s.lastName}, {s.firstName}</td>
+                              <td className="px-3 py-1.5 text-center text-slate-500">{s.sex === 'Male' ? 'M' : 'F'}</td>
+                              <td className="px-3 py-1.5 text-slate-500">{s.barangay}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
-            )}
+              );
+            })()}
 
             </div>
           </div>
