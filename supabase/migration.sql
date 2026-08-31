@@ -187,6 +187,8 @@ CREATE TABLE IF NOT EXISTS seniors (
 
 
   address TEXT,
+  house_no TEXT,
+  street TEXT,
 
 
 

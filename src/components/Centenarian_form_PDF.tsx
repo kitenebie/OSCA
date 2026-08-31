@@ -15,7 +15,7 @@ interface CentenarianFormPDFProps {
 }
 
 // Map centenarian_honoring snake_case record to camelCase for fillCentenarianForm
-function mapHonoringToSenior(r: any): any {
+export function mapHonoringToSenior(r: any): any {
   return {
     dataPrivacyConsent: r.data_privacy_consent,
     placeOfSubmission: r.place_of_submission,

@@ -17,6 +17,8 @@ export interface SeniorCitizen {
   contactNumber: string;
   barangay: string;
   address: string;
+  houseNo?: string;
+  street?: string;
   coordinates: Coordinates;
   profilePhoto: string;         // base64 image or path
   thumbprintData: string | null; // base64 or status

@@ -14373,11 +14373,11 @@ export async function fillNcscForm(options: NcscFillOptions): Promise<Blob> {
 
 
 
-  filler.setValue("street", senior.address || "");
+  filler.setValue("street", senior.street || "");
 
 
 
-  filler.setValue("house_no_zone", senior.address || "");
+  filler.setValue("house_no_zone", senior.houseNo || "");
 
 
 

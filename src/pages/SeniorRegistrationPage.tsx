@@ -791,7 +791,8 @@ export default function SeniorRegistrationPage() {
 
 
 
-    streetAddress: editingSenior?.address || '',
+    houseNo: editingSenior?.houseNo || '',
+    street: editingSenior?.street || '',
 
 
 
@@ -1297,9 +1298,7 @@ export default function SeniorRegistrationPage() {
 
         { key: 'barangay', label: 'Barangay' },
 
-
-
-        { key: 'streetAddress', label: 'Address' },
+        { key: 'houseNo', label: 'House No.' },
 
 
 
@@ -1699,7 +1698,11 @@ export default function SeniorRegistrationPage() {
 
 
 
-      address: form.streetAddress,
+      address: [form.houseNo, form.street, form.barangay, form.cityTown, form.province].filter(Boolean).join(', '),
+
+      houseNo: form.houseNo || '',
+
+      street: form.street || '',
 
 
 
@@ -1719,7 +1722,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-      status: 'Pending' as const,
+      status: isEditMode && editingSenior ? editingSenior.status : 'Pending' as const,
 
 
 

@@ -18,9 +18,8 @@ import {
 
   ncscDataFormService,
 
-  centenarianService,
-
 } from "../services/supabaseService";
+import { supabase } from "../../utils/supabase";
 
 
 
@@ -92,7 +91,7 @@ import NCSCFormPDF from "../components/NCSC_form_PDF";
 
 
 
-import CentenarianFormPDF from "../components/Centenarian_form_PDF";
+import CentenarianFormPDF, { mapHonoringToSenior } from "../components/Centenarian_form_PDF";
 
 
 
@@ -350,23 +349,44 @@ export default function SeniorProfilePage() {
 
 
 
-    centenarianService
+    // Fetch centenarian honoring records from centenarian_honoring table
+    // (same pattern as Centenarian_form_PDF drawer — fetch + generate in one flow)
+    const fetchHonoring = async () => {
+      const s = seniors.find(sr => sr.id === selectedSeniorId);
+      const oscaNum = s?.oscaNumber || (s as any)?.osca_number;
+      if (!oscaNum) { setCentenarianData([]); return; }
 
+      const { data, error } = await supabase
+        .from('centenarian_honoring')
+        .select('*')
+        .eq('osca_number', oscaNum)
+        .order('created_at', { ascending: false });
 
+      if (error || !data || data.length === 0) {
+        setCentenarianData([]);
+        return;
+      }
 
-      .getBySeniorId(selectedSeniorId)
+      setCentenarianData(data);
 
-
-
-      .then((data) => {
-
-        setCentenarianData(data || []);
-
-      })
-
-
-
-      .catch(() => setCentenarianData([]));
+      // Auto-generate PDF using the honoring record (not seniors table)
+      const honoringRecord = data[0];
+      try {
+        setCentenarianPdfLoading(true);
+        const mapped = mapHonoringToSenior(honoringRecord);
+        const blob = await fillCentenarianForm({
+          senior: mapped as any,
+          flatten: true,
+        });
+        if (centenarianPdfUrl) URL.revokeObjectURL(centenarianPdfUrl);
+        setCentenarianPdfUrl(URL.createObjectURL(blob));
+      } catch (e) {
+        console.error('[Centenarian PDF Preview] Error:', e);
+      } finally {
+        setCentenarianPdfLoading(false);
+      }
+    };
+    fetchHonoring();
 
   }, [selectedSeniorId]);
 
@@ -414,43 +434,6 @@ export default function SeniorProfilePage() {
 
 
 
-  // Auto-generate Centenarian Honoring PDF preview when status qualifies
-
-  useEffect(() => {
-
-    if (!senior) return;
-
-    if (
-
-      [
-
-        "Approved ID",
-
-        "NSCS Form Submitted",
-
-        "Annex A Form Submitted",
-
-        "Approved Data Form",
-
-        "Approved Honoring",
-
-        "Disapproved Honoring",
-
-        "Qualified for Honoring",
-
-      ].includes(senior.status) &&
-
-      !centenarianPdfUrl &&
-
-      !centenarianPdfLoading
-
-    ) {
-
-      generateCentenarianPdfPreview();
-
-    }
-
-  }, [senior?.status, centenarianData]);
 
 
 
@@ -885,55 +868,26 @@ export default function SeniorProfilePage() {
   const generateCentenarianPdfPreview = async () => {
 
     if (!senior) return;
-
-    if (centenarianPdfUrl || centenarianPdfLoading) return;
-
-
+    const honoringRecord = centenarianData?.[0];
+    if (!honoringRecord) return;
 
     setCentenarianPdfLoading(true);
 
-
-
     try {
-
+      const mapped = mapHonoringToSenior(honoringRecord);
       const blob = await fillCentenarianForm({
-
-        senior,
-
-        centenarianApp: centenarianData?.[0] || undefined,
-
+        senior: mapped as any,
         flatten: true,
-
       });
 
-
-
       if (centenarianPdfUrl) URL.revokeObjectURL(centenarianPdfUrl);
-
-
-
-      const url = URL.createObjectURL(blob);
-
-      setCentenarianPdfUrl(url);
-
+      setCentenarianPdfUrl(URL.createObjectURL(blob));
     } catch (e) {
-
-      console.error("[Centenarian PDF Preview] Error:", e);
-
-      showToast(
-
-        "Failed to generate Centenarian Honoring PDF preview.",
-
-        "error",
-
-      );
-
+      console.error('[Centenarian PDF Preview] Error:', e);
+      showToast('Failed to generate Centenarian Honoring PDF preview.', 'error');
     } finally {
-
       setCentenarianPdfLoading(false);
-
     }
-
   };
 
 
@@ -953,49 +907,29 @@ export default function SeniorProfilePage() {
   const handleDownloadCentenarianPdf = async (flatten: boolean) => {
 
     if (!senior) return;
-
-
+    const honoringRecord = centenarianData?.[0];
+    if (!honoringRecord) return;
 
     try {
-
+      const mapped = mapHonoringToSenior(honoringRecord);
       const blob = await fillCentenarianForm({
-
-        senior,
-
-        centenarianApp: centenarianData?.[0] || undefined,
-
+        senior: mapped as any,
         flatten,
-
       });
 
-
-
       const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-
+      const link = document.createElement('a');
       link.href = url;
-
-      link.download = `Centenarian_Honoring_${senior.lastName}_${senior.firstName}_${senior.oscaNumber}.pdf`;
-
+      link.download = `Centenarian_Honoring_${honoringRecord.last_name}_${honoringRecord.first_name}_${honoringRecord.osca_number}.pdf`;
       document.body.appendChild(link);
-
       link.click();
-
       document.body.removeChild(link);
-
       URL.revokeObjectURL(url);
-
-      showToast("Centenarian Honoring PDF downloaded successfully!", "success");
-
+      showToast('Centenarian Honoring PDF downloaded successfully!', 'success');
     } catch (e) {
-
-      console.error("[Centenarian PDF Download] Error:", e);
-
-      showToast("Failed to generate Centenarian PDF.", "error");
-
+      console.error('[Centenarian PDF Download] Error:', e);
+      showToast('Failed to generate Centenarian PDF.', 'error');
     }
-
   };
 
 
@@ -2061,75 +1995,41 @@ export default function SeniorProfilePage() {
 
 
             {(senior?.status === "Approved ID" ||
-
-            senior?.status === "NSCS Form Submitted" ||
-
-            senior?.status === "Annex A Form Submitted" ||
-
-            senior?.status === "Approved Data Form" ||
-
-            senior?.status === "Approved Honoring" ||
-
-            senior?.status === "Qualified for NSCS" ||
-
-            senior?.status === "Qualified for Honoring" ||
-
-            senior?.status === "Disapproved Honoring") ? (
-
-              <div className="space-y-3 h-full">
-
+              senior?.status === "NSCS Form Submitted" ||
+              senior?.status === "Annex A Form Submitted" ||
+              senior?.status === "Approved Data Form" ||
+              senior?.status === "Approved Honoring" ||
+              senior?.status === "Disapproved Honoring" ||
+              senior?.status === "Qualified for NSCS" ||
+              senior?.status === "Qualified for Honoring") ? (
+              <div className="space-y-3 h-full flex-1 flex flex-col">
                 {pdfPreviewUrl ? (
-
                   <iframe
-
-                    src={`${pdfPreviewUrl}${senior?.status === "Approved ID" ||
-
-                        senior?.status === "For Verification"
-
-                        ? "#toolbar=0&navpanes=0"
-
-                        : ""
-
-                    }`}
-
-                    className="w-full flex-1 h-full rounded-xl border border-slate-200"
-
-                    title="NCSC Data Form Preview"
-
+                    src={pdfPreviewUrl}
+                    className="w-full flex-1 rounded-xl border border-slate-200"
+                    style={{ minHeight: "70vh" }}
+                    title="NCSC Data Form PDF Preview"
                   />
-
-                ) : (
-
-                  <div className="flex flex-col items-center justify-center py-12 space-y-3">
-
-                    <Loader2
-
-                      size={28}
-
-                      className="text-indigo-500 animate-spin"
-
-                    />
-
+                ) : pdfLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-3 flex-1">
+                    <Loader2 size={28} className="text-blue-500 animate-spin" />
                     <p className="text-xs font-bold text-slate-500">
-
-                      Generating NCSC PDF Preview...
-
+                      Generating NCSC Data Form PDF Preview...
                     </p>
-
                   </div>
-
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 space-y-3 flex-1">
+                    <Loader2 size={28} className="text-blue-500 animate-spin" />
+                    <p className="text-xs font-bold text-slate-500">
+                      Generating NCSC Data Form PDF Preview...
+                    </p>
+                  </div>
                 )}
-
               </div>
-
             ) : (
-
               <p className="text-[11px] text-slate-400 italic">
-
                 No NCSC Data record for this senior.
-
               </p>
-
             )}
 
           </div>
@@ -2137,289 +2037,36 @@ export default function SeniorProfilePage() {
 
 
           {/* Centenarian Honoring Section */}
-
-
-
           <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full overflow-y-auto flex flex-col">
-
-            <div className="border-b border-slate-100 pb-3 mb-4 flex items-center justify-between">
-
-              <div className="flex items-center gap-2">
-
-                <Award size={16} className="text-amber-600" />
-
-
-
-                <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">
-
-                  Centenarian Honoring
-
-                </h4>
-
-              </div>
-
-
-
-              {centenarianData.length > 0 && (
-
-                <button
-
-                  onClick={handleOpenCentenarianPreview}
-
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-700 text-[10px] font-bold rounded-lg transition-all cursor-pointer"
-
-                >
-
-                  <FileText size={12} />
-
-                  Preview PDF
-
-                </button>
-
-              )}
-
+            <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
+              <Award size={16} className="text-amber-600" />
+              <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">
+                Centenarian Honoring
+              </h4>
             </div>
 
-
-
-            {(senior?.status === "Qualified for Honoring" ||
-
-            senior?.status === "Annex A Form Submitted" ||
-
-            senior?.status === "Approved Honoring") ? (
-
-              <div className="space-y-3 h-full">
-
-                {centenarianPdfUrl ? (
-
-                  <iframe
-
-                    src={`${centenarianPdfUrl}${senior?.status === "Approved ID" ||
-
-                        senior?.status === "For Verification" ||
-
-                        senior?.status === "NSCS Form Submitted"
-
-                        ? "#toolbar=0&navpanes=0"
-
-                        : ""
-
-                    }`}
-
-                    className="w-full flex-1 h-full rounded-xl border border-slate-200"
-
-                    title="Centenarian Honoring PDF Preview"
-
-                  />
-
-                ) : (
-
-                  <div className="flex flex-col items-center justify-center py-12 space-y-3">
-
-                    <Loader2
-
-                      size={28}
-
-                      className="text-amber-500 animate-spin"
-
-                    />
-
-                    <p className="text-xs font-bold text-slate-500">
-
-                      Generating Centenarian Honoring PDF Preview...
-
-                    </p>
-
-                  </div>
-
-                )}
-
+            {centenarianPdfUrl ? (
+              <iframe
+                src={centenarianPdfUrl}
+                className="w-full flex-1 rounded-xl border border-slate-200"
+                style={{ minHeight: "70vh" }}
+                title="Centenarian Honoring PDF Preview"
+              />
+            ) : centenarianPdfLoading || centenarianData.length > 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 space-y-3 flex-1">
+                <Loader2 size={28} className="text-amber-500 animate-spin" />
+                <p className="text-xs font-bold text-slate-500">
+                  Generating Centenarian Honoring PDF Preview...
+                </p>
               </div>
-
-            ) : centenarianData.length > 0 ? (
-
-              <div className="space-y-4 h-full">
-
-                {centenarianData.map((app, idx) => (
-
-                  <div
-
-                    key={app.id || idx}
-
-                    className="border border-slate-100 rounded-xl p-4 space-y-3"
-
-                  >
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] font-medium text-slate-600 leading-normal">
-
-                      <div className="space-y-3.5">
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Milestone Type
-
-                          </span>
-
-
-
-                          <p className="text-slate-800 font-bold uppercase">
-
-                            {app.milestoneType}
-
-                          </p>
-
-                        </div>
-
-
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Milestone Age
-
-                          </span>
-
-
-
-                          <p className="text-slate-800 font-bold">
-
-                            {app.milestoneAge} years old
-
-                          </p>
-
-                        </div>
-
-
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Cash Gift Amount
-
-                          </span>
-
-
-
-                          <p className="text-slate-800 font-bold font-mono">
-
-                            ₱{app.cashGiftAmount?.toLocaleString() || "—"}
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="space-y-3.5">
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Application Date
-
-                          </span>
-
-
-
-                          <p className="text-slate-800 font-bold">
-
-                            {app.applicationDate || "—"}
-
-                          </p>
-
-                        </div>
-
-
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Applicant Type
-
-                          </span>
-
-
-
-                          <p className="text-slate-800 font-bold uppercase">
-
-                            {app.applicantType}
-
-                          </p>
-
-                        </div>
-
-
-
-                        <div>
-
-                          <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
-
-                            Status
-
-                          </span>
-
-
-
-                          <p
-
-                            className={`font-bold font-mono uppercase text-[10px] ${
-
-                              app.status === "Claimed"
-
-                                ? "text-teal-600"
-
-                                : app.status === "Approved"
-
-                                  ? "text-blue-600"
-
-                                  : app.status === "Pending"
-
-                                    ? "text-amber-600"
-
-                                    : app.status === "Expired"
-
-                                      ? "text-red-600"
-
-                                      : "text-slate-600"
-
-                            }`}
-
-                          >
-
-                            {app.status}
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                ))}
-
-              </div>
-
             ) : (
-
-              <p className="text-[11px] text-slate-400 italic">
-
-                No Centenarian Honoring record for this senior.
-
-              </p>
-
+              <div className="flex flex-col items-center justify-center py-16 space-y-2 flex-1">
+                <Award size={32} className="text-slate-200" />
+                <p className="text-[11px] text-slate-400 italic">
+                  No Centenarian Honoring record for this senior.
+                </p>
+              </div>
             )}
-
           </div>
 
         </div>

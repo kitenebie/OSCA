@@ -224,7 +224,6 @@ const isValidPhilHealth = (val: string) => !val || val.replace(/\D/g, '').length
 
 
 export default function IdentifyingInformation({ form, setForm, barangaysData, currentUser, handleBarangayChange, markTouched, inputErr }: StepProps) {
-  const [addressFocused, setAddressFocused] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [capturedPreview, setCapturedPreview] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -378,31 +377,54 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                   </div>
 
-                  <div className="md:col-span-2 space-y-1.5">
+                  <div className="space-y-1.5">
+
+                    <label htmlFor="house-no" className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">House No. <span className="text-red-500">*</span></label>
+
+                    <input
+                      id="house-no"
+                      type="text"
+                      required
+                      value={form.houseNo || ''}
+                      onChange={(e) => setForm({ ...form, houseNo: e.target.value })}
+                      onBlur={() => markTouched('houseNo')}
+                      placeholder="House No. / Blk / Lot  / Purok / Sitio"
+                      className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('houseNo') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`}
+                    />
+
+                  </div>
+
+                  <div className="space-y-1.5">
+
+                    <label htmlFor="street-input" className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Street</label>
+
+                    <input
+                      id="street-input"
+                      type="text"
+                      value={form.street || ''}
+                      onChange={(e) => setForm({ ...form, street: e.target.value })}
+                      placeholder="Street"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                    />
+
+                  </div>
+
+                </div>
+
+                <div className="grid grid-cols-1 gap-5">
+
+                  <div className="space-y-1.5">
 
                     <label htmlFor="street-address" className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Address <span className="text-red-500">*</span></label>
 
-                    <div className={`flex items-stretch bg-slate-50 border ${inputErr('streetAddress') || 'border-slate-200'} rounded-xl overflow-hidden focus-within:ring-1 focus-within:ring-teal-500`}>
-                      <input
-                        id="street-address"
-                        type="text"
-                        required
-                        value={addressFocused ? form.streetAddress : (form.streetAddress ? `${form.streetAddress}, ${form.barangay}, ${form.cityTown}, ${form.province}` : '')}
-                        onChange={(e) => setForm({ ...form, streetAddress: e.target.value })}
-                        onFocus={() => setAddressFocused(true)}
-                        onBlur={() => {
-                          setAddressFocused(false);
-                          markTouched('streetAddress');
-                        }}
-                        placeholder="House No. / Street / Purok / Sitio"
-                        className="flex-1 px-3 py-2.5 bg-transparent text-sm font-semibold focus:outline-none"
-                      />
-                      {addressFocused && (
-                      <span className="flex items-center px-3 bg-slate-100 border-l border-slate-200 text-xs text-slate-500 font-medium whitespace-nowrap">
-                        {form.barangay || ''}, {form.cityTown || ''}, {form.province || ''}
-                      </span>
-                      )}
-                    </div>
+                    <input
+                      id="street-address"
+                      type="text"
+                      readOnly
+                      value={[form.houseNo, form.street, form.barangay, form.cityTown, form.province].filter(Boolean).join(', ')}
+                      placeholder="Auto-generated from House No., Street, Barangay, Municipality, Province"
+                      className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 cursor-not-allowed focus:outline-none"
+                    />
 
                   </div>
 
@@ -422,7 +444,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                 </h6>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
                   <div className="space-y-1.5">
 
@@ -445,14 +467,6 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Middle Name</label>
 
                     <input type="text" value={form.middleName} onChange={(e) => setForm({ ...form, middleName: e.target.value })} placeholder="Middle Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-
-                  </div>
-
-                  <div className="space-y-1.5">
-
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Suffix</label>
-
-                    <input type="text" value={form.suffix} onChange={(e) => setForm({ ...form, suffix: e.target.value })} placeholder="Jr/Sr/III" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
 
                   </div>
 

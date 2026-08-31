@@ -20,6 +20,8 @@ function mapSeniorFromDB(row: any): SeniorCitizen {
     contactNumber: row.contact_number || '',
     barangay: row.barangay,
     address: row.address || '',
+    houseNo: row.house_no || '',
+    street: row.street || '',
     coordinates: { lat: row.lat || 0, lng: row.lng || 0 },
     profilePhoto: row.profile_photo || '',
     thumbprintData: row.thumbprint_data || null,
@@ -149,6 +151,8 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.contactNumber !== undefined) mapped.contact_number = senior.contactNumber;
   if (senior.barangay !== undefined) mapped.barangay = senior.barangay;
   if (senior.address !== undefined) mapped.address = senior.address;
+  if (senior.houseNo !== undefined) mapped.house_no = senior.houseNo;
+  if (senior.street !== undefined) mapped.street = senior.street;
   if (senior.coordinates !== undefined) {
     mapped.lat = senior.coordinates.lat;
     mapped.lng = senior.coordinates.lng;

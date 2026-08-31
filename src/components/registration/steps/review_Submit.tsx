@@ -86,8 +86,10 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
             <ReviewField label="Telephone" value={form.telephone} />
             <ReviewField label="Email" value={form.emailAddress} />
             <div className="col-span-2 md:col-span-4">
-              <ReviewField label="Address" value={form.streetAddress} />
+              <ReviewField label="Address" value={[form.houseNo, form.street, form.barangay, form.cityTown, form.province].filter(Boolean).join(', ')} />
             </div>
+            <ReviewField label="House No." value={form.houseNo} />
+            <ReviewField label="Street" value={form.street} />
             <ReviewField label="Barangay" value={form.barangay} />
             <ReviewField label="City/Town" value={form.cityTown} />
             <ReviewField label="Province" value={form.province} />
