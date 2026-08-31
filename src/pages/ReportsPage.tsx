@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Send, ArrowRightLeft, Award, X, Printer, ClipboardList, Save, ChevronDown, Download, Plus, Trash2 } from 'lucide-react';
+import { FileText, Send, ArrowRightLeft, Award, X, Printer, ClipboardList, Save, ChevronDown, Download, Plus, Trash2, Maximize2, Minimize2 } from 'lucide-react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { signatoriesService, DocumentSignatory } from '../services/supabaseService';
 import { transmittalBarangayService } from '../services/supabaseService';
@@ -12,6 +12,8 @@ import { generateCertificateTransferDocx, downloadCertificateTransferDocx } from
 import { generateMasterlistDocx, downloadMasterlistDocx } from '../utils/masterlistDocxGenerator';
 import { generatePhilHealthTransmittalDocx, downloadPhilHealthTransmittalDocx } from '../utils/philhealthTransmittalDocxGenerator';
 import { renderAsync } from 'docx-preview';
+import { generateMswdoTransmittalDocx, downloadMswdoTransmittalDocx } from '../utils/mswdoTransmittalDocxGenerator';
+import { generateCertificationDocx, downloadCertificationDocx } from '../utils/certificationDocxGenerator';
 
 type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-transfer' | 'certification' | 'masterlist' | 'philhealth-transmittal' | null;
 
@@ -50,6 +52,31 @@ export default function ReportsPage() {
   const [phSelectedIds, setPhSelectedIds] = useState<Set<string>>(new Set());
   const [phAddress, setPhAddress] = useState('Legazpi City, Albay');
   const [phBarangay, setPhBarangay] = useState('');
+
+  // DOCX-based MSWDO Transmittal
+  const [mswdoBlob, setMswdoBlob] = useState<Blob | null>(null);
+  const [mswdoLoading, setMswdoLoading] = useState(false);
+  const mswdoPreviewRef = useRef<HTMLDivElement>(null);
+
+  // DOCX-based Certification
+  const [certBlob, setCertBlob] = useState<Blob | null>(null);
+  const [certLoading, setCertLoading] = useState(false);
+  const certPreviewRef = useRef<HTMLDivElement>(null);
+
+  // Fullscreen preview
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Close fullscreen on ESC key
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsFullscreen(false); };
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleEsc);
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.removeEventListener('keydown', handleEsc); document.body.style.overflow = ''; };
+  }, [isFullscreen]);
 
   // Editable barangay rows for OSCA Transmittal
   const [transmittalBarangayRows, setTransmittalBarangayRows] = useState<{ name: string; count: string }[]>([{ name: '', count: '' }]);
@@ -477,6 +504,129 @@ export default function ReportsPage() {
     }
   }, [activeDoc, sigLoading, phSelectedIds.size, phAddress, phBarangay, sigs.oscaHead.name]);
 
+  // ---- MSWDO Transmittal DOCX handlers ----
+  const handleGenerateMswdoTransmittal = async () => {
+    setMswdoLoading(true);
+    try {
+      const dateStr = new Date(formData.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+      const blob = await generateMswdoTransmittalDocx({
+        Date: dateStr,
+        Recipient_Name: sigs.recipient.name,
+        Recipient_Position: sigs.recipient.position,
+        Recipient_Address: sigs.recipientAddress,
+        Dear_Name: sigs.receiverName || 'Atty. Bombase Pacamarra',
+        Body: formData.mswdoBody,
+        MSWDO_Head_Name: sigs.mswdoHead.name,
+        MSWDO_Head_Position: sigs.mswdoHead.position,
+        Noted_By_Name: sigs.notedBy.name,
+        Noted_By_Position: sigs.notedBy.position,
+      });
+      setMswdoBlob(blob);
+    } catch (err) {
+      console.error('Generate MSWDO transmittal error:', err);
+      showToast('Failed to generate MSWDO transmittal.', 'error');
+    } finally {
+      setMswdoLoading(false);
+    }
+  };
+
+  const handleDownloadMswdoTransmittal = () => {
+    if (mswdoBlob) {
+      downloadMswdoTransmittalDocx(mswdoBlob);
+      showToast('Downloading MSWDO Transmittal...', 'success');
+    }
+  };
+
+  // Render MSWDO Transmittal DOCX preview
+  useEffect(() => {
+    if (mswdoBlob && mswdoPreviewRef.current) {
+      mswdoPreviewRef.current.innerHTML = '';
+      renderAsync(mswdoBlob, mswdoPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('MSWDO preview error:', err));
+    }
+  }, [mswdoBlob]);
+
+  // Auto-generate MSWDO Transmittal when selected or data changes
+  useEffect(() => {
+    if (activeDoc === 'mswdo-transmittal' && !sigLoading) {
+      handleGenerateMswdoTransmittal();
+    } else if (activeDoc !== 'mswdo-transmittal') {
+      setMswdoBlob(null);
+      if (mswdoPreviewRef.current) {
+        mswdoPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, sigs.recipient.name, sigs.mswdoHead.name, sigs.notedBy.name, sigs.receiverName, formData.mswdoBody, formData.date]);
+
+  // ---- Certification DOCX handlers ----
+  const handleGenerateCertification = async () => {
+    const senior = getSelectedSenior(formData.certSeniorId);
+    if (!senior) return;
+    setCertLoading(true);
+    try {
+      const age = Math.abs(new Date(Date.now() - new Date(senior.birthdate).getTime()).getUTCFullYear() - 1970);
+      const dateObj = new Date(formData.date);
+      const day = dateObj.getDate().toString();
+      const daySuffix = ['st','nd','rd'][((dateObj.getDate()+90)%100-10)%10-1] || 'th';
+      const monthYear = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const fullName = `${senior.firstName} ${senior.middleName || ''} ${senior.lastName}`.replace(/\s+/g, ' ').trim().toUpperCase();
+
+      const blob = await generateCertificationDocx({
+        Person_Name: fullName,
+        Age: String(age),
+        Barangay: senior.barangay || '',
+        Program: formData.certProgram || 'DSWD Social Pension Program',
+        Day: day,
+        Day_Suffix: daySuffix,
+        Month_Year: monthYear,
+        OSCA_Head_Name: sigs.oscaHead.name,
+        MSWDO_Head_Name: sigs.mswdoHead.name,
+        MSWDO_Head_Position: sigs.mswdoHead.position,
+        License_No: sigs.mswdoLicense || 'Lic. No. ___________',
+      });
+      setCertBlob(blob);
+    } catch (err) {
+      console.error('Generate certification error:', err);
+      showToast('Failed to generate certification.', 'error');
+    } finally {
+      setCertLoading(false);
+    }
+  };
+
+  const handleDownloadCertification = () => {
+    if (certBlob) {
+      const senior = getSelectedSenior(formData.certSeniorId);
+      const name = senior ? `${senior.lastName}-${senior.firstName}` : 'Certification';
+      downloadCertificationDocx(certBlob, `Certification-${name}.docx`);
+      showToast('Downloading Certification...', 'success');
+    }
+  };
+
+  // Render Certification DOCX preview
+  useEffect(() => {
+    if (certBlob && certPreviewRef.current) {
+      certPreviewRef.current.innerHTML = '';
+      renderAsync(certBlob, certPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('Certification preview error:', err));
+    }
+  }, [certBlob]);
+
+  // Auto-generate Certification when selected or data changes
+  useEffect(() => {
+    if (activeDoc === 'certification' && formData.certSeniorId && !sigLoading) {
+      handleGenerateCertification();
+    } else if (activeDoc !== 'certification') {
+      setCertBlob(null);
+      if (certPreviewRef.current) {
+        certPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, formData.certSeniorId, formData.certProgram, formData.date, sigs.oscaHead.name, sigs.mswdoHead.name, sigs.mswdoLicense]);
+
   // Load saved PhilHealth data from DB when tab opens
   useEffect(() => {
     if (activeDoc === 'philhealth-transmittal') {
@@ -702,6 +852,50 @@ export default function ReportsPage() {
                     </button>
                   )}
                 </>
+              ) : activeDoc === 'mswdo-transmittal' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateMswdoTransmittal}
+                    disabled={mswdoLoading}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{mswdoLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {mswdoBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadMswdoTransmittal}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
+              ) : activeDoc === 'certification' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateCertification}
+                    disabled={certLoading || !formData.certSeniorId}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{certLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {certBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadCertification}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
               ) : (
                 <button
                   type="button"
@@ -718,10 +912,43 @@ export default function ReportsPage() {
           {/* 2-Column Layout: LEFT = Preview, RIGHT = Form */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start" style={{ maxHeight: '85vh' }}>
             {/* LEFT: Document Preview */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 overflow-auto" style={{ maxHeight: '85vh' }}>
-              <h6 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
-                Document Preview
-              </h6>
+            {/* Fullscreen backdrop overlay */}
+            {isFullscreen && (
+              <div
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+                onClick={() => setIsFullscreen(false)}
+              />
+            )}
+            <div className={`bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 overflow-auto transition-all duration-300 ${isFullscreen ? "fixed inset-4 z-50 shadow-2xl max-h-none" : ""}`} style={isFullscreen ? {} : { maxHeight: '85vh' }}>
+              <div className="flex items-center justify-between mb-3">
+                <h6 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                  Document Preview
+                </h6>
+                {activeDoc && !isFullscreen && (
+                  <button
+                    type="button"
+                    onClick={() => setIsFullscreen(true)}
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-[9px] font-bold uppercase tracking-wider text-slate-400 hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30 rounded-lg transition-all cursor-pointer"
+                    title="Fullscreen Preview"
+                  >
+                    <Maximize2 size={12} />
+                    <span>Fullscreen</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Floating exit button — always visible in fullscreen */}
+              {isFullscreen && (
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreen(false)}
+                  className="fixed top-7 right-7 z-[60] flex items-center gap-1.5 pl-3 pr-3.5 py-2 bg-slate-900/80 hover:bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-lg backdrop-blur-sm transition-all cursor-pointer hover:scale-105 active:scale-95 border border-white/10"
+                  title="Exit Fullscreen (ESC)"
+                >
+                  <Minimize2 size={13} />
+                  <span>Exit</span>
+                </button>
+              )}
 
               {/* DOCX-based preview for OSCA Transmittal */}
               {activeDoc === 'osca-transmittal' && (
@@ -795,8 +1022,44 @@ export default function ReportsPage() {
                 </div>
               )}
 
+              {/* DOCX-based preview for MSWDO Transmittal */}
+              {activeDoc === 'mswdo-transmittal' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {mswdoLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading document...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={mswdoPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
+              {/* DOCX-based preview for Certification */}
+              {activeDoc === 'certification' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {!certBlob && !certLoading && (
+                    <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
+                      <FileText size={40} className="text-slate-300 dark:text-slate-600" />
+                      <p className="text-xs text-slate-400 font-medium">Select a senior citizen to preview the certification</p>
+                    </div>
+                  )}
+                  {certLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading document...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={certPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
               {/* HTML-based preview for other document types */}
-              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview" style={{ display: (activeDoc === 'osca-transmittal' || activeDoc === 'certificate-transfer' || activeDoc === 'masterlist' || activeDoc === 'philhealth-transmittal') ? 'none' : undefined }}>
+              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview" style={{ display: (activeDoc === 'osca-transmittal' || activeDoc === 'certificate-transfer' || activeDoc === 'masterlist' || activeDoc === 'philhealth-transmittal' || activeDoc === 'mswdo-transmittal' || activeDoc === 'certification') ? 'none' : undefined }}>
 
               {/* LETTERHEAD */}
               <div className="doc-letterhead">
