@@ -26,7 +26,9 @@ import {
   CreditCard,
   Users,
   Globe,
+  FileDown,
 } from "lucide-react";
+import CentenarianFormPDF from './Centenarian_form_PDF';
 
 interface HonoringRecord {
   id: string;
@@ -238,6 +240,8 @@ export default function GranteeHonoringStatusPublic({ onBack }: Props) {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState("");
   const [expandedRecord, setExpandedRecord] = useState<string | null>(null);
+  const [showCentenarianDrawer, setShowCentenarianDrawer] = useState(false);
+  const [selectedRecordForPdf, setSelectedRecordForPdf] = useState<HonoringRecord | null>(null);
 
   const handleSearch = async () => {
     const trimmed = oscaId.trim();
@@ -553,6 +557,20 @@ export default function GranteeHonoringStatusPublic({ onBack }: Props) {
                               </p>
                             </div>
 
+                            {/* Download Centenarian Form — only when Approved */}
+                            {record.status === "Approved" && (
+                              <button
+                                onClick={() => {
+                                  setSelectedRecordForPdf(record);
+                                  setShowCentenarianDrawer(true);
+                                }}
+                                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 sm:py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm hover:shadow transition-all cursor-pointer active:scale-[0.97]"
+                              >
+                                <FileDown size={16} />
+                                Download Centenarian Form
+                              </button>
+                            )}
+
                             {/* A. Personal Information */}
                             <Section title="Personal Information" icon={<User size={14} className="text-teal-600" />}>
                               <div className="grid grid-cols-1 min-[400px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1.5 sm:gap-2">
@@ -748,6 +766,20 @@ export default function GranteeHonoringStatusPublic({ onBack }: Props) {
             </div>
           )}
         </div>
+
+      {/* Centenarian Form PDF Drawer */}
+      <CentenarianFormPDF
+        showCentenarianDrawer={showCentenarianDrawer}
+        setShowCentenarianDrawer={(val) => {
+          setShowCentenarianDrawer(val);
+          if (!val) setSelectedRecordForPdf(null);
+        }}
+        centenarianPdfUrl={null}
+        setCentenarianPdfUrl={() => {}}
+        centenarianPdfLoading={false}
+        senior={selectedRecordForPdf}
+      />
+
       </div>
     </div>
   );

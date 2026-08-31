@@ -202,18 +202,6 @@ export default function CentenarianFormPDF({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Regenerate Button */}
-                  <button
-                    onClick={() => {
-                      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-                      setPdfUrl(null);
-                      if (honoringRecord) generatePreview(honoringRecord);
-                      else fetchHonoringRecord();
-                    }}
-                    className="px-3 py-1.5 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition-all cursor-pointer"
-                  >
-                    🔄 Regenerate
-                  </button>
                   <button
                     onClick={() => {
                       setShowCentenarianDrawer(false);
