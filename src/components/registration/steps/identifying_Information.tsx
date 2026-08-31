@@ -18,37 +18,37 @@ const REGIONS = [
 
   "Region V (Bicol Region)",
 
-  "Region I (Ilocos Region)",
+  // "Region I (Ilocos Region)",
 
-  "Region II (Cagayan Valley)",
+  // "Region II (Cagayan Valley)",
 
-  "Region III (Central Luzon)",
+  // "Region III (Central Luzon)",
 
-  "Region IV-A (Calabarzon)",
+  // "Region IV-A (Calabarzon)",
 
-  "MIMAROPA Region",
+  // "MIMAROPA Region",
 
-  "Region VI (Western Visayas)",
+  // "Region VI (Western Visayas)",
 
-  "Region VII (Central Visayas)",
+  // "Region VII (Central Visayas)",
 
-  "Region VIII (Eastern Visayas)",
+  // "Region VIII (Eastern Visayas)",
 
-  "Region IX (Zamboanga Peninsula)",
+  // "Region IX (Zamboanga Peninsula)",
 
-  "Region X (Northern Mindanao)",
+  // "Region X (Northern Mindanao)",
 
-  "Region XI (Davao Region)",
+  // "Region XI (Davao Region)",
 
-  "Region XII (SOCCSKSARGEN)",
+  // "Region XII (SOCCSKSARGEN)",
 
-  "Region XIII (Caraga)",
+  // "Region XIII (Caraga)",
 
-  "BARMM (Autonomous Region in Muslim Mindanao)",
+  // "BARMM (Autonomous Region in Muslim Mindanao)",
 
-  "CAR (Cordillera Administrative Region)",
+  // "CAR (Cordillera Administrative Region)",
 
-  "NCR (National Capital Region)"
+  // "NCR (National Capital Region)"
 
 ];
 
@@ -56,15 +56,15 @@ const PROVINCES = [
 
   "Sorsogon",
 
-  "Albay",
+  // "Albay",
 
-  "Camarines Sur",
+  // "Camarines Sur",
 
-  "Camarines Norte",
+  // "Camarines Norte",
 
-  "Catanduanes",
+  // "Catanduanes",
 
-  "Masbate"
+  // "Masbate"
 
 ];
 
@@ -72,29 +72,29 @@ const CITIES_TOWNS = [
 
   "Juban",
 
-  "Sorsogon City",
+  // "Sorsogon City",
 
-  "Bulan",
+  // "Bulan",
 
-  "Casiguran",
+  // "Casiguran",
 
-  "Castilla",
+  // "Castilla",
 
-  "Donsol",
+  // "Donsol",
 
-  "Gubat",
+  // "Gubat",
 
-  "Irosin",
+  // "Irosin",
 
-  "Magallanes",
+  // "Magallanes",
 
-  "Matnog",
+  // "Matnog",
 
-  "Pilar",
+  // "Pilar",
 
-  "Prieto Diaz",
+  // "Prieto Diaz",
 
-  "Santa Magdalena"
+  // "Santa Magdalena"
 
 ];
 

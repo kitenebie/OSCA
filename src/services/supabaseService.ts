@@ -598,6 +598,39 @@ export const barangaysService = {
     }));
   },
 
+  async create(name: string): Promise<Barangay> {
+    const id = 'brgy-' + name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+$/, '');
+    const { data, error } = await supabase
+      .from('barangays')
+      .insert({ id, name, population: 0, senior_count: 0 })
+      .select()
+      .single();
+    if (error) throw error;
+    return {
+      id: data.id,
+      name: data.name,
+      population: data.population,
+      seniorCount: data.senior_count,
+      centerCoordinates: { lat: data.center_lat || 0, lng: data.center_lng || 0 },
+      barangayHallAddress: data.barangay_hall_address || '',
+    };
+  },
+
+  async update(id: string, name: string): Promise<void> {
+    const { error } = await supabase
+      .from('barangays')
+      .update({ name, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if (error) throw error;
+  },
+
+  async remove(id: string): Promise<void> {
+    const { error } = await supabase
+      .from('barangays')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+  },
 
   subscribe(callback: (barangays: Barangay[]) => void) {
     supabase.removeChannel(supabase.channel('barangays-realtime'));
@@ -964,6 +997,62 @@ export const signatoriesService = {
       });
     channel.subscribe();
     return () => { supabase.removeChannel(channel); };
+  },
+};
+
+// ============================================================
+// TRANSMITTAL BARANGAY SIGNATURES SERVICE
+// ============================================================
+
+export interface TransmittalBarangaySignature {
+  id: string;
+  documentType: string;
+  barangayName: string;
+  signatureCount: number;
+  sortOrder: number;
+}
+
+export const transmittalBarangayService = {
+  async getByDocumentType(documentType: string): Promise<TransmittalBarangaySignature[]> {
+    const { data, error } = await supabase
+      .from('transmittal_barangay_signatures')
+      .select('*')
+      .eq('document_type', documentType)
+      .order('sort_order');
+    if (error) throw error;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      documentType: row.document_type,
+      barangayName: row.barangay_name,
+      signatureCount: row.signature_count,
+      sortOrder: row.sort_order,
+    }));
+  },
+
+  async saveAll(documentType: string, rows: { name: string; count: string }[]): Promise<void> {
+    // Delete all existing rows for this document type
+    const { error: delError } = await supabase
+      .from('transmittal_barangay_signatures')
+      .delete()
+      .eq('document_type', documentType);
+    if (delError) throw delError;
+
+    // Insert new rows (only non-empty ones)
+    const insertRows = rows
+      .filter(r => r.name.trim())
+      .map((r, idx) => ({
+        document_type: documentType,
+        barangay_name: r.name.trim(),
+        signature_count: parseInt(r.count) || 0,
+        sort_order: idx,
+      }));
+
+    if (insertRows.length > 0) {
+      const { error: insError } = await supabase
+        .from('transmittal_barangay_signatures')
+        .insert(insertRows);
+      if (insError) throw insError;
+    }
   },
 };
 

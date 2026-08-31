@@ -1,10 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { FileText, Send, ArrowRightLeft, Award, X, Printer, ClipboardList, Save, ChevronDown } from 'lucide-react';
+import { FileText, Send, ArrowRightLeft, Award, X, Printer, ClipboardList, Save, ChevronDown, Download, Plus, Trash2 } from 'lucide-react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { signatoriesService, DocumentSignatory } from '../services/supabaseService';
+import { transmittalBarangayService } from '../services/supabaseService';
 import { useAuthStore } from '../store/authStore';
 import { useBarangays } from '../hooks/useBarangays';
 import { useUIStore } from '../store/uiStore';
+import { generateTransmittalDocx, downloadTransmittalDocx } from '../utils/transmittalDocxGenerator';
+import { generateCertificateTransferDocx, downloadCertificateTransferDocx } from '../utils/certificateTransferDocxGenerator';
+import { renderAsync } from 'docx-preview';
 
 type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-transfer' | 'certification' | 'masterlist' | null;
 
@@ -16,6 +20,22 @@ export default function ReportsPage() {
   const showToast = useUIStore((s) => s.showToast);
 
   const [barangayTableOpen, setBarangayTableOpen] = useState(false);
+
+  // DOCX-based OSCA Transmittal
+  const [docxBlob, setDocxBlob] = useState<Blob | null>(null);
+  const [docxLoading, setDocxLoading] = useState(false);
+  const docxPreviewRef = useRef<HTMLDivElement>(null);
+
+  // DOCX-based Certificate of Transfer
+  const [certTransferBlob, setCertTransferBlob] = useState<Blob | null>(null);
+  const [certTransferLoading, setCertTransferLoading] = useState(false);
+  const certTransferPreviewRef = useRef<HTMLDivElement>(null);
+
+  // Editable barangay rows for OSCA Transmittal
+  const [transmittalBarangayRows, setTransmittalBarangayRows] = useState<{ name: string; count: string }[]>([{ name: '', count: '' }]);
+
+  // Sub-tab for OSCA Transmittal form (right panel)
+  const [oscaFormTab, setOscaFormTab] = useState<'signatories' | 'barangays'>('signatories');
 
   // Signatories from Supabase
   const [signatories, setSignatories] = useState<DocumentSignatory[]>([]);
@@ -52,6 +72,19 @@ export default function ReportsPage() {
     }
   }, [activeDoc]);
 
+  // Load saved barangay signature rows when OSCA Transmittal is selected
+  useEffect(() => {
+    if (activeDoc === 'osca-transmittal') {
+      transmittalBarangayService.getByDocumentType('osca-transmittal')
+        .then((data) => {
+          if (data.length > 0) {
+            setTransmittalBarangayRows(data.map(r => ({ name: r.barangayName, count: String(r.signatureCount) })));
+          }
+        })
+        .catch(err => console.error('Failed to load barangay signatures:', err));
+    }
+  }, [activeDoc]);
+
   // Save signatories to Supabase
   const handleSaveSignatories = async () => {
     if (!activeDoc) return;
@@ -61,10 +94,14 @@ export default function ReportsPage() {
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'recipient', fullName: sigs.recipient.name, title: sigs.recipient.position, address: sigs.recipientAddress });
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'mayor', fullName: sigs.notedBy.name, title: sigs.notedBy.position });
       await signatoriesService.upsert({ documentType: activeDoc, roleKey: 'admin_assistant', fullName: sigs.adminAssistant.name, title: sigs.adminAssistant.position });
-      showToast('Signatories saved successfully!', 'success');
+      // Also save barangay signature rows for transmittal documents
+      if (activeDoc === 'osca-transmittal' || activeDoc === 'mswdo-transmittal') {
+        await transmittalBarangayService.saveAll(activeDoc, transmittalBarangayRows);
+      }
+      showToast('Data saved successfully!', 'success');
     } catch (err) {
       console.error('Save signatories error:', err);
-      showToast('Failed to save signatories. Please try again.', 'error');
+      showToast('Failed to save data. Please try again.', 'error');
     }
   };
 
@@ -77,6 +114,10 @@ export default function ReportsPage() {
     transferSeniorId: '',
     transferTo: '',
     transferSince: '2022',
+    transferAddress: '',
+    municipalAddress: 'Juban, Sorsogon',
+    oscaIdNo: '',
+    oscaIdDateIssued: '',
     // Certification
     certSeniorId: '',
     certProgram: 'DSWD Social Pension Program',
@@ -87,6 +128,7 @@ export default function ReportsPage() {
     oscaHead: { name: 'MARCIANA G. OLONDRIZ', position: 'OSCA Head' },
     mswdoHead: { name: 'JANELA J. HAINTO', position: 'Acting MSWDO' },
     recipient: { name: 'ATTY. CLARISSA LAVENA A. BOMBASE PACAMARRA', position: 'NCSC Regional Director' },
+    receiverName: 'Atty. Bombase Pacamarra',
     recipientAddress: 'Legazpi City, Albay',
     notedBy: { name: 'HON. ROGEL "BOTOX" B. FULLEROS', position: 'Municipal Mayor' },
     adminAssistant: { name: 'VHINZ KENNETH LORAYES', position: 'Administrative Assistant I' },
@@ -149,7 +191,127 @@ export default function ReportsPage() {
     showToast('Printing document...', 'success');
   };
 
+  // Generate filled OSCA Transmittal DOCX from template
+  const handleGenerateTransmittal = async () => {
+    setDocxLoading(true);
+    try {
+      const blob = await generateTransmittalDocx({
+        NCSC_Reg_Director: sigs.recipient.name,
+        OSCA_Head: sigs.oscaHead.name,
+        Acting_MSWDO: sigs.mswdoHead.name,
+        Receiver_Name: sigs.receiverName,
+        barangayRows: transmittalBarangayRows.filter(r => r.name.trim() || r.count.trim()),
+      });
+      setDocxBlob(blob);
+      // showToast('Transmittal generated successfully!', 'success');
+    } catch (err) {
+      console.error('Generate transmittal error:', err);
+      showToast('Failed to generate transmittal.', 'error');
+    } finally {
+      setDocxLoading(false);
+    }
+  };
+
+  const handleDownloadDocx = () => {
+    if (docxBlob) {
+      downloadTransmittalDocx(docxBlob);
+      showToast('Downloading OSCA Transmittal...', 'success');
+    }
+  };
+
+  // Render DOCX preview when blob changes
+  useEffect(() => {
+    if (docxBlob && docxPreviewRef.current) {
+      docxPreviewRef.current.innerHTML = '';
+      renderAsync(docxBlob, docxPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('DOCX preview error:', err));
+    }
+  }, [docxBlob]);
+
+  // Auto-generate DOCX when OSCA Transmittal is selected or signatories change
+  useEffect(() => {
+    if (activeDoc === 'osca-transmittal' && !sigLoading) {
+      handleGenerateTransmittal();
+    } else if (activeDoc !== 'osca-transmittal') {
+       setDocxBlob(null);
+       if (docxPreviewRef.current) {
+        docxPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, sigs.recipient.name, sigs.oscaHead.name, sigs.mswdoHead.name, sigs.receiverName, transmittalBarangayRows]);
+
   const getSelectedSenior = (id: string) => seniors.find(s => s.id === id);
+
+  // ---- Certificate of Transfer DOCX handlers ----
+  const handleGenerateCertTransfer = async () => {
+    const senior = getSelectedSenior(formData.transferSeniorId);
+    if (!senior) return;
+    setCertTransferLoading(true);
+    try {
+      const age = Math.abs(new Date(Date.now() - new Date(senior.birthdate).getTime()).getUTCFullYear() - 1970);
+      const dateObj = new Date(formData.date);
+      const day = dateObj.getDate().toString();
+      const monthYear = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const fullName = `${senior.firstName} ${senior.middleName || ''} ${senior.lastName}`.replace(/\s+/g, ' ').trim().toUpperCase();
+
+      const blob = await generateCertificateTransferDocx({
+        Person_Name: fullName,
+        Age: String(age),
+        Brgy: senior.barangay || '',
+        Address: formData.municipalAddress || 'Juban, Sorsogon',
+        Transferred_Place: formData.transferTo || '',
+        Transfer_Address: formData.transferAddress || formData.transferTo?.split(',').slice(1).join(',').trim() || '',
+        Osca_Id_No: formData.oscaIdNo || senior.oscaNumber || senior.id || '',
+        Date_Issued: formData.oscaIdDateIssued || '',
+        Day: day,
+        Month_Year: monthYear,
+        OSCA_Head_Name: sigs.oscaHead.name,
+        Acting_Head_Name: sigs.mswdoHead.name,
+        License_No: sigs.mswdoLicense || 'Lic. No. ___________',
+        Acting_Position: sigs.mswdoHead.position || 'Acting MSWDO',
+      });
+      setCertTransferBlob(blob);
+    } catch (err) {
+      console.error('Generate cert transfer error:', err);
+      showToast('Failed to generate certificate.', 'error');
+    } finally {
+      setCertTransferLoading(false);
+    }
+  };
+
+  const handleDownloadCertTransfer = () => {
+    if (certTransferBlob) {
+      const senior = getSelectedSenior(formData.transferSeniorId);
+      const name = senior ? `${senior.lastName}-${senior.firstName}` : 'Certificate';
+      downloadCertificateTransferDocx(certTransferBlob, `Certificate-of-Transfer-${name}.docx`);
+      showToast('Downloading Certificate of Transfer...', 'success');
+    }
+  };
+
+  // Render Certificate of Transfer DOCX preview
+  useEffect(() => {
+    if (certTransferBlob && certTransferPreviewRef.current) {
+      certTransferPreviewRef.current.innerHTML = '';
+      renderAsync(certTransferBlob, certTransferPreviewRef.current, undefined, {
+        className: 'docx',
+        inWrapper: true,
+      }).catch((err: unknown) => console.error('Cert transfer preview error:', err));
+    }
+  }, [certTransferBlob]);
+
+  // Auto-generate when senior/form data changes
+  useEffect(() => {
+    if (activeDoc === 'certificate-transfer' && formData.transferSeniorId && !sigLoading) {
+      handleGenerateCertTransfer();
+    } else if (activeDoc !== 'certificate-transfer') {
+      setCertTransferBlob(null);
+      if (certTransferPreviewRef.current) {
+        certTransferPreviewRef.current.innerHTML = '';
+      }
+    }
+  }, [activeDoc, sigLoading, formData.transferSeniorId, formData.transferTo, formData.transferSince, formData.date, formData.transferAddress, formData.municipalAddress, formData.oscaIdNo, formData.oscaIdDateIssued, sigs.oscaHead.name, sigs.mswdoHead.name, sigs.mswdoLicense, sigs.mswdoDesignation, sigs.mswdoHead.position]);
 
   const previewRef = useRef<HTMLDivElement>(null);
 
@@ -158,7 +320,7 @@ export default function ReportsPage() {
       id: 'osca-transmittal' as DocumentType,
       title: 'OSCA Transmittal',
       subtitle: 'Office of the Senior Citizen Affairs',
-      description: 'Transmittal letter for NCSC Regional Office — submission of accomplished forms and signatures.',
+      description: 'Transmittal letter for NCSC Regional Office â€” submission of accomplished forms and signatures.',
       icon: Send,
       color: 'teal',
     },
@@ -166,7 +328,7 @@ export default function ReportsPage() {
       id: 'mswdo-transmittal' as DocumentType,
       title: 'MSWDO Transmittal',
       subtitle: 'Municipal Social Welfare & Development Office',
-      description: 'Transmittal letter for NCSC — ECA application forms, masterlist, and pertinent documents.',
+      description: 'Transmittal letter for NCSC â€” ECA application forms, masterlist, and pertinent documents.',
       icon: FileText,
       color: 'blue',
     },
@@ -265,27 +427,111 @@ export default function ReportsPage() {
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 <Save size={13} />
-                <span>Save Signatories</span>
+                <span>Save Changes</span>
               </button>
-              <button
-                type="button"
-                onClick={handlePrint}
-                className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
-              >
-                <Printer size={13} />
-                <span>Print</span>
-              </button>
+              {activeDoc === 'osca-transmittal' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateTransmittal}
+                    disabled={docxLoading}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{docxLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {docxBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadDocx}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
+              ) : activeDoc === 'certificate-transfer' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleGenerateCertTransfer}
+                    disabled={certTransferLoading || !formData.transferSeniorId}
+                    className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
+                  >
+                    <FileText size={13} />
+                    <span>{certTransferLoading ? 'Generating...' : 'Regenerate'}</span>
+                  </button>
+                  {certTransferBlob && (
+                    <button
+                      type="button"
+                      onClick={handleDownloadCertTransfer}
+                      className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      <Download size={13} />
+                      <span>Download DOCX</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePrint}
+                  className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                >
+                  <Printer size={13} />
+                  <span>Print</span>
+                </button>
+              )}
             </div>
           </div>
 
           {/* 2-Column Layout: LEFT = Preview, RIGHT = Form */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 items-start" style={{ maxHeight: '85vh' }}>
             {/* LEFT: Document Preview */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 sticky top-4 self-start overflow-auto" style={{ maxHeight: '85vh' }}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-4 overflow-auto" style={{ maxHeight: '85vh' }}>
               <h6 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">
                 Document Preview
               </h6>
-              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview">
+
+              {/* DOCX-based preview for OSCA Transmittal */}
+              {activeDoc === 'osca-transmittal' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {docxLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading document...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={docxPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
+              {/* DOCX-based preview for Certificate of Transfer */}
+              {activeDoc === 'certificate-transfer' && (
+                <div className="border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm min-h-[500px] bg-gray-100 dark:bg-slate-800 overflow-hidden">
+                  {!certTransferBlob && !certTransferLoading && (
+                    <div className="flex flex-col items-center justify-center py-24 text-center space-y-3">
+                      <FileText size={40} className="text-slate-300 dark:text-slate-600" />
+                      <p className="text-xs text-slate-400 font-medium">Select a senior citizen to preview the certificate</p>
+                    </div>
+                  )}
+                  {certTransferLoading && (
+                    <div className="flex items-center justify-center py-24">
+                      <div className="flex items-center gap-2 text-sm text-slate-500">
+                        <div className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin" />
+                        Loading document...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={certTransferPreviewRef} className="docx-preview-container" />
+                </div>
+              )}
+
+              {/* HTML-based preview for other document types */}
+              <div ref={previewRef} className={`doc-preview border border-slate-200 rounded-xl shadow-sm ${activeDoc === 'masterlist' ? 'landscape' : ''}`} id="document-preview" style={{ display: (activeDoc === 'osca-transmittal' || activeDoc === 'certificate-transfer') ? 'none' : undefined }}>
 
               {/* LETTERHEAD */}
               <div className="doc-letterhead">
@@ -309,7 +555,7 @@ export default function ReportsPage() {
                     <p>{sigs.recipient.position}</p>
                     <p>{sigs.recipientAddress}</p>
                   </div>
-                  <p style={{ marginTop: '20px' }}>Dear Atty. Bombase Pacamarra</p>
+                  <p style={{ marginTop: '20px' }}>Dear {sigs.receiverName}</p>
                   <p className="doc-body" style={{ textIndent: '40px' }}>{formData.purpose}</p>
                   <table className="doc-table">
                     <thead>
@@ -512,108 +758,165 @@ export default function ReportsPage() {
             </div>
 
             {/* RIGHT: Input Forms */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-5">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 space-y-5 overflow-auto" style={{ maxHeight: '85vh' }}>
             {activeDoc === 'osca-transmittal' && (
-              <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Date</label>
-                  <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Layunin / Purpose</label>
-                  <textarea value={formData.purpose} onChange={(e) => setFormData({...formData, purpose: e.target.value})} rows={2} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none" />
-                </div>
-                {/* Signatories */}
-                <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
-                  <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
-                  {/* Receiver */}
-                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Receiver (Tatanggap)</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Name</label>
-                        <input type="text" value={sigs.recipient.name} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
-                        <input type="text" value={sigs.recipient.position} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                    </div>
-                    <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-slate-500">Address</label>
-                      <input type="text" value={sigs.recipientAddress} onChange={(e) => setSigs({...sigs, recipientAddress: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                    </div>
-                  </div>
-                  {/* OSCA Head (Sender) */}
-                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sender (Nagpadala)</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Name</label>
-                        <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
-                        <input type="text" value={sigs.oscaHead.position} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                    </div>
-                  </div>
-                  {/* Noted By */}
-                  <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Noted By</span>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Name</label>
-                        <input type="text" value={sigs.notedBy.name} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
-                        <input type="text" value={sigs.notedBy.position} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {/* Barangay Table - Collapsible */}
-                <div className="space-y-2">
+              <div className="space-y-0">
+                {/* Sub-tabs */}
+                <div className="flex border-b border-slate-200 dark:border-slate-700 mb-4">
                   <button
                     type="button"
-                    onClick={() => setBarangayTableOpen(!barangayTableOpen)}
-                    className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-left cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                    onClick={() => setOscaFormTab('signatories')}
+                    className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      oscaFormTab === 'signatories'
+                        ? 'text-teal-700 dark:text-teal-400 border-b-2 border-teal-600 dark:border-teal-400'
+                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                    }`}
                   >
-                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
-                      List of Barangays and Signature Count ({barangayRows.length} barangay, {barangayRows.reduce((sum, r) => sum + r.count, 0)} total)
-                    </span>
-                    <ChevronDown size={14} className={`text-slate-400 transition-transform duration-200 ${barangayTableOpen ? 'rotate-180' : ''}`} />
+                    Signatories
                   </button>
-                  {barangayTableOpen && (<>
-                    <table className="w-full text-xs">
-                      <thead className="bg-slate-100 dark:bg-slate-700">
-                        <tr>
-                          <th className="px-4 py-2 text-left font-bold text-slate-600 dark:text-slate-300 uppercase text-[10px]">Barangay</th>
-                          <th className="px-4 py-2 text-center font-bold text-slate-600 dark:text-slate-300 uppercase text-[10px]">No. of Signatures</th>
-
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {barangayRows.map((row, idx) => (
-                          <tr key={idx} className="border-t border-slate-100 dark:border-slate-700">
-                            <td className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200">{row.name}</td>
-                            <td className="px-4 py-2 text-xs font-bold text-center text-slate-800 dark:text-slate-100">{row.count}</td>
-
-                          </tr>
-                        ))}
-                        <tr className="border-t-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-900">
-                          <td className="px-4 py-2 text-xs font-bold text-slate-800 dark:text-slate-100 uppercase">TOTAL</td>
-                          <td className="px-4 py-2 text-xs font-bold text-center text-teal-700 dark:text-teal-400">{barangayRows.reduce((sum, r) => sum + r.count, 0)}</td>
-                      </tr>
-                      </tbody>
-                    </table>
-                  <p className="text-[9px] text-slate-400 italic">* Automatically retrieved from the seniors table (Approved seniors per barangay)</p>
-                  </>)}
+                  <button
+                    type="button"
+                    onClick={() => setOscaFormTab('barangays')}
+                    className={`flex-1 py-2.5 text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                      oscaFormTab === 'barangays'
+                        ? 'text-teal-700 dark:text-teal-400 border-b-2 border-teal-600 dark:border-teal-400'
+                        : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    Barangays ({transmittalBarangayRows.filter(r => r.name.trim()).length})
+                  </button>
                 </div>
+
+                {/* ---- Signatories Tab ---- */}
+                {oscaFormTab === 'signatories' && (
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Date</label>
+                      <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Layunin / Purpose</label>
+                      <textarea value={formData.purpose} onChange={(e) => setFormData({...formData, purpose: e.target.value})} rows={2} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none" />
+                    </div>
+                    {/* Receiver */}
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Receiver (Tatanggap)</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Name</label>
+                          <input type="text" value={sigs.recipient.name} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                          <input type="text" value={sigs.recipient.position} onChange={(e) => setSigs({...sigs, recipient: {...sigs.recipient, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500">Address</label>
+                        <input type="text" value={sigs.recipientAddress} onChange={(e) => setSigs({...sigs, recipientAddress: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500">Dear (Salutation Name)</label>
+                        <input type="text" value={sigs.receiverName} onChange={(e) => setSigs({...sigs, receiverName: e.target.value})} placeholder="e.g. Atty. Bombase Pacamarra" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      </div>
+                    </div>
+                    {/* OSCA Head (Sender) */}
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Sender (Nagpadala)</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Name</label>
+                          <input type="text" value={sigs.oscaHead.name} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                          <input type="text" value={sigs.oscaHead.position} onChange={(e) => setSigs({...sigs, oscaHead: {...sigs.oscaHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                      </div>
+                    </div>
+                    {/* Noted By */}
+                    <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Noted By</span>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Name</label>
+                          <input type="text" value={sigs.notedBy.name} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, name: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[9px] font-bold text-slate-500">Posisyon</label>
+                          <input type="text" value={sigs.notedBy.position} onChange={(e) => setSigs({...sigs, notedBy: {...sigs.notedBy, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* ---- Barangays Tab ---- */}
+                {oscaFormTab === 'barangays' && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">
+                        {transmittalBarangayRows.filter(r => r.name.trim()).length} barangay &middot; {transmittalBarangayRows.reduce((sum, r) => sum + (parseInt(r.count) || 0), 0)} total signatures
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      {transmittalBarangayRows.map((row, idx) => (
+                        <div key={idx} className="flex items-center gap-2">
+                          <select
+                            value={row.name}
+                            onChange={(e) => {
+                              const updated = [...transmittalBarangayRows];
+                              updated[idx] = { ...updated[idx], name: e.target.value };
+                              setTransmittalBarangayRows(updated);
+                            }}
+                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none cursor-pointer"
+                          >
+                            <option value="">â€” Select Barangay â€”</option>
+                            {barangaysData
+                              .filter(b => {
+                                const selectedNames = transmittalBarangayRows.map(r => r.name);
+                                return b.name === row.name || !selectedNames.includes(b.name);
+                              })
+                              .map(b => (
+                                <option key={b.id} value={b.name}>{b.name}</option>
+                              ))}
+                          </select>
+                          <input
+                            type="number"
+                            value={row.count}
+                            onChange={(e) => {
+                              const updated = [...transmittalBarangayRows];
+                              updated[idx] = { ...updated[idx], count: e.target.value };
+                              setTransmittalBarangayRows(updated);
+                            }}
+                            placeholder="No."
+                            className="w-20 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold text-center focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = transmittalBarangayRows.filter((_, i) => i !== idx);
+                              setTransmittalBarangayRows(updated.length ? updated : [{ name: '', count: '' }]);
+                            }}
+                            className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors cursor-pointer"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setTransmittalBarangayRows([...transmittalBarangayRows, { name: '', count: '' }])}
+                        className="flex items-center gap-1.5 px-3 py-2 text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-950/30 border border-dashed border-teal-300 dark:border-teal-700 rounded-lg text-[10px] font-bold transition-colors cursor-pointer w-full justify-center"
+                      >
+                        <Plus size={12} />
+                        <span>Add Barangay</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
-
             {/* ===== MSWDO TRANSMITTAL FORM ===== */}
             {activeDoc === 'mswdo-transmittal' && (
               <div className="space-y-4">
@@ -676,27 +979,64 @@ export default function ReportsPage() {
             )}
 
             {/* ===== CERTIFICATE OF TRANSFER ===== */}
+            {/* ===== CERTIFICATE OF TRANSFER ===== */}
             {activeDoc === 'certificate-transfer' && (
               <div className="space-y-4">
+                {/* Senior Selection */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select Senior Citizen</label>
-                  <select value={formData.transferSeniorId} onChange={(e) => setFormData({...formData, transferSeniorId: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
+                  <select value={formData.transferSeniorId} onChange={(e) => {
+                    const sid = e.target.value;
+                    const s = seniors.find(x => x.id === sid);
+                    setFormData({...formData, transferSeniorId: sid, oscaIdNo: s?.oscaNumber || s?.id || ''});
+                  }} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
                     <option value="">-- Select a Senior --</option>
                     {seniors.filter(s => s.status === 'Approved').map((s) => (
-                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
+                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} \u2014 Brgy. {s.barangay}</option>
                     ))}
                   </select>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Lilipatan (Transfer To)</label>
-                    <input type="text" value={formData.transferTo} onChange={(e) => setFormData({...formData, transferTo: e.target.value})} placeholder="e.g. Barangay Nato, Gubat, Sorsogon" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
-                  </div>
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Since Year</label>
-                    <input type="text" value={formData.transferSince} onChange={(e) => setFormData({...formData, transferSince: e.target.value})} placeholder="e.g. 2022" className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+
+                {/* Senior Record Details */}
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Senior Citizen Record</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">OSCA ID No.</label>
+                      <input type="text" value={formData.oscaIdNo} onChange={(e) => setFormData({...formData, oscaIdNo: e.target.value})} placeholder="OSCA ID Number" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Date of Issue (OSCA ID)</label>
+                      <input type="text" value={formData.oscaIdDateIssued} onChange={(e) => setFormData({...formData, oscaIdDateIssued: e.target.value})} placeholder="e.g. January 22, 2019" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
                   </div>
                 </div>
+
+                {/* Transfer Details */}
+                <div className="bg-slate-50 dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Transfer Details</span>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Lilipatan (Transfer To)</label>
+                      <input type="text" value={formData.transferTo} onChange={(e) => setFormData({...formData, transferTo: e.target.value})} placeholder="e.g. Barangay Nato, Gubat, Sorsogon" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Transfer OSCA Address</label>
+                      <input type="text" value={formData.transferAddress} onChange={(e) => setFormData({...formData, transferAddress: e.target.value})} placeholder="e.g. Gubat, Sorsogon" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Municipal Address</label>
+                      <input type="text" value={formData.municipalAddress} onChange={(e) => setFormData({...formData, municipalAddress: e.target.value})} placeholder="e.g. Juban, Sorsogon" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[9px] font-bold text-slate-500">Certificate Date</label>
+                      <input type="date" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+
                 {/* Signatories */}
                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-4">
                   <h6 className="text-[10px] font-bold text-teal-600 uppercase tracking-wider">Signatories</h6>
@@ -725,6 +1065,16 @@ export default function ReportsPage() {
                         <input type="text" value={sigs.mswdoHead.position} onChange={(e) => setSigs({...sigs, mswdoHead: {...sigs.mswdoHead, position: e.target.value}})} className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
                       </div>
                     </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500">License No.</label>
+                        <input type="text" value={sigs.mswdoLicense} onChange={(e) => setSigs({...sigs, mswdoLicense: e.target.value})} placeholder="e.g. Lic. No. 0032243" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[9px] font-bold text-slate-500">Designation</label>
+                        <input type="text" value={sigs.mswdoDesignation} onChange={(e) => setSigs({...sigs, mswdoDesignation: e.target.value})} placeholder="e.g. RSW" className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -738,7 +1088,7 @@ export default function ReportsPage() {
                   <select value={formData.certSeniorId} onChange={(e) => setFormData({...formData, certSeniorId: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
                     <option value="">-- Select a Senior --</option>
                     {seniors.filter(s => s.status === 'Approved').map((s) => (
-                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
+                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} â€” Brgy. {s.barangay}</option>
                     ))}
                   </select>
                 </div>

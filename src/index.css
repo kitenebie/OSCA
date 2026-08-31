@@ -533,3 +533,35 @@ textarea {
   size: landscape;
   margin: 8mm;
 }
+
+/* ============================================================
+   DOCX-PREVIEW (docx-preview library) — real Word document render
+   ============================================================ */
+.docx-preview-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.docx-preview-container .docx-wrapper {
+  background: white !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12) !important;
+  border-radius: 8px !important;
+  max-width: 816px;
+  margin: 0 auto;
+}
+
+.docx-preview-container .docx-wrapper > section.docx {
+  padding: 1in !important;
+  min-height: 11in;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  margin-bottom: 16px !important;
+}
+
+.docx-preview-container table {
+  border-collapse: collapse;
+}
+.docx-preview-container table td,
+.docx-preview-container table th {
+  border: 1px solid #000;
+}
