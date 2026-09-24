@@ -23,7 +23,7 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 
 | Document | Summary |
 |----------|---------|
-| [Fingerprint Bridge README](./fingerprint-bridge/README.md) | Setup at usage guide para sa .NET 8 Fingerprint Bridge Service — Windows Biometric Framework integration, REST API endpoints, at installation instructions. |
+| [Legacy Fingerprint Bridge README](./fingerprint-bridge/README.md) | Lumang .NET bridge documentation; hindi na ginagamit ng DigitalPersona scanner sa web app. |
 | [ESP32 Firmware README](./fingerprint-bridge/esp32-firmware/README.md) | Documentation para sa ESP32 microcontroller firmware na ginagamit sa fingerprint hardware sensor setup. |
 
 ---
@@ -44,7 +44,7 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 | **Animations** | Motion (Framer Motion) |
 | **Icons** | Lucide React |
 | **AI Integration** | Google GenAI SDK |
-| **Biometrics** | Fingerprint Bridge (.NET 8 / Windows Hello) |
+| **Biometrics** | U.are.U 4500 local capture test (HID JavaScript Web SDK + HID Authentication Device Client) |
 
 ---
 
@@ -53,8 +53,7 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 ### Prerequisites
 - **Node.js** 18+
 - **npm** o **pnpm**
-- **.NET 8 SDK** (para sa Fingerprint Bridge)
-- **Windows 10/11** na may fingerprint sensor (para sa biometrics)
+- **Windows 10/11** na may U.are.U 4500 driver at HID Authentication Device Client sa scanner computer (para sa capture test)
 
 ### Frontend Development
 ```bash
@@ -68,16 +67,9 @@ npm run dev
 npm run build
 ```
 
-### Fingerprint Bridge Service
-```bash
-cd fingerprint-bridge
+### U.are.U 4500 Scanner
 
-# Run directly
-dotnet run
-
-# Or install as Windows Service (requires Admin)
-install-as-service.bat
-```
+I-install ang [HID Authentication Device Client](https://digitalpersona.hidglobal.com/lite-client/) at U.are.U 4500 driver sa Windows computer na may scanner. Buksan ang web app sa browser ng computer na iyon, piliin ang DigitalPersona sa Scanner Settings, at gamitin ang **Start Scan** para sa connection/capture test. Ang `@digitalpersona/fingerprint` at `@digitalpersona/websdk` JavaScript packages ang kausap ng HID local client; hindi kailangan ang custom .NET bridge, executable, o manual localhost endpoint. Hindi pa ito fingerprint enrollment o verification, at walang image/template na sine-save o ina-upload.
 
 ---
 
@@ -86,7 +78,7 @@ install-as-service.bat
 | Service | URL |
 |---------|-----|
 | Frontend (Dev) | `http://192.168.8.34:3000` |
-| Fingerprint Bridge | `http://192.168.8.34:8000` |
+| HID Authentication Device Client | Local sa scanner PC; awtomatikong ginagamit ng HID Web SDK |
 | Production | `https://me.oscajuban.online` |
 
 ---

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Fingerprint, Check, RefreshCw, Cpu, Info, Wifi, WifiOff, Image, Camera, Square } from 'lucide-react';
+import { Fingerprint, Check, RefreshCw, Cpu, Info, Wifi, WifiOff, Camera, Square } from 'lucide-react';
 import { systemSettingsService } from '../../services/supabaseService';
-import { uploadFingerprintImage } from '../../services/storageService';
+import FingerprintScanner from '../fingerprint/FingerprintScanner';
 
 // Scanner type config — should match what's selected in Configuration page
 // Reads from localStorage (set by ConfigurationPage)
@@ -10,7 +10,7 @@ function getScannerConfig(): { type: 'digitalpersona' | 'esp32'; endpoint: strin
   if (stored) {
     try { return JSON.parse(stored); } catch {}
   }
-  return { type: 'digitalpersona', endpoint: 'http://localhost:8000' };
+  return { type: 'digitalpersona', endpoint: 'hid-agent' };
 }
 
 // Async version that loads from database (called on mount)
@@ -21,7 +21,7 @@ async function loadScannerConfigFromDB(): Promise<{ type: 'digitalpersona' | 'es
     if (typeRow?.settingValue || endpointRow?.settingValue) {
       return {
         type: (typeRow?.settingValue || 'digitalpersona') as 'digitalpersona' | 'esp32',
-        endpoint: endpointRow?.settingValue || 'http://localhost:8000'
+        endpoint: typeRow?.settingValue === 'esp32' ? endpointRow?.settingValue || 'http://192.168.8.1' : 'hid-agent'
       };
     }
   } catch {}
@@ -32,12 +32,12 @@ interface ThumbprintCaptureProps {
   value: string | null;
   onChange: (imageUrl: string | null) => void;
   seniorId?: string;
+  scannerType?: 'digitalpersona' | 'esp32';
 }
 
-export default function ThumbprintCapture({ value, onChange, seniorId }: ThumbprintCaptureProps) {
+function Esp32ThumbprintCapture({ value }: ThumbprintCaptureProps) {
   const [scannerConfig, setScannerConfig] = useState(getScannerConfig);
   const [isLiveDetecting, setIsLiveDetecting] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [scanStatus, setScanStatus] = useState('Ready for scanning.');
   const [livePreview, setLivePreview] = useState<string | null>(null); // Live BMP preview (data URI)
   const [capturedImage, setCapturedImage] = useState<string | null>(null); // Final captured image
@@ -62,27 +62,21 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
   }, []);
 
   const checkConnection = async () => {
-    const endpoint = scannerConfig.type === 'esp32'
-      ? `${scannerConfig.endpoint}/status`
-      : `${scannerConfig.endpoint}/api/status`;
+    const endpoint = `${scannerConfig.endpoint}/status`;
 
     try {
       const res = await fetch(endpoint, { signal: AbortSignal.timeout(3000) });
       if (res.ok) {
         setBridgeConnected(true);
         const data = await res.json();
-        setScanStatus(scannerConfig.type === 'esp32'
-          ? `ESP32 connected — ${data.device || 'Fingerprint Scanner'}`
-          : `Bridge v${data.version || '?'} connected`);
+        setScanStatus(`ESP32 connected — ${data.device || 'Fingerprint Scanner'}`);
       } else {
         setBridgeConnected(false);
         setScanStatus('Scanner not responding.');
       }
     } catch {
       setBridgeConnected(false);
-      setScanStatus(scannerConfig.type === 'esp32'
-        ? 'Cannot connect to ESP32. Connect to WiFi: OSCA-Fingerprint'
-        : 'Cannot connect to Fingerprint Bridge. Start FingerprintBridge.exe.');
+      setScanStatus('Cannot connect to ESP32. Connect to WiFi: OSCA-Fingerprint');
     }
   };
 
@@ -154,89 +148,18 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
     setIsLiveDetecting(false);
   };
 
-  const captureCurrentFrame = async () => {
+  const captureCurrentFrame = () => {
     // Stop polling
     stopLiveDetection();
 
-    const imageToSave = lastImageRef.current || livePreview;
-    if (!imageToSave) {
+    const preview = lastImageRef.current || livePreview;
+    if (!preview) {
       setScanStatus('No image to capture. Try scanning again.');
       return;
     }
 
-    // Convert BMP to PNG using canvas
-    const pngDataUri = await convertBmpToPng(imageToSave);
-    setCapturedImage(pngDataUri);
-    setScanStatus('Fingerprint captured! Uploading...');
-
-    // Upload to Supabase Storage
-    setIsUploading(true);
-    try {
-      const id = seniorId || `temp_${Date.now()}`;
-      const publicUrl = await uploadFingerprintImage(pngDataUri, id);
-      setIsUploading(false);
-      setScanStatus('Fingerprint saved to storage.');
-      onChange(publicUrl);
-    } catch (err: any) {
-      setIsUploading(false);
-      setScanStatus(`Upload failed: ${err.message}. Click Retake to try again.`);
-    }
-  };
-
-  // ═══════════════════════════════════════════════════════════
-  // DIGITALPERSONA MODE: Single Capture via Bridge
-  // ═══════════════════════════════════════════════════════════
-
-  const startBridgeCapture = async () => {
-    setIsLiveDetecting(true);
-    setLivePreview(null);
-    setCapturedImage(null);
-    setScanStatus('Connecting to Fingerprint Bridge...');
-
-    try {
-      const res = await fetch(`${scannerConfig.endpoint}/api/capture`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: AbortSignal.timeout(20000)
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success !== false && data.image) {
-          const imageDataUri = `data:image/bmp;base64,${data.image}`;
-          const pngDataUri = await convertBmpToPng(imageDataUri);
-          
-          setCapturedImage(pngDataUri);
-          setIsLiveDetecting(false);
-          setScanStatus(`Fingerprint captured! Quality: ${data.quality || 'N/A'}%. Uploading...`);
-
-          // Upload
-          setIsUploading(true);
-          const id = seniorId || `temp_${Date.now()}`;
-          const publicUrl = await uploadFingerprintImage(pngDataUri, id);
-          setIsUploading(false);
-          setScanStatus('Fingerprint saved to storage.');
-          onChange(publicUrl);
-        } else if (data.success !== false && !data.image) {
-          // Template only (no image)
-          setIsLiveDetecting(false);
-          setScanStatus('Captured (no image from this device).');
-          onChange(data.template || data.id || 'captured');
-        } else {
-          throw new Error(data.error || 'Capture failed');
-        }
-      } else {
-        const err = await res.json().catch(() => null);
-        throw new Error(err?.error || 'Bridge error');
-      }
-    } catch (err: any) {
-      setIsLiveDetecting(false);
-      if (err.name === 'AbortError') {
-        setScanStatus('Timeout — no finger detected. Try again.');
-      } else {
-        setScanStatus(err.message || 'Capture failed.');
-      }
-    }
+    setCapturedImage(preview);
+    setScanStatus('Fingerprint captured for testing only. No image was saved.');
   };
 
   // ═══════════════════════════════════════════════════════════
@@ -252,26 +175,8 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
     });
   };
 
-  /** Convert BMP data URI to PNG using canvas */
-  const convertBmpToPng = (bmpDataUri: string): Promise<string> => {
-    return new Promise((resolve) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = img.width;
-        canvas.height = img.height;
-        const ctx = canvas.getContext('2d')!;
-        ctx.drawImage(img, 0, 0);
-        resolve(canvas.toDataURL('image/png'));
-      };
-      img.onerror = () => resolve(bmpDataUri); // Fallback to original
-      img.src = bmpDataUri;
-    });
-  };
-
   const resetCapture = () => {
     stopLiveDetection();
-    onChange(null);
     setLivePreview(null);
     setCapturedImage(null);
     setFingerDetected(false);
@@ -376,21 +281,10 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
               </div>
             )}
 
-            {/* Upload indicator */}
-            {isUploading && (
-              <p className="text-[10px] text-teal-600 font-medium animate-pulse">Uploading to storage...</p>
-            )}
-
-            {/* Saved confirmation */}
-            {value && !isUploading && !isLiveDetecting && (
+            {/* Legacy value is displayed only as a warning; no new image is stored. */}
+            {value && !isLiveDetecting && (
               <div className="text-center">
-                <p className="text-[10px] text-emerald-600 font-bold">Fingerprint saved to storage</p>
-                {value.startsWith('http') && (
-                  <a href={value} target="_blank" rel="noopener noreferrer"
-                    className="text-[9px] text-blue-500 hover:text-blue-700 underline inline-flex items-center gap-0.5 mt-0.5">
-                    <Image size={9} /> View saved image
-                  </a>
-                )}
+                <p className="text-[10px] text-amber-700 font-bold">Existing legacy fingerprint data is not used for this test.</p>
               </div>
             )}
           </div>
@@ -443,7 +337,7 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
       </div>
 
       {/* Retake button */}
-      {(value || capturedImage) && !isLiveDetecting && !isUploading && (
+      {capturedImage && !isLiveDetecting && (
         <div className="flex justify-end">
           <button
             type="button"
@@ -459,11 +353,27 @@ export default function ThumbprintCapture({ value, onChange, seniorId }: Thumbpr
       <div className="flex items-start gap-1.5 bg-slate-50 border border-slate-100 p-2.5 rounded-xl text-[10px] text-slate-500 leading-normal">
         <Info size={12} className="text-slate-400 shrink-0 mt-0.5" />
         <p>
-          {isEsp32
-            ? 'ESP32 mode: Connects wirelessly to the fingerprint scanner via WiFi. Live detection polls continuously until you click Capture.'
-            : 'U.are.U 4500 mode: Connects via USB through the Fingerprint Bridge service (localhost:8000). Live detection with real-time preview.'}
+          {'ESP32 mode: Connects wirelessly to the fingerprint scanner via WiFi. Live detection polls continuously until you click Capture.'}
         </p>
       </div>
     </div>
   );
+}
+
+export default function ThumbprintCapture(props: ThumbprintCaptureProps) {
+  const [scannerType, setScannerType] = useState(props.scannerType || getScannerConfig().type);
+
+  useEffect(() => {
+    if (props.scannerType) {
+      setScannerType(props.scannerType);
+      return;
+    }
+    void loadScannerConfigFromDB().then(config => {
+      if (config) setScannerType(config.type);
+    });
+  }, [props.scannerType]);
+
+  return scannerType === 'esp32'
+    ? <Esp32ThumbprintCapture {...props} />
+    : <FingerprintScanner />;
 }

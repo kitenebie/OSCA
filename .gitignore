@@ -1,6 +1,9 @@
 node_modules/
 build/
 dist/
+fingerprint-bridge/bin/
+fingerprint-bridge/obj/
+fingerprint-bridge/publish/
 coverage/
 .DS_Store
 *.log

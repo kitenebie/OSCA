@@ -2,22 +2,22 @@
 title OSCA Fingerprint Bridge Service
 echo.
 echo ══════════════════════════════════════════════════
-echo   OSCA Fingerprint Bridge Service v1.0.0
-echo   Starting on http://localhost:8000
+echo   OSCA U.are.U 4500 Local Bridge
+echo   Starting on http://127.0.0.1:9123
 echo ══════════════════════════════════════════════════
 echo.
 echo   Make sure:
-echo   1. Windows Hello fingerprint is enrolled
-echo   2. Fingerprint reader is connected
-echo   3. Windows Biometric Service is running
+echo   1. DigitalPersona U.are.U driver and SDK are installed
+echo   2. dpfpdd.dll and dpfj.dll are available to the bridge
+echo   3. U.are.U 4500 reader is connected
 echo.
 echo ──────────────────────────────────────────────────
 echo.
 
-:: Check if .NET 8 runtime is installed
+:: Check if the .NET SDK is installed
 dotnet --version >nul 2>&1
 if errorlevel 1 (
-    echo [ERROR] .NET 8 Runtime not found!
+    echo [ERROR] .NET SDK not found!
     echo Download from: https://dotnet.microsoft.com/download/dotnet/8.0
     echo.
     pause

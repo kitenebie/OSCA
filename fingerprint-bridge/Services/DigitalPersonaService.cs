@@ -1,6 +1,6 @@
 // ============================================================
 // OSCA Fingerprint Bridge - DigitalPersona U.are.U 4500 Service
-// v2.1 — Returns both fingerprint IMAGE (PNG) and TEMPLATE (FMD)
+// Captures ANSI 381 FIDs locally and extracts ANSI 378 FMDs.
 //
 // Uses native DigitalPersona SDK DLLs (dpfpdd.dll + dpfj.dll)
 // for REAL biometric template capture and matching.
@@ -27,7 +27,6 @@
 
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Drawing;
 
 namespace FingerprintBridge.Services;
 
@@ -51,7 +50,7 @@ public class DigitalPersonaService : IDisposable
     private const int DPFPDD_IMG_FMT_ANSI381 = 0x001B0401;     // ANSI 381-2004 image (FID)
     private const int DPFPDD_IMG_FMT_PIXEL_BUFFER = 0;          // Raw pixel buffer
     
-    // We capture as PIXEL_BUFFER to get raw grayscale pixels for PNG conversion
+    // Capture an SDK formatted FID so dpfj_create_fmd_from_fid can process it.
     private const int DPFPDD_IMG_PROC_DEFAULT = 0;
 
     // FMD (template) formats
@@ -101,6 +100,9 @@ public class DigitalPersonaService : IDisposable
     [DllImport("dpfpdd.dll", CallingConvention = CallingConvention.Cdecl)]
     private static extern int dpfpdd_capture(IntPtr devHandle, ref DPFPDD_CAPTURE_PARAM captureParam,
         uint timeout, ref DPFPDD_CAPTURE_RESULT captureResult, ref uint imageSize, byte[] imageData);
+
+    [DllImport("dpfpdd.dll", CallingConvention = CallingConvention.Cdecl)]
+    private static extern int dpfpdd_capture_cancel(IntPtr devHandle);
 
     [DllImport("dpfpdd.dll", CallingConvention = CallingConvention.Cdecl)]
     private static extern int dpfpdd_get_device_status(IntPtr devHandle, ref DPFPDD_DEV_STATUS status);
@@ -232,6 +234,13 @@ public class DigitalPersonaService : IDisposable
 
         try
         {
+            if (!NativeLibrary.TryLoad("dpfj.dll", typeof(DigitalPersonaService).Assembly, null, out var featureLibrary))
+            {
+                Console.WriteLine("[DP] dpfj.dll not found — DigitalPersona feature extraction SDK unavailable");
+                return false;
+            }
+            NativeLibrary.Free(featureLibrary);
+
             int result = dpfpdd_init();
             if (result == DPFPDD_SUCCESS)
             {
@@ -331,12 +340,12 @@ public class DigitalPersonaService : IDisposable
         {
             Console.WriteLine("[DP] Waiting for finger on U.are.U sensor...");
 
-            // Capture as raw pixel buffer so we can create a PNG image
+            // Use a formatted FID. Raw pixel buffers are not valid input to the FMD extractor.
             var captureParam = new DPFPDD_CAPTURE_PARAM
             {
                 size = (uint)Marshal.SizeOf<DPFPDD_CAPTURE_PARAM>(),
-                imageFormat = DPFPDD_IMG_FMT_PIXEL_BUFFER, // Raw grayscale pixels
-                imageProc = 2,  // Enhancement
+                imageFormat = DPFPDD_IMG_FMT_ANSI381,
+                imageProc = DPFPDD_IMG_PROC_DEFAULT,
                 imageRes = 500  // 500 DPI
             };
 
@@ -345,20 +354,14 @@ public class DigitalPersonaService : IDisposable
                 size = (uint)Marshal.SizeOf<DPFPDD_CAPTURE_RESULT>()
             };
 
-            // Initial call to get required buffer size
-            uint imageSize = 0;
+            // One capture per request. A size-probe call would consume the first finger placement.
+            byte[] imageData = new byte[1024 * 1024];
+            uint imageSize = (uint)imageData.Length;
             int status = dpfpdd_capture(_deviceHandle, ref captureParam, timeoutMs,
-                ref captureResult, ref imageSize, null!);
+                ref captureResult, ref imageSize, imageData);
 
-            if (status == DPFPDD_E_MORE_DATA && imageSize > 0)
+            if (status == DPFPDD_SUCCESS && captureResult.success == 1 && imageSize > 0)
             {
-                // Allocate buffer and capture again
-                byte[] imageData = new byte[imageSize];
-                status = dpfpdd_capture(_deviceHandle, ref captureParam, timeoutMs,
-                    ref captureResult, ref imageSize, imageData);
-
-                if (status == DPFPDD_SUCCESS && captureResult.success == 1)
-                {
                     int width = (int)captureResult.info.width;
                     int height = (int)captureResult.info.height;
 
@@ -366,12 +369,6 @@ public class DigitalPersonaService : IDisposable
                         $"Resolution: {width}x{height} @ {captureResult.info.res} DPI, " +
                         $"Quality: NFIQ {captureResult.score}");
                     
-                    // Convert raw grayscale pixels to PNG (base64)
-                    string? imagePngBase64 = ConvertRawToPngBase64(imageData, (int)imageSize, width, height);
-                    
-                    if (imagePngBase64 != null)
-                        Console.WriteLine($"[DP] ✓ PNG image created ({imagePngBase64.Length / 1024} KB base64)");
-
                     // Extract FMD (template) from the captured image (FID)
                     byte[]? fmdTemplate = CreateTemplate(imageData, imageSize);
 
@@ -411,7 +408,6 @@ public class DigitalPersonaService : IDisposable
                             QualityLabel = qualityLabel,
                             ImageWidth = (int)captureResult.info.width,
                             ImageHeight = height,
-                            ImageBase64 = imagePngBase64 ?? "",
                             NfiqScore = (int)captureResult.score,
                             TemplateFormat = "ANSI_378_2004",
                             TemplateSizeBytes = fmdTemplate.Length
@@ -426,19 +422,10 @@ public class DigitalPersonaService : IDisposable
                             ErrorMessage = "Template extraction failed. Try pressing finger more firmly and evenly on the sensor."
                         };
                     }
-                }
             }
-            else if (status == DPFPDD_SUCCESS && captureResult.success == 1)
+            else if (status == DPFPDD_E_MORE_DATA)
             {
-                // Image fit in zero-size buffer? Shouldn't happen, but handle gracefully
-                Console.WriteLine("[DP] ✗ Unexpected: capture succeeded but no image data");
-                return new CaptureOutput { Success = false, ErrorMessage = "No image data returned from device." };
-            }
-            else if (imageSize == 0 && status != DPFPDD_E_MORE_DATA)
-            {
-                // Direct capture without MORE_DATA (some SDK versions)
-                Console.WriteLine($"[DP] Capture returned status 0x{status:X8}, imageSize=0");
-                // Fall through to error handling below
+                return new CaptureOutput { Success = false, ErrorMessage = "Fingerprint data exceeded the capture buffer." };
             }
 
             // Handle specific failure cases
@@ -452,6 +439,7 @@ public class DigitalPersonaService : IDisposable
                     : $"Capture failed (0x{status:X8})"
             };
 
+            if (status == DPFPDD_E_DEVICE_FAILURE) CloseDevice();
             return new CaptureOutput { Success = false, ErrorMessage = errorMsg };
         }
         catch (Exception ex)
@@ -470,6 +458,12 @@ public class DigitalPersonaService : IDisposable
                 ErrorMessage = $"Capture error: {ex.Message}"
             };
         }
+    }
+
+    public void CancelCapture()
+    {
+        if (_deviceHandle == IntPtr.Zero) return;
+        try { dpfpdd_capture_cancel(_deviceHandle); } catch (DllNotFoundException) { } catch (EntryPointNotFoundException) { }
     }
 
     /// <summary>
@@ -537,80 +531,6 @@ public class DigitalPersonaService : IDisposable
                 Confidence = 0,
                 ErrorMessage = $"Compare error: {ex.Message}"
             };
-        }
-    }
-
-    // ═══════════════════════════════════════════════════════════
-    // PNG IMAGE CONVERSION
-    // ═══════════════════════════════════════════════════════════
-
-    /// <summary>
-    /// Convert raw 8-bit grayscale pixel buffer to a PNG image (base64 encoded).
-    /// The U.are.U 4500 captures at 512 DPI, producing ~300x400 pixel grayscale images.
-    /// </summary>
-    private static string? ConvertRawToPngBase64(byte[] rawPixels, int dataSize, int width, int height)
-    {
-        try
-        {
-            if (width <= 0 || height <= 0 || dataSize < width * height)
-            {
-                Console.WriteLine($"[DP] Invalid image dimensions: {width}x{height}, data size: {dataSize}");
-                return null;
-            }
-
-            // Create a BMP file in memory (grayscale 8-bit)
-            // BMP format: header (54 bytes) + color table (1024 bytes for 8-bit) + pixel data
-            int rowStride = ((width + 3) / 4) * 4; // BMP rows are 4-byte aligned
-            int bmpDataSize = rowStride * height;
-            int fileSize = 54 + 1024 + bmpDataSize;
-            byte[] bmp = new byte[fileSize];
-
-            // BMP File Header (14 bytes)
-            bmp[0] = 0x42; bmp[1] = 0x4D; // "BM"
-            BitConverter.GetBytes(fileSize).CopyTo(bmp, 2);
-            BitConverter.GetBytes(54 + 1024).CopyTo(bmp, 10); // Pixel data offset
-
-            // BMP Info Header (40 bytes)
-            BitConverter.GetBytes(40).CopyTo(bmp, 14); // Header size
-            BitConverter.GetBytes(width).CopyTo(bmp, 18);
-            BitConverter.GetBytes(height).CopyTo(bmp, 22);
-            BitConverter.GetBytes((short)1).CopyTo(bmp, 26); // Color planes
-            BitConverter.GetBytes((short)8).CopyTo(bmp, 28); // Bits per pixel (8 = grayscale)
-            BitConverter.GetBytes(0).CopyTo(bmp, 30); // No compression
-            BitConverter.GetBytes(bmpDataSize).CopyTo(bmp, 34);
-            BitConverter.GetBytes(19685).CopyTo(bmp, 38); // 500 DPI horizontal (pixels/meter)
-            BitConverter.GetBytes(19685).CopyTo(bmp, 42); // 500 DPI vertical
-            BitConverter.GetBytes(256).CopyTo(bmp, 46); // Colors used
-            BitConverter.GetBytes(256).CopyTo(bmp, 50); // Important colors
-
-            // Color table (256 grayscale entries: BGRA)
-            for (int i = 0; i < 256; i++)
-            {
-                int offset = 54 + (i * 4);
-                bmp[offset] = (byte)i;     // Blue
-                bmp[offset + 1] = (byte)i; // Green
-                bmp[offset + 2] = (byte)i; // Red
-                bmp[offset + 3] = 0xFF;    // Alpha
-            }
-
-            // Pixel data (BMP stores bottom-to-top)
-            int pixelOffset = 54 + 1024;
-            for (int y = 0; y < height; y++)
-            {
-                int srcRow = (height - 1 - y) * width; // Flip vertically for BMP
-                int dstRow = pixelOffset + (y * rowStride);
-                Array.Copy(rawPixels, srcRow, bmp, dstRow, width);
-                // Remaining bytes in stride are already 0 (padding)
-            }
-
-            // Return as base64 (BMP format — browser can display this directly)
-            // Using BMP instead of PNG since we don't have System.Drawing on all platforms
-            return Convert.ToBase64String(bmp);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[DP] PNG conversion error: {ex.Message}");
-            return null;
         }
     }
 
@@ -683,7 +603,7 @@ public class DigitalPersonaService : IDisposable
             byte[] fmdData = new byte[fmdSize];
 
             int result = dpfj_create_fmd_from_fid(
-                DPFJ_FID_ISO_19794_4_2005, imageData, imageSize,
+                DPFJ_FID_ANSI_381_2004, imageData, imageSize,
                 DPFJ_FMD_ANSI_378_2004, fmdData, ref fmdSize);
 
             if (result == DPFPDD_E_MORE_DATA && fmdSize > 0)
@@ -691,25 +611,13 @@ public class DigitalPersonaService : IDisposable
                 // Buffer was too small, retry with correct size
                 fmdData = new byte[fmdSize];
                 result = dpfj_create_fmd_from_fid(
-                    DPFJ_FID_ISO_19794_4_2005, imageData, imageSize,
+                    DPFJ_FID_ANSI_381_2004, imageData, imageSize,
                     DPFJ_FMD_ANSI_378_2004, fmdData, ref fmdSize);
             }
 
             if (result == DPFJ_SUCCESS && fmdSize > 0)
             {
                 // Trim to actual size
-                byte[] template = new byte[fmdSize];
-                Array.Copy(fmdData, template, fmdSize);
-                return template;
-            }
-
-            // Try alternate FID format (ANSI 381)
-            result = dpfj_create_fmd_from_fid(
-                DPFJ_FID_ANSI_381_2004, imageData, imageSize,
-                DPFJ_FMD_ANSI_378_2004, fmdData, ref fmdSize);
-
-            if (result == DPFJ_SUCCESS && fmdSize > 0)
-            {
                 byte[] template = new byte[fmdSize];
                 Array.Copy(fmdData, template, fmdSize);
                 return template;
@@ -763,7 +671,6 @@ public class DigitalPersonaService : IDisposable
         public int ImageWidth { get; set; }
         public int ImageHeight { get; set; }
         public int NfiqScore { get; set; }
-        public string ImageBase64 { get; set; } = "";  // Base64 BMP/PNG image for display
         public string TemplateFormat { get; set; } = "";
         public int TemplateSizeBytes { get; set; }
         public string ErrorMessage { get; set; } = "";

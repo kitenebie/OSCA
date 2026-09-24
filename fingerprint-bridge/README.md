@@ -1,150 +1,29 @@
-# OSCA Fingerprint Bridge v2.0.0
+# U.are.U 4500 local bridge — capture test
 
-Local HTTP service that connects USB fingerprint scanners to the OSCA web application.
+> **Legacy / inactive:** The React app now uses the official HID JavaScript Web SDK and HID Authentication Device Client. This custom .NET bridge is no longer called by the app and is not required for the U.are.U 4500 capture test. See the root README for current setup.
 
-## Supported Devices
+This .NET 8 bridge runs on the Windows computer to which the DigitalPersona / HID U.are.U 4500 is connected. The React app previously called its loopback API. It is a **detection and capture-quality test only**. It does not enroll or verify people, and it never returns or stores fingerprint images or templates.
 
-| Priority | Device | Method | Template Format |
-|----------|--------|--------|-----------------|
-| ⭐ 0 | **DigitalPersona U.are.U 4500** | DP SDK (dpfpdd.dll) | ANSI 378-2004 (industry standard) |
-| 1 | Serial scanners (ZFM-20, R307, R305) | COM port | Proprietary (ZFM protocol) |
-| 2 | Any WinBio device (Windows Hello) | WinBio Identify | Hash-based |
-| 3 | WinBio Raw Capture | WinBio Raw | Bitmap |
+## Setup
 
-## Setup for U.are.U 4500 (Recommended)
+1. Install the U.are.U 4500 Windows driver and the licensed DigitalPersona U.are.U SDK on the scanner computer. Use the 64-bit SDK when running the 64-bit .NET process.
+2. Make the SDK's `dpfpdd.dll` and `dpfj.dll` available to the bridge process (for example, beside its compiled output). The SDK files are not included in this repository.
+3. From the repository root, run `dotnet run --project fingerprint-bridge/FingerprintBridge.csproj`.
+4. Open `http://127.0.0.1:9123/api/fingerprint/status` on that same computer. The response reports `connected: true` only when the SDK and a device are available.
+5. In Configuration → Biometric Testing, use **Start Scan** and place a finger on the reader. The result shows capture quality only.
 
-### Step 1: Install the Device Driver
-- Plug in the U.are.U 4500 USB scanner
-- Windows should auto-install the driver (check Device Manager → Biometric devices)
-- If not detected, download from: https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip
+The service binds only to `127.0.0.1:9123`. Browser origins are configured under `FingerprintBridge:AllowedOrigins` in `appsettings.json`; edit this list for the actual React deployment domain. The website must run in a browser on the scanner computer because the bridge is not exposed on the network.
 
-### Step 2: Install DigitalPersona SDK
-- Download "DigitalPersona U.are.U SDK" or "One Touch for Windows SDK"
-- URL: https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip
-- Install the SDK (just need the DLLs, not the full development environment)
+## API
 
-### Step 3: Copy SDK DLLs
-Copy these files to the same folder as `FingerprintBridge.exe`:
-```
-dpfpdd.dll    ← Device Driver (capture images)
-dpfj.dll      ← Feature Extraction (create/match templates)
-```
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/fingerprint/status` | SDK and scanner detection |
+| POST | `/api/fingerprint/capture` | One scan; returns quality and format, no biometric data |
+| POST | `/api/fingerprint/cancel` | Cancel an active capture |
 
-Typical source locations:
-- `C:\Program Files\DigitalPersona\Bin\`
-- `C:\Program Files (x86)\DigitalPersona\Bin\`
-- Inside the SDK ZIP under `Bin\Win64\` or `Bin\Win32\`
+Capture requests are serialized; a second request receives HTTP 409. A missing SDK or disconnected scanner returns a clear error. Capture times out after 12 seconds.
 
-### Step 4: Run the Bridge
-```bash
-# Development
-dotnet run
+## Before enrollment and verification
 
-# Production (pre-built)
-./bin/Release/net8.0/win-x64/FingerprintBridge.exe
-```
-
-### Step 5: Verify
-Visit http://localhost:8000/api/status — you should see:
-```json
-{
-  "service": "OSCA Fingerprint Bridge",
-  "version": "2.0.0",
-  "devices": {
-    "digitalPersona": { "available": true, "count": 1 }
-  }
-}
-```
-
-## API Endpoints
-
-### GET /api/status
-Health check — shows detected hardware and service version.
-
-### GET /api/diagnose
-Detailed diagnostics — DLL locations, device list, troubleshooting tips.
-
-### POST /api/capture
-Capture a fingerprint. Returns:
-```json
-{
-  "success": true,
-  "template": "<base64 ANSI 378-2004 FMD template>",
-  "id": "FP-DP-20260824120000-123456",
-  "quality": 85,
-  "qualityLabel": "Good",
-  "method": "digitalpersona",
-  "format": "ANSI_378_2004",
-  "templateSize": 482,
-  "nfiqScore": 2,
-  "message": "Fingerprint captured via DigitalPersona U.are.U! Quality: 85% (Good)"
-}
-```
-
-### POST /api/verify
-Verify a live fingerprint against a stored template:
-```json
-// Request body:
-{ "storedTemplate": "<base64 template from database>" }
-
-// Response:
-{
-  "success": true,
-  "confidence": 92.5,
-  "method": "digitalpersona",
-  "message": "✓ Fingerprint verified! Confidence: 92.5%"
-}
-```
-
-## Architecture
-
-```
-┌──────────────────────────────────────────────────────────────┐
-│  OSCA Web App (React)                                        │
-│  ThumbprintCapture.tsx → POST http://localhost:8000/api/...   │
-└──────────────────────┬───────────────────────────────────────┘
-                       │ HTTP (localhost only)
-┌──────────────────────▼───────────────────────────────────────┐
-│  Fingerprint Bridge (.NET 8 Minimal API)                     │
-│  Program.cs → DigitalPersonaService / WindowsBiometricService│
-└──────────────────────┬───────────────────────────────────────┘
-                       │ P/Invoke (native DLL calls)
-┌──────────────────────▼───────────────────────────────────────┐
-│  dpfpdd.dll + dpfj.dll (DigitalPersona SDK)                  │
-│  Device communication + template extraction/matching         │
-└──────────────────────┬───────────────────────────────────────┘
-                       │ USB
-┌──────────────────────▼───────────────────────────────────────┐
-│  U.are.U 4500 Hardware (512 DPI optical sensor)              │
-└──────────────────────────────────────────────────────────────┘
-```
-
-## Template Storage (Supabase)
-
-The captured template (Base64 string) should be stored in your Supabase `senior_citizens` table:
-- Column: `fingerprint_template` (TEXT or BYTEA)
-- Format: ANSI 378-2004 FMD (Fingerprint Minutiae Data)
-- Size: typically 300-600 bytes per template
-
-For verification, send the stored template to `/api/verify` — the bridge will capture a new
-fingerprint and compare using the DigitalPersona matching engine (FAR 0.1% threshold).
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| "dpfpdd.dll not found" | Copy DLLs from SDK install to bridge directory |
-| "No devices detected" | Check USB connection, reinstall driver |
-| "Device busy" | Close other apps using the scanner (only one app at a time) |
-| "Timeout" | Finger wasn't placed on sensor within 12 seconds |
-| "Quality too low" | Clean finger, press more firmly and evenly |
-| Bridge won't start | Check if port 8000 is already in use |
-
-## Building from Source
-
-```bash
-cd fingerprint-bridge
-dotnet build -c Release -r win-x64 --self-contained
-```
-
-Output: `bin/Release/net8.0/win-x64/FingerprintBridge.exe`
+The current app uses its own session tokens and its existing `users` table has broad RLS access. A secure biometric credential backend must first validate those sessions server-side, restrict credential rows, and keep templates away from the React client. Do not save SDK templates in `seniors.thumbprint_data` or public Supabase Storage. Enrollment, identification, verification, and attendance are not enabled by this capture-test bridge.

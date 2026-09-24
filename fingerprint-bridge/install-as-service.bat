@@ -1,7 +1,7 @@
 @echo off
 :: ============================================================
 :: Install OSCA Fingerprint Bridge as a User-Session Task
-:: Runs at logon under the current user (required for biometric access)
+:: Runs the loopback DigitalPersona bridge at logon under the current user
 :: Run this as Administrator
 :: ============================================================
 
@@ -45,7 +45,7 @@ schtasks /create /tn "OSCAFingerprintBridge" ^
 
 :: Set description
 echo [4/5] Configuring task...
-powershell -Command "$task = Get-ScheduledTask -TaskName 'OSCAFingerprintBridge'; $task.Description = 'OSCA Fingerprint Bridge - connects USB fingerprint scanner to the OSCA web app via Windows Biometric Framework'; Set-ScheduledTask -InputObject $task" >nul 2>&1
+powershell -Command "$task = Get-ScheduledTask -TaskName 'OSCAFingerprintBridge'; $task.Description = 'OSCA U.are.U 4500 loopback bridge via DigitalPersona SDK'; Set-ScheduledTask -InputObject $task" >nul 2>&1
 
 :: Start it now
 echo [5/5] Starting the bridge now...
@@ -56,11 +56,11 @@ echo ═════════════════════════
 echo   Installation Complete!
 echo   Task: OSCAFingerprintBridge
 echo   Trigger: Runs at every logon (user session)
-echo   Port: http://localhost:8000
+echo   Port: http://127.0.0.1:9123
 echo ══════════════════════════════════════════════════════
 echo.
 echo   The bridge runs in your user session so it can
-echo   access the fingerprint scanner hardware (WinBio).
+echo   access the U.are.U scanner through the DigitalPersona SDK.
 echo.
 echo   To uninstall:
 echo     schtasks /delete /tn "OSCAFingerprintBridge" /f

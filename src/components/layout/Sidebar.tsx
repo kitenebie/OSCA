@@ -188,7 +188,10 @@ export default function Sidebar() {
         )}
 
         {/* Navigation Items */}
-        <nav className="flex-1 px-3 space-y-1 py-4 overflow-hidden">
+        <nav
+          className="flex-1 min-h-0 px-3 space-y-1 py-4 overflow-y-auto overscroll-contain"
+          aria-label="Main navigation"
+        >
           {menuItems.map((item) => {
             const hasAccess = hasPermission(item.permission);
             if (!hasAccess) return null;
@@ -224,7 +227,7 @@ export default function Sidebar() {
         </nav>
 
         {/* Footer Actions */}
-        <div className="p-3 border-t border-[#02061733] space-y-1">
+        <div className="shrink-0 p-3 border-t border-[#02061733] space-y-1">
           <button
             onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold text-red-200 hover:bg-red-950/20 transition-all duration-150 group"

@@ -938,7 +938,7 @@ export default function ConfigurationPage() {
 
   const [fingerprintScannerType, setFingerprintScannerType] = useState<'digitalpersona' | 'esp32'>('digitalpersona');
 
-  const [fingerprintEndpoint, setFingerprintEndpoint] = useState<string>('http://localhost:8000');
+  const [fingerprintEndpoint, setFingerprintEndpoint] = useState<string>('http://192.168.8.1');
 
   const [fpSettingsLoaded, setFpSettingsLoaded] = useState(false);
 
@@ -958,7 +958,7 @@ export default function ConfigurationPage() {
 
         if (typeRow?.settingValue) setFingerprintScannerType(typeRow.settingValue as 'digitalpersona' | 'esp32');
 
-        if (endpointRow?.settingValue) setFingerprintEndpoint(endpointRow.settingValue);
+        if (endpointRow?.settingValue && typeRow?.settingValue === 'esp32') setFingerprintEndpoint(endpointRow.settingValue);
 
         // Also sync to localStorage for ThumbprintCapture component
 
@@ -966,7 +966,7 @@ export default function ConfigurationPage() {
 
           type: typeRow?.settingValue || 'digitalpersona',
 
-          endpoint: endpointRow?.settingValue || 'http://localhost:8000'
+          endpoint: typeRow?.settingValue === 'esp32' ? endpointRow?.settingValue || 'http://192.168.8.1' : 'hid-agent'
 
         };
 
@@ -6059,7 +6059,7 @@ export default function ConfigurationPage() {
 
                   setFingerprintScannerType(type);
 
-                  setFingerprintEndpoint(type === 'esp32' ? 'http://192.168.8.1' : 'http://localhost:8000');
+                  setFingerprintEndpoint('http://192.168.8.1');
 
                 }}
 
@@ -6067,7 +6067,7 @@ export default function ConfigurationPage() {
 
               >
 
-                <option value="digitalpersona">DigitalPersona U.are.U 4500 (USB — via Fingerprint Bridge)</option>
+                <option value="digitalpersona">DigitalPersona U.are.U 4500 (USB — HID Web SDK)</option>
 
                 <option value="esp32">ESP32 + Arduino Fingerprint Module (WiFi — R307/AS608)</option>
 
@@ -6079,7 +6079,7 @@ export default function ConfigurationPage() {
 
             {/* Endpoint Configuration */}
 
-            <div className="space-y-3">
+            {fingerprintScannerType === 'esp32' && <div className="space-y-3">
 
               <label className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Scanner Endpoint URL</label>
 
@@ -6088,10 +6088,9 @@ export default function ConfigurationPage() {
                 type="text"
 
                 value={fingerprintEndpoint}
-
                 onChange={(e) => setFingerprintEndpoint(e.target.value)}
 
-                placeholder={fingerprintScannerType === 'esp32' ? 'http://192.168.8.1' : 'http://localhost:8000'}
+                placeholder="http://192.168.8.1"
 
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
 
@@ -6099,15 +6098,13 @@ export default function ConfigurationPage() {
 
               <p className="text-[10px] text-slate-400 dark:text-slate-500">
 
-                {fingerprintScannerType === 'esp32'
-
-                  ? 'The ESP32 creates a WiFi hotspot (OSCA-Fingerprint). Connect to it, then the scanner is at http://192.168.8.1'
-
-                  : 'The Fingerprint Bridge runs locally on port 8000. Make sure FingerprintBridge.exe is running.'}
+                The ESP32 creates a WiFi hotspot (OSCA-Fingerprint). Connect to it, then the scanner is at http://192.168.8.1.
 
               </p>
 
-            </div>
+            </div>}
+
+            {fingerprintScannerType === 'digitalpersona' && <p className="text-xs text-slate-500 dark:text-slate-400">The HID Web SDK connects through HID Authentication Device Client installed on this Windows computer. No endpoint URL or custom .NET bridge is needed.</p>}
 
 
 
@@ -6127,13 +6124,13 @@ export default function ConfigurationPage() {
 
                     { settingKey: 'fingerprint_scanner_type', settingValue: fingerprintScannerType },
 
-                    { settingKey: 'fingerprint_scanner_endpoint', settingValue: fingerprintEndpoint }
+                    { settingKey: 'fingerprint_scanner_endpoint', settingValue: fingerprintScannerType === 'esp32' ? fingerprintEndpoint : 'hid-agent' }
 
                   ]);
 
                   // Also sync to localStorage for immediate use by ThumbprintCapture
 
-                  const config = { type: fingerprintScannerType, endpoint: fingerprintEndpoint };
+                  const config = { type: fingerprintScannerType, endpoint: fingerprintScannerType === 'esp32' ? fingerprintEndpoint : 'hid-agent' };
 
                   localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(config));
 
@@ -6187,11 +6184,11 @@ export default function ConfigurationPage() {
 
                   <li>• 512 DPI, high quality image</li>
 
-                  <li>• Requires FingerprintBridge.exe</li>
+                  <li>• Requires the HID Authentication Device Client and scanner driver</li>
 
                   <li>• Single capture per scan</li>
 
-                  <li>• ANSI 378 biometric template</li>
+                  <li>• Capture test only; no image or template is stored</li>
 
                 </ul>
 
@@ -6469,7 +6466,7 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
 
 
-              {/* --- USB Fingerprint Scanner (U.are.U 4500 via Bridge) --- */}
+              {/* --- USB Fingerprint Scanner (U.are.U 4500 via HID Web SDK) --- */}
 
               <div className="space-y-3">
 
@@ -6493,17 +6490,14 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
                 <p className="text-[10px] text-slate-400">
 
-                  Test the USB fingerprint scanner connection via the
-
-                  Fingerprint Bridge service. Click the scan button to capture a
-
-                  fingerprint image. The image will be displayed below for
-
-                  verification.
+                  {fingerprintScannerType === 'digitalpersona'
+                    ? 'Test the U.are.U 4500 through the HID local client. Capture status and quality are shown; no image or template is saved.'
+                    : 'Test the ESP32 fingerprint scanner connection over WiFi.'}
 
                 </p>
 
                 <ThumbprintCapture
+                  scannerType={fingerprintScannerType}
 
                   value={testFingerprintUrl}
 
@@ -6511,15 +6505,6 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
                     setTestFingerprintUrl(url);
 
-                    if (url)
-
-                      console.log(
-
-                        "[CONFIG TEST] Fingerprint captured:",
-
-                        url.substring(0, 80) + "...",
-
-                      );
 
                   }}
 
@@ -6531,858 +6516,17 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
 
 
-              {/* --- Setup Guide: How to Install Fingerprint Scanner --- */}
-
-              <div className="space-y-3">
-
-                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-700 pb-2">
-
-                  <HelpCircle size={14} className="text-indigo-600" />
-
-                  <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">
-
-                    Setup Guide: Fingerprint Scanner
-
-                  </h6>
-
+              {/* Local U.are.U 4500 setup */}
+              <div className="space-y-3 rounded-xl border border-indigo-100 bg-indigo-50 p-4 text-xs text-slate-700 dark:border-indigo-800 dark:bg-indigo-950/30 dark:text-slate-200">
+                <div className="flex items-center gap-2 font-bold text-indigo-800 dark:text-indigo-200">
+                  <HelpCircle size={14} /> U.are.U 4500 Setup
                 </div>
-
-
-
-                <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-800 rounded-xl p-4 space-y-4">
-
-                  {/* Requirements */}
-
-                  <div>
-
-                    <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-
-                      Requirements
-
-                    </h6>
-
-                    <ul className="text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5 list-none">
-
-                      <li className="flex items-start gap-2">
-
-                        <span className="text-indigo-500 font-bold mt-0.5">
-
-                          1.
-
-                        </span>
-
-                        <span>
-
-                          <strong>DigitalPersona U.are.U 4500</strong> USB
-
-                          fingerprint scanner (or compatible: ZK4500, SLK20R)
-
-                        </span>
-
-                      </li>
-
-                      <li className="flex items-start gap-2">
-
-                        <span className="text-indigo-500 font-bold mt-0.5">
-
-                          2.
-
-                        </span>
-
-                        <span>
-
-                          <strong>DigitalPersona SDK</strong> — download from{" "}
-
-                          <a
-
-                            href="https://sdk.hidglobal.com/developer-center/digitalpersona-touchchip"
-
-                            target="_blank"
-
-                            rel="noopener noreferrer"
-
-                            className="text-blue-600 dark:text-blue-400 underline"
-
-                          >
-
-                            HID Global Developer Center
-
-                          </a>{" "}
-
-                          (free with device)
-
-                        </span>
-
-                      </li>
-
-                      <li className="flex items-start gap-2">
-
-                        <span className="text-indigo-500 font-bold mt-0.5">
-
-                          3.
-
-                        </span>
-
-                        <span>
-
-                          <strong>FingerprintBridge.exe</strong> — local service
-
-                          na nagco-connect ng scanner sa web app
-
-                        </span>
-
-                      </li>
-
-                    </ul>
-
-                  </div>
-
-
-
-                  {/* Installation Steps */}
-
-                  <div>
-
-                    <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-
-                      Installation Steps
-
-                    </h6>
-
-                    <div className="space-y-2">
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          1
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Install U.are.U 4500 Driver
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Plug in the USB scanner. The driver should install automatically. If not, download from the HID Global website. Verify in Device Manager → Biometric
-
-                            devices.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          2
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Download & Install DigitalPersona SDK
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Register at HID Global Developer Center (free). Download "ZKFinger SDK for Windows" or "U.are.U SDK". Install to get the required DLL files.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          3
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Copy SDK DLLs to Bridge Folder
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Find{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dpfpdd.dll
-
-                            </code>{" "}
-
-                            at{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dpfj.dll
-
-                            </code>{" "}
-
-                            in the SDK install folder (typically{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              C:\Program Files\DigitalPersona\Bin\
-
-                            </code>
-
-                            ). Copy them to the same folder as FingerprintBridge.exe.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          4
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Run FingerprintBridge.exe
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Double-click ang{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              FingerprintBridge.exe
-
-                            </code>{" "}
-
-                            (or run{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dotnet run
-
-                            </code>{" "}
-
-                            sa project folder). You should see "DigitalPersona SDK initialized ✓" and "Listening on http://localhost:8000".
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-indigo-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          5
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Test Scanner Above ↑
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Once the "Bridge connected" indicator above turns green, click the fingerprint button and place your finger on the scanner. The fingerprint image should appear.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Troubleshooting */}
-
-                  <div>
-
-                    <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-
-                      Troubleshooting
-
-                    </h6>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-[10px]">
-
-                      <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
-
-                        <p className="font-semibold text-slate-700 dark:text-slate-200">
-
-                          "Bridge disconnected"
-
-                        </p>
-
-                        <p className="text-slate-500 dark:text-slate-400">
-
-                          FingerprintBridge.exe is not running. Start it before testing.
-
-                        </p>
-
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
-
-                        <p className="font-semibold text-slate-700 dark:text-slate-200">
-
-                          "dpfpdd.dll not found"
-
-                        </p>
-
-                        <p className="text-slate-500 dark:text-slate-400">
-
-                          DLL files are missing from the bridge folder. Copy dpfpdd.dll and dpfj.dll from the SDK.
-
-                        </p>
-
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
-
-                        <p className="font-semibold text-slate-700 dark:text-slate-200">
-
-                          "No device detected"
-
-                        </p>
-
-                        <p className="text-slate-500 dark:text-slate-400">
-
-                          Unplug and replug the USB scanner. Check in Device Manager if the Biometric device is detected.
-
-                        </p>
-
-                      </div>
-
-                      <div className="bg-white dark:bg-slate-800 rounded-lg p-2 border border-indigo-100 dark:border-indigo-800">
-
-                        <p className="font-semibold text-slate-700 dark:text-slate-200">
-
-                          "Timeout — no finger detected"
-
-                        </p>
-
-                        <p className="text-slate-500 dark:text-slate-400">
-
-                          No finger detected within 12 seconds. Place your finger firmly on the scanner glass.
-
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-
-
-                  {/* Building FingerprintBridge.exe */}
-
-                  <div>
-
-                    <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-
-                      How to Build & Setup FingerprintBridge.exe
-
-                    </h6>
-
-                    <div className="space-y-2">
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          A
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Install .NET 8 SDK
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Download and install from{" "}
-
-                            <a
-
-                              href="https://dotnet.microsoft.com/download/dotnet/8.0"
-
-                              target="_blank"
-
-                              rel="noopener noreferrer"
-
-                              className="text-blue-600 dark:text-blue-400 underline"
-
-                            >
-
-                              dotnet.microsoft.com/download/dotnet/8.0
-
-                            </a>
-
-                            . Choose <strong>"SDK"</strong> (not Runtime). After
-
-                            install, open CMD and verify:{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dotnet --version
-
-                            </code>{" "}
-
-                            — should show 8.x.x.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          B
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Build the Bridge (one-time only)
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            Open CMD or Terminal sa{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              fingerprint-bridge
-
-                            </code>{" "}
-
-                            folder:
-
-                          </p>
-
-                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 mt-1 font-mono overflow-x-auto">{`cd fingerprint-bridge
-
-dotnet publish -c Release -r win-x64 --self-contained`}</pre>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-
-                            Ang output ay nasa:{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              bin/Release/net8.0/win-x64/publish/FingerprintBridge.exe
-
-                            </code>
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          C
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Copy DLLs to Publish Folder
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            I-copy ang{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dpfpdd.dll
-
-                            </code>{" "}
-
-                            at{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              dpfj.dll
-
-                            </code>{" "}
-
-                            sa same folder kung nasaan ang FingerprintBridge.exe
-
-                            (yung publish folder).
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      {/* Quick Dev Mode */}
-
-                      <div>
-
-                        <h6 className="text-[11px] font-bold text-indigo-800 dark:text-indigo-200 uppercase mb-2">
-
-                          Quick Dev Mode (No Build Required)
-
-                        </h6>
-
-                        <div className="bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            If .NET 8 SDK is already installed, you can run the bridge directly without publishing (for testing):
-
-                          </p>
-
-                          <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 mt-1.5 font-mono overflow-x-auto">{`cd fingerprint-bridge
-
-dotnet run`}</pre>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1.5">
-
-                            Auto nang mag-li-listen sa{" "}
-
-                            <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded text-[10px]">
-
-                              http://localhost:8000
-
-                            </code>
-
-                            . Para sa production/deployment, gamitin ang publish
-
-                            command sa Step B.
-
-                          </p>
-
-                        </div>
-
-                      </div>
-
-
-
-                      <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2.5 border border-indigo-100 dark:border-indigo-800">
-
-                        <span className="w-5 h-5 rounded-full bg-emerald-600 text-white text-[10px] font-bold flex items-center justify-center shrink-0">
-
-                          D
-
-                        </span>
-
-                        <div>
-
-                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-100">
-
-                            Auto-Start on PC Boot (via PowerShell)
-
-                          </p>
-
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">
-
-                            To automatically start FingerprintBridge.exe when the computer boots up. Choose one of the three methods below. Open{" "}
-
-                            <strong>PowerShell as Administrator</strong> at
-
-                            i-paste ang command:
-
-                          </p>
-
-
-
-                          <div className="mt-2 space-y-3">
-
-                            {/* Method 1: Startup Folder */}
-
-                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
-
-                              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-
-                                Option 1: Startup Folder (Easiest)
-
-                              </p>
-
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mb-1">
-
-                                Creates a shortcut in the Startup folder — auto-runs when the user logs in:
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to the actual location of your FingerprintBridge.exe
-
-$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
-
-$BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
-
-
-
-# Create shortcut sa Startup folder
-
-$WshShell = New-Object -ComObject WScript.Shell
-
-$StartupFolder = "$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup"
-
-$Shortcut = $WshShell.CreateShortcut("$StartupFolder\\FingerprintBridge.lnk")
-
-$Shortcut.TargetPath = $BridgePath
-
-$Shortcut.WorkingDirectory = $BridgeDir
-
-$Shortcut.Description = "OSCA Fingerprint Bridge Service"
-
-$Shortcut.WindowStyle = 7  # Minimized
-
-$Shortcut.Save()
-
-
-
-Write-Host "Done! FingerprintBridge will auto-start on next login." -ForegroundColor Green`}</pre>
-
-                            </div>
-
-
-
-                            {/* Method 2: Task Scheduler */}
-
-                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
-
-                              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-
-                                Option 2: Scheduled Task (Recommended — runs
-
-                                even without user login)
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to match your installation
-
-$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
-
-$BridgeDir  = "C:\\OSCA\\fingerprint-bridge"
-
-
-
-# Create Scheduled Task na mag-start on system boot
-
-$Action   = New-ScheduledTaskAction -Execute $BridgePath -WorkingDirectory $BridgeDir
-
-$Trigger  = New-ScheduledTaskTrigger -AtStartup
-
-$Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -StartWhenAvailable -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)
-
-$Principal = New-ScheduledTaskPrincipal -UserId "SYSTEM" -LogonType ServiceAccount -RunLevel Highest
-
-
-
-Register-ScheduledTask -TaskName "OSCA Fingerprint Bridge" -Action $Action -Trigger $Trigger -Settings $Settings -Principal $Principal -Description "OSCA Fingerprint Bridge - localhost:8000"
-
-
-
-# Start now
-
-Start-ScheduledTask -TaskName "OSCA Fingerprint Bridge"
-
-
-
-Write-Host "Done! Bridge registered as Scheduled Task." -ForegroundColor Green`}</pre>
-
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-
-                                Manage commands:
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-slate-300 rounded p-1.5 font-mono overflow-x-auto mt-0.5">{`Get-ScheduledTask -TaskName "OSCA Fingerprint Bridge"   # Check status
-
-Stop-ScheduledTask -TaskName "OSCA Fingerprint Bridge"  # Stop
-
-Start-ScheduledTask -TaskName "OSCA Fingerprint Bridge" # Start
-
-Unregister-ScheduledTask -TaskName "OSCA Fingerprint Bridge" -Confirm:$false  # Remove`}</pre>
-
-                            </div>
-
-
-
-                            {/* Method 3: Windows Service */}
-
-                            <div className="bg-slate-50 dark:bg-slate-900 rounded-lg p-2.5 border border-slate-200 dark:border-slate-700">
-
-                              <p className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 mb-1">
-
-                                Option 3: Windows Service (Most Reliable —
-
-                                auto-restart on crash)
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto whitespace-pre-wrap">{`# Change this path to match your installation
-
-$BridgePath = "C:\\OSCA\\fingerprint-bridge\\FingerprintBridge.exe"
-
-
-
-# Install as Windows Service
-
-sc.exe create "OSCAFingerprintBridge" binPath= $BridgePath start= auto DisplayName= "OSCA Fingerprint Bridge"
-
-sc.exe description "OSCAFingerprintBridge" "Local fingerprint scanner bridge for OSCA web app (port 8000)"
-
-
-
-# Auto-restart on failure (after 5s, 10s, 30s)
-
-sc.exe failure "OSCAFingerprintBridge" reset= 86400 actions= restart/5000/restart/10000/restart/30000
-
-
-
-# Start the service immediately
-
-sc.exe start "OSCAFingerprintBridge"
-
-
-
-Write-Host "Done! Service installed and running." -ForegroundColor Green`}</pre>
-
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-
-                                Manage commands:
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-slate-300 rounded p-1.5 font-mono overflow-x-auto mt-0.5">{`sc.exe query OSCAFingerprintBridge    # Check status
-
-sc.exe stop OSCAFingerprintBridge     # Stop
-
-sc.exe start OSCAFingerprintBridge    # Start
-
-sc.exe delete OSCAFingerprintBridge   # Uninstall (stop first)`}</pre>
-
-                            </div>
-
-
-
-                            {/* Verify */}
-
-                            <div className="bg-emerald-50 dark:bg-emerald-950/30 rounded-lg p-2 border border-emerald-200 dark:border-emerald-800">
-
-                              <p className="text-[10px] font-bold text-emerald-800 dark:text-emerald-200 mb-1">
-
-                                ✓ Verify kung gumagana:
-
-                              </p>
-
-                              <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`# Open PowerShell and test if the bridge is active:
-
-Invoke-RestMethod -Uri "http://localhost:8000/api/status" | ConvertTo-Json
-
-
-
-# Expected output: { "service": "OSCA Fingerprint Bridge", "status": "running", ... }`}</pre>
-
-                              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">
-
-                                Or open browser:{" "}
-
-                                <a
-
-                                  href="http://localhost:8000/api/status"
-
-                                  target="_blank"
-
-                                  rel="noopener noreferrer"
-
-                                  className="text-blue-600 dark:text-blue-400 underline"
-
-                                >
-
-                                  http://localhost:8000/api/status
-
-                                </a>
-
-                              </p>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
+                <ol className="list-decimal space-y-2 pl-4">
+                  <li>Install the U.are.U 4500 Windows driver and <a href="https://digitalpersona.hidglobal.com/lite-client/" target="_blank" rel="noopener noreferrer" className="text-indigo-700 underline">HID Authentication Device Client</a> on the computer connected to the scanner.</li>
+                  <li>Start the HID client and open this web app in a browser on that same computer.</li>
+                  <li>Select DigitalPersona in Scanner Settings, save, then use Start Scan above.</li>
+                </ol>
+                <p>The HID JavaScript SDK communicates with the local client; there is no custom .NET service or endpoint to configure. The capture test never uploads an image or template. Enrollment and verification require a secure credential backend.</p>
               </div>
 
             </div>
