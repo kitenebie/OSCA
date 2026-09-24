@@ -21,7 +21,7 @@ export interface SeniorCitizen {
   street?: string;
   coordinates: Coordinates;
   profilePhoto: string;         // base64 image or path
-  thumbprintData: string | null; // base64 or status
+  thumbprintData: string | null; // captured PNG preview before submit, public image URL afterward
   signatureData: string | null;  // base64 signature path
   status: "Pending" | "Approved" | "Rejected" | "For Verification" | "Deactivated" | "Deceased";
   registeredDate: string;

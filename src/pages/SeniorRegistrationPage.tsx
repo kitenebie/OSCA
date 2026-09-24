@@ -2130,6 +2130,7 @@ export default function SeniorRegistrationPage() {
 
 
 
+    try {
     if (isEditMode && editingSenior) {
 
 
@@ -2219,8 +2220,10 @@ export default function SeniorRegistrationPage() {
 
 
     }
-
-
+    } catch (error) {
+      setIsSubmitting(false);
+      showToast(error instanceof Error ? error.message : 'Unable to save registration. Please try again.', 'error');
+    }
 
   };
 

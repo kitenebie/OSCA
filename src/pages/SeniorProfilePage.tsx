@@ -1908,17 +1908,17 @@ export default function SeniorProfilePage() {
 
                   <span className="text-[8.5px] text-slate-400 uppercase tracking-wider block">
 
-                    Biometrics Enrolled Template ID
+                    Fingerprint Image
 
                   </span>
 
 
 
-                  <p className="text-slate-800 font-bold font-mono text-[10px] truncate max-w-full">
-
-                    {senior.thumbprintData || "NO BIOMETRICS ON FILE"}
-
-                  </p>
+                  {senior.thumbprintData && (senior.thumbprintData.startsWith('data:image/') || senior.thumbprintData.startsWith('https://')) ? (
+                    <img src={senior.thumbprintData} alt="Fingerprint on file" className="w-24 h-24 object-contain rounded border border-slate-200 bg-white p-1" />
+                  ) : (
+                    <p className="text-slate-800 font-bold font-mono text-[10px]">NO FINGERPRINT IMAGE ON FILE</p>
+                  )}
 
                 </div>
 

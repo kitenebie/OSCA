@@ -168,6 +168,28 @@ export async function uploadSignature(
   return urlData.publicUrl;
 }
 
+/** Upload a scanner-produced PNG to the existing public senior storage bucket. */
+export async function uploadFingerprintImage(imageDataUrl: string): Promise<string> {
+  if (!imageDataUrl.startsWith('data:image/png;base64,')) {
+    throw new Error('Fingerprint image must be a PNG captured by the scanner.');
+  }
+
+  const { blob } = base64ToBlob(imageDataUrl);
+  if (blob.size > 2 * 1024 * 1024) {
+    throw new Error('Fingerprint image is too large.');
+  }
+
+  const bucket = await getAvailableBucket();
+  const filePath = `fingerprints/${crypto.randomUUID()}.png`;
+  const { error } = await supabase.storage.from(bucket).upload(filePath, blob, {
+    contentType: 'image/png',
+    upsert: false,
+  });
+  if (error) throw new Error(`Fingerprint upload failed: ${error.message}`);
+
+  return supabase.storage.from(bucket).getPublicUrl(filePath).data.publicUrl;
+}
+
 /**
  * Delete a file from storage by its public URL.
  */

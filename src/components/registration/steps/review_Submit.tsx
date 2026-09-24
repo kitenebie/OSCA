@@ -284,7 +284,7 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
                 <div className="w-32 h-32 rounded-xl bg-slate-100 border-2 border-dashed border-slate-300 flex flex-col items-center justify-center gap-1">
                   <Fingerprint size={28} className="text-slate-300" />
                   <span className="text-[10px] font-bold text-slate-400 text-center">
-                      {form.fingerprintTemplate ? 'Fingerprint Enrolled ✓' : 'No Fingerprint'}
+                      {form.fingerprintTemplate ? 'No image preview' : 'No Fingerprint'}
                     </span>
                 </div>
                 )}

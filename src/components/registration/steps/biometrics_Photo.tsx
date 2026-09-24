@@ -12,7 +12,7 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
       <div className="border-b border-slate-100 pb-3 flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h5 className="font-bold text-base text-slate-800 uppercase tracking-wide">VII. Biometrics & Photo</h5>
-          <p className="text-sm text-slate-400">Capture a profile photo and test the U.are.U 4500 scanner.</p>
+          <p className="text-sm text-slate-400">Capture a profile photo and fingerprint image for this registration.</p>
         </div>
         <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">Step 7 of 11</span>
       </div>
@@ -22,8 +22,8 @@ export default function BiometricsPhoto({ form, setForm }: StepProps) {
           <InlineFaceCapture value={form.profilePhoto} onChange={(img) => setForm({ ...form, profilePhoto: img })} />
         </div>
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-3">
-          <FingerprintScanner />
-          <p className="text-xs text-slate-500">Fingerprint enrollment is not yet available. This test does not attach a fingerprint credential to the senior's record.</p>
+          <FingerprintScanner imageDataUrl={form.fingerprintTemplate} onImageCaptured={(image) => setForm({ ...form, fingerprintTemplate: image })} />
+          <p className="text-xs font-semibold text-amber-700">Privacy notice: the fingerprint image will be stored in a public bucket and anyone with its URL can view it. This is an image record, not a fingerprint matching credential.</p>
         </div>
       </div>
     </div>

@@ -16,6 +16,7 @@ export interface CaptureResult {
   success: true;
   qualityLabel: string;
   message: string;
+  imageDataUrl?: string;
 }
 
 export class FingerprintError extends Error {
@@ -86,7 +87,7 @@ function qualityLabel(code: Fingerprint.QualityCode): string {
   return name.replace(/([a-z])([A-Z])/g, '$1 $2');
 }
 
-export async function captureFingerprint(signal?: AbortSignal): Promise<CaptureResult> {
+export async function captureFingerprint(signal?: AbortSignal, captureImage = false): Promise<CaptureResult> {
   if (activeCancellation) throw new FingerprintError('Scanner is already in use.', 'busy');
   if (signal?.aborted) throw new FingerprintError('Scan cancelled.', 'cancelled');
 
@@ -126,10 +127,25 @@ export async function captureFingerprint(signal?: AbortSignal): Promise<CaptureR
 
     const onAbort = () => finish(undefined, new FingerprintError('Scan cancelled.', 'cancelled'));
     const onSample = (event: Fingerprint.SamplesAcquired) => {
-      // The SDK gives us a biometric sample; this capture test intentionally
-      // discards it without logging, rendering, uploading, or persisting it.
       if (!event.samples || event.samples === '[]') return;
-      finish({ success: true, qualityLabel: latestQuality, message: 'Fingerprint Captured' });
+      if (!captureImage) {
+        // Configuration test never retains the biometric sample.
+        finish({ success: true, qualityLabel: latestQuality, message: 'Fingerprint Captured' });
+        return;
+      }
+      try {
+        if (event.sampleFormat !== Fingerprint.SampleFormat.PngImage) throw new Error('Unexpected sample format');
+        const samples: unknown = JSON.parse(event.samples);
+        if (!Array.isArray(samples) || typeof samples[0] !== 'string') throw new Error('No PNG sample');
+        const encoded = samples[0] as string;
+        if (encoded.length > 2_800_000) throw new Error('PNG sample is too large');
+        const pngBytes = Fingerprint.b64UrlToUtf8(encoded);
+        if (!pngBytes.startsWith('\x89PNG\r\n\x1a\n')) throw new Error('Invalid PNG sample');
+        const imageDataUrl = `data:image/png;base64,${window.btoa(pngBytes)}`;
+        finish({ success: true, qualityLabel: latestQuality, message: 'Fingerprint Captured', imageDataUrl });
+      } catch {
+        finish(undefined, new FingerprintError('Scanner returned an invalid fingerprint image. Try again.', 'invalid_image'));
+      }
     };
     const onQuality = (event: Fingerprint.QualityReported) => {
       latestQuality = qualityLabel(event.quality);
@@ -151,7 +167,7 @@ export async function captureFingerprint(signal?: AbortSignal): Promise<CaptureR
     timer = window.setTimeout(() => finish(undefined, new FingerprintError('Scan timed out. Place a finger on the scanner and try again.', 'timeout')), 15000);
 
     acquisitionRequested = true;
-    void withTimeout(api.startAcquisition(Fingerprint.SampleFormat.Intermediate), 5000, 'Could not start scanner.')
+    void withTimeout(api.startAcquisition(captureImage ? Fingerprint.SampleFormat.PngImage : Fingerprint.SampleFormat.Intermediate), 5000, 'Could not start scanner.')
       .catch(() => finish(undefined, agentError()));
   });
 }

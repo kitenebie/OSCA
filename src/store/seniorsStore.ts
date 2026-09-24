@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { SeniorCitizen, SMSLog, Benefit } from '../types';
 import { seniorsService, smsLogsService, benefitsService, auditLogsService } from '../services/supabaseService';
-import { uploadProfilePhoto, uploadSignature } from '../services/storageService';
+import { deleteStorageFile, uploadFingerprintImage, uploadProfilePhoto, uploadSignature } from '../services/storageService';
 
 interface SeniorsState {
   seniors: SeniorCitizen[];
@@ -83,6 +83,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
 
   addSenior: async (seniorData, encoderName) => {
     set({ isLoading: true });
+    let uploadedFingerprintUrl: string | null = null;
     try {
       // Generate a temp ID for file naming
       const tempId = `sen-${Date.now()}`;
@@ -98,6 +99,11 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       if (processedData.signatureData && processedData.signatureData.startsWith('data:')) {
         const sigUrl = await uploadSignature(processedData.signatureData, tempId);
         processedData.signatureData = sigUrl;
+      }
+
+      if (processedData.thumbprintData?.startsWith('data:image/png;base64,')) {
+        uploadedFingerprintUrl = await uploadFingerprintImage(processedData.thumbprintData);
+        processedData.thumbprintData = uploadedFingerprintUrl;
       }
 
       const oscaNumber = await seniorsService.create(processedData, encoderName);
@@ -117,6 +123,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       set({ isLoading: false });
       return oscaNumber;
     } catch (error) {
+      if (uploadedFingerprintUrl) await deleteStorageFile(uploadedFingerprintUrl);
       console.error('Failed to add senior:', error);
       set({ isLoading: false });
       throw error;
@@ -125,8 +132,11 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
 
   updateSenior: async (id, updatedFields, actorName = 'System User') => {
     set({ isLoading: true });
+    let uploadedFingerprintUrl: string | null = null;
+    let updateSaved = false;
     try {
       let processedFields = { ...updatedFields };
+      const previousFingerprintUrl = get().seniors.find(senior => senior.id === id)?.thumbprintData;
 
       // Upload new profile photo if it's base64
       if (processedFields.profilePhoto && processedFields.profilePhoto.startsWith('data:')) {
@@ -140,7 +150,17 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         processedFields.signatureData = sigUrl;
       }
 
+      if (processedFields.thumbprintData?.startsWith('data:image/png;base64,')) {
+        uploadedFingerprintUrl = await uploadFingerprintImage(processedFields.thumbprintData);
+        processedFields.thumbprintData = uploadedFingerprintUrl;
+      }
+
       await seniorsService.update(id, processedFields);
+      updateSaved = true;
+
+      if (previousFingerprintUrl?.includes('/fingerprints/') && previousFingerprintUrl !== processedFields.thumbprintData) {
+        void deleteStorageFile(previousFingerprintUrl).catch(() => undefined);
+      }
 
       const target = get().seniors.find(s => s.id === id);
       const name = target ? `${target.firstName} ${target.lastName}` : id;
@@ -161,6 +181,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       );
       set({ seniors: updated, isLoading: false });
     } catch (error) {
+      if (!updateSaved && uploadedFingerprintUrl) await deleteStorageFile(uploadedFingerprintUrl);
       console.error('Failed to update senior:', error);
       set({ isLoading: false });
       throw error;

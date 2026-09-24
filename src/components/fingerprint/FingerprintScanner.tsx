@@ -4,7 +4,12 @@ import { cancelCapture, captureFingerprint, checkScanner, FingerprintError } fro
 
 type ScanState = 'checking' | 'disconnected' | 'ready' | 'waiting' | 'scanning' | 'captured' | 'poor_quality' | 'error';
 
-export default function FingerprintScanner() {
+interface FingerprintScannerProps {
+  imageDataUrl?: string | null;
+  onImageCaptured?: (imageDataUrl: string | null) => void;
+}
+
+export default function FingerprintScanner({ imageDataUrl, onImageCaptured }: FingerprintScannerProps) {
   const [state, setState] = useState<ScanState>('checking');
   const [message, setMessage] = useState('Checking scanner...');
   const [quality, setQuality] = useState<string | null>(null);
@@ -46,7 +51,11 @@ export default function FingerprintScanner() {
     setMessage('Waiting for Fingerprint — place your finger on the scanner.');
     try {
       setState('scanning');
-      const result = await captureFingerprint(controller.signal);
+      const result = await captureFingerprint(controller.signal, Boolean(onImageCaptured));
+      if (onImageCaptured) {
+        if (!result.imageDataUrl) throw new FingerprintError('Scanner did not return a PNG image.', 'invalid_image');
+        onImageCaptured(result.imageDataUrl);
+      }
       setQuality(result.qualityLabel);
       setState('captured');
       setMessage(result.qualityLabel === 'Not reported'
@@ -86,6 +95,12 @@ export default function FingerprintScanner() {
         {connected ? 'Scanner Connected' : 'Scanner Disconnected'}
       </div>
       {quality !== null && <p className="text-xs text-emerald-700">Capture quality: {quality}</p>}
+      {onImageCaptured && imageDataUrl && (imageDataUrl.startsWith('data:image/png;base64,') || imageDataUrl.startsWith('https://')) && (
+        <div className="flex flex-col items-center gap-2">
+          <img src={imageDataUrl} alt="Captured fingerprint" className="w-36 h-36 object-contain rounded-lg border border-slate-300 bg-white p-2" />
+          <button type="button" disabled={scanning} onClick={() => { onImageCaptured(null); setQuality(null); setState('ready'); setMessage('Fingerprint image removed.'); }} className="text-xs text-red-700 underline disabled:opacity-40">Remove image</button>
+        </div>
+      )}
       <div className="flex gap-2">
         {scanning ? (
           <button type="button" onClick={stop} className="px-4 py-2 rounded-lg bg-red-50 text-red-700 text-xs font-bold">Cancel Scan</button>
@@ -94,7 +109,7 @@ export default function FingerprintScanner() {
         )}
         <button type="button" disabled={scanning} onClick={() => void refresh()} aria-label="Check scanner again" className="px-3 py-2 rounded-lg border border-slate-200 text-slate-600 disabled:opacity-40"><RefreshCw size={14} /></button>
       </div>
-      <p className="text-[10px] text-slate-500">Capture test only. No fingerprint image or template is uploaded or saved.</p>
+      <p className="text-[10px] text-slate-500">{onImageCaptured ? 'The image is added to this registration form and uploaded when you submit the record.' : 'Capture test only. No fingerprint image or template is uploaded or saved.'}</p>
       {state === 'disconnected' && (
         <a href="https://digitalpersona.hidglobal.com/lite-client/" target="_blank" rel="noopener noreferrer" className="text-[10px] text-teal-700 underline">
           Install HID Authentication Device Client
