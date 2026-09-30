@@ -276,6 +276,25 @@ export default function GranteeClaimFormsPage() {
 
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
 
+  const logClaimStatusSMS = async (record: any, status: string) => {
+    const recipientName = [record.first_name, record.last_name].filter(Boolean).join(' ') || 'Senior Citizen';
+    const recipientPhone = record.contact_number?.trim() || '';
+    const message = recipientPhone
+      ? `Hello ${recipientName}, your OSCA Grantee Claim Form status has been updated to "${status}".`
+      : `OSCA Grantee Claim Form status for ${recipientName} was updated to "${status}", but no SMS was sent because no contact number is on file.`;
+
+    const logCreated = await sendSMS(
+      recipientName,
+      recipientPhone,
+      record.barangay || '',
+      message,
+      currentUser?.fullName || 'OSCA System',
+      recipientPhone ? 'Pending' : 'Failed',
+    );
+
+    return logCreated;
+  };
+
 
 
 
@@ -1275,8 +1294,19 @@ export default function GranteeClaimFormsPage() {
     if (hasInvalidDocs) {
       // If there are invalid docs, just save and set status to Pending
       await handleSave();
-      await supabase.from('centenarian_honoring').update({ status: 'Pending' }).eq('id', selectedRecord.id);
-      showToast('Documents saved. Status set to Pending due to invalid documents.', 'info');
+      const { error } = await supabase.from('centenarian_honoring').update({ status: 'Pending' }).eq('id', selectedRecord.id);
+      if (error) {
+        showToast('Failed to update claim status', 'error');
+        setUpdatingStatus(false);
+        return;
+      }
+      const logCreated = await logClaimStatusSMS(selectedRecord, 'Pending');
+      showToast(
+        logCreated
+          ? 'Documents saved. Status set to Pending due to invalid documents.'
+          : 'Status set to Pending, but the SMS log could not be saved.',
+        logCreated ? 'info' : 'error',
+      );
       setSelectedRecord({ ...selectedRecord, status: 'Pending' });
       fetchRecords();
       setUpdatingStatus(false);
@@ -1287,7 +1317,8 @@ export default function GranteeClaimFormsPage() {
     const { error } = await supabase.from('centenarian_honoring').update({ status: 'Approved' }).eq('id', selectedRecord.id);
     if (error) showToast('Failed to approve', 'error');
     else {
-      showToast('Claim form APPROVED', 'success');
+      const logCreated = await logClaimStatusSMS(selectedRecord, 'Approved');
+      showToast(logCreated ? 'Claim form APPROVED' : 'Claim form approved, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
       setSelectedRecord({ ...selectedRecord, status: 'Approved' });
       fetchRecords();
     }
@@ -1460,7 +1491,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      showToast('Claim form REJECTED', 'success');
+      const logCreated = await logClaimStatusSMS(selectedRecord, 'Rejected');
+      showToast(logCreated ? 'Claim form REJECTED' : 'Claim form rejected, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
 
 
 
@@ -2380,17 +2412,25 @@ export default function GranteeClaimFormsPage() {
                 {record.status === 'Approved' && (
                   <>
                     <button onClick={async () => {
-                      await supabase.from('centenarian_honoring').update({ status: 'Claimed' }).eq('id', record.id);
-                      showToast('Marked as Claimed', 'success');
-                      fetchRecords();
+                      const { error } = await supabase.from('centenarian_honoring').update({ status: 'Claimed' }).eq('id', record.id);
+                      if (error) showToast('Failed to mark as Claimed', 'error');
+                      else {
+                        const logCreated = await logClaimStatusSMS(record, 'Claimed');
+                        showToast(logCreated ? 'Marked as Claimed' : 'Marked as Claimed, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
+                        fetchRecords();
+                      }
                     }} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Claimed">
                       <CheckCircle size={13} className="text-emerald-600" />
                       <span className="text-[11px] font-bold text-emerald-700">Claimed</span>
                     </button>
                     <button onClick={async () => {
-                      await supabase.from('centenarian_honoring').update({ status: 'Unclaimed' }).eq('id', record.id);
-                      showToast('Marked as Unclaimed', 'success');
-                      fetchRecords();
+                      const { error } = await supabase.from('centenarian_honoring').update({ status: 'Unclaimed' }).eq('id', record.id);
+                      if (error) showToast('Failed to mark as Unclaimed', 'error');
+                      else {
+                        const logCreated = await logClaimStatusSMS(record, 'Unclaimed');
+                        showToast(logCreated ? 'Marked as Unclaimed' : 'Marked as Unclaimed, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
+                        fetchRecords();
+                      }
                     }} className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Unclaimed">
                       <Clock size={13} className="text-amber-600" />
                       <span className="text-[11px] font-bold text-amber-700">Unclaimed</span>
