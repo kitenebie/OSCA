@@ -580,14 +580,14 @@ export default function SeniorsListPage() {
           </select>
         </div>
 
-        {/* Verification Status Dropdown */}
+        {/* Status Filter Dropdown */}
 
         <div className="space-y-1.5">
           <label
             htmlFor="status"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
           >
-            Verification Status
+            Status
           </label>
 
           <select
@@ -598,11 +598,23 @@ export default function SeniorsListPage() {
           >
             <option value="All">All Status</option>
 
-            <option value="Approved">Approved (Active)</option>
-
             <option value="Pending">Pending Application</option>
 
             <option value="For Verification">For Verification</option>
+
+            <option value="Approved">Approved</option>
+
+            <option value="Approved ID">Approved ID</option>
+
+            <option value="Qualified for NSCS">Qualified for NSCS</option>
+
+            <option value="NSCS Form Submitted">NSCS Form Submitted</option>
+
+            <option value="Approved Data Form">Approved Data Form</option>
+
+            <option value="Disapproved Data Form">Disapproved Data Form</option>
+
+            <option value="Qualified for Honoring">Qualified for Honoring</option>
 
             <option value="Rejected">Rejected</option>
 

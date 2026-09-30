@@ -1125,7 +1125,25 @@ export default function GranteeClaimFormsPage() {
 
 
 
+    const editableFields = [
+      'ncsc_reference_code', 'osca_number', 'first_name', 'middle_name', 'last_name', 'suffix',
+      'birthdate', 'age', 'sex', 'civil_status', 'citizenship', 'contact_number', 'address',
+      'barangay', 'city_town', 'province', 'region', 'zip_code', 'ethnic_origin',
+      'physical_disability_text', 'abroad_house_no', 'abroad_street', 'abroad_city',
+      'abroad_state', 'abroad_country', 'abroad_zip_code', 'spouse_last_name',
+      'spouse_first_name', 'spouse_middle_name', 'spouse_contact_number', 'date_of_death',
+      'claimant_first_name', 'claimant_middle_name', 'claimant_last_name', 'claimant_relationship',
+      'claimant_contact_number', 'claimant_email', 'claimant_payment_mode',
+      'claimant_account_number', 'claimant_bank_name', 'claimant_branch_name',
+      'preferred_payment_mode', 'account_number', 'bank_name', 'branch_name', 'bank_address',
+      'is_joint_account', 'children',
+    ];
+    const editableRecord = Object.fromEntries(
+      editableFields.map((field) => [field, selectedRecord[field] ?? null]),
+    );
+
     const updatePayload: any = {
+      ...editableRecord,
 
 
 
@@ -1253,7 +1271,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    else { showToast('Verification saved', 'success'); fetchRecords(); }
+    else { showToast('Form details and verification saved', 'success'); fetchRecords(); }
 
 
 
@@ -1580,7 +1598,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const InfoRow = ({ label, value }: { label: string; value: string | null | undefined }) => (
+  const InfoRow = ({ label, value, field }: { label: string; value: string | null | undefined; field: string }) => (
 
 
 
@@ -1604,7 +1622,12 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      <span className="text-sm font-semibold text-slate-800">{value || '—'}</span>
+      <input
+        type={field === 'birthdate' || field === 'date_of_death' ? 'date' : field === 'age' ? 'number' : 'text'}
+        value={selectedRecord?.[field] ?? ''}
+        onChange={(event) => setSelectedRecord((record: any) => ({ ...record, [field]: event.target.value }))}
+        className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+      />
 
 
 
@@ -2866,7 +2889,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="NCSC Ref Code" value={selectedRecord.ncsc_reference_code} />
+                  <InfoRow label="NCSC Ref Code" value={selectedRecord.ncsc_reference_code} field="ncsc_reference_code" />
 
 
 
@@ -2874,7 +2897,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="OSCA Number" value={selectedRecord.osca_number} />
+                  <InfoRow label="OSCA Number" value={selectedRecord.osca_number} field="osca_number" />
 
 
 
@@ -2882,7 +2905,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="First Name" value={selectedRecord.first_name} />
+                  <InfoRow label="First Name" value={selectedRecord.first_name} field="first_name" />
 
 
 
@@ -2890,7 +2913,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Middle Name" value={selectedRecord.middle_name} />
+                  <InfoRow label="Middle Name" value={selectedRecord.middle_name} field="middle_name" />
 
 
 
@@ -2898,7 +2921,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Last Name" value={selectedRecord.last_name} />
+                  <InfoRow label="Last Name" value={selectedRecord.last_name} field="last_name" />
 
 
 
@@ -2906,7 +2929,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Suffix" value={selectedRecord.suffix} />
+                  <InfoRow label="Suffix" value={selectedRecord.suffix} field="suffix" />
 
 
 
@@ -2914,7 +2937,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Birthdate" value={selectedRecord.birthdate} />
+                  <InfoRow label="Birthdate" value={selectedRecord.birthdate} field="birthdate" />
 
 
 
@@ -2922,7 +2945,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Age" value={selectedRecord.age?.toString()} />
+                  <InfoRow label="Age" value={selectedRecord.age?.toString()} field="age" />
 
 
 
@@ -2930,7 +2953,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Sex" value={selectedRecord.sex} />
+                  <InfoRow label="Sex" value={selectedRecord.sex} field="sex" />
 
 
 
@@ -2938,7 +2961,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Civil Status" value={selectedRecord.civil_status} />
+                  <InfoRow label="Civil Status" value={selectedRecord.civil_status} field="civil_status" />
 
 
 
@@ -2946,7 +2969,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Citizenship" value={selectedRecord.citizenship} />
+                  <InfoRow label="Citizenship" value={selectedRecord.citizenship} field="citizenship" />
 
 
 
@@ -2954,7 +2977,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Contact No." value={selectedRecord.contact_number} />
+                  <InfoRow label="Contact No." value={selectedRecord.contact_number} field="contact_number" />
 
 
 
@@ -2962,7 +2985,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Address" value={selectedRecord.address} />
+                  <InfoRow label="Address" value={selectedRecord.address} field="address" />
 
 
 
@@ -2970,7 +2993,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Barangay" value={selectedRecord.barangay} />
+                  <InfoRow label="Barangay" value={selectedRecord.barangay} field="barangay" />
 
 
 
@@ -2978,7 +3001,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="City/Town" value={selectedRecord.city_town} />
+                  <InfoRow label="City/Town" value={selectedRecord.city_town} field="city_town" />
 
 
 
@@ -2986,7 +3009,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Province" value={selectedRecord.province} />
+                  <InfoRow label="Province" value={selectedRecord.province} field="province" />
 
 
 
@@ -2994,7 +3017,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Region" value={selectedRecord.region} />
+                  <InfoRow label="Region" value={selectedRecord.region} field="region" />
 
 
 
@@ -3002,7 +3025,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Zip Code" value={selectedRecord.zip_code} />
+                  <InfoRow label="Zip Code" value={selectedRecord.zip_code} field="zip_code" />
 
 
 
@@ -3010,7 +3033,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  {selectedRecord.ethnic_origin && <InfoRow label="Ethnicity / IP" value={selectedRecord.ethnic_origin} />}
+                  <InfoRow label="Ethnicity / IP" value={selectedRecord.ethnic_origin} field="ethnic_origin" />
 
 
 
@@ -3018,7 +3041,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  {selectedRecord.physical_disability && <InfoRow label="Disability" value={selectedRecord.physical_disability_text || 'Yes'} />}
+                  <InfoRow label="Disability Details" value={selectedRecord.physical_disability_text} field="physical_disability_text" />
 
 
 
@@ -3050,7 +3073,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad House No." value={selectedRecord.abroad_house_no} />
+                    <InfoRow label="Abroad House No." value={selectedRecord.abroad_house_no} field="abroad_house_no" />
 
 
 
@@ -3058,7 +3081,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Street" value={selectedRecord.abroad_street} />
+                    <InfoRow label="Abroad Street" value={selectedRecord.abroad_street} field="abroad_street" />
 
 
 
@@ -3066,7 +3089,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad City" value={selectedRecord.abroad_city} />
+                    <InfoRow label="Abroad City" value={selectedRecord.abroad_city} field="abroad_city" />
 
 
 
@@ -3074,7 +3097,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad State" value={selectedRecord.abroad_state} />
+                    <InfoRow label="Abroad State" value={selectedRecord.abroad_state} field="abroad_state" />
 
 
 
@@ -3082,7 +3105,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Country" value={selectedRecord.abroad_country} />
+                    <InfoRow label="Abroad Country" value={selectedRecord.abroad_country} field="abroad_country" />
 
 
 
@@ -3090,7 +3113,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Zip" value={selectedRecord.abroad_zip_code} />
+                    <InfoRow label="Abroad Zip" value={selectedRecord.abroad_zip_code} field="abroad_zip_code" />
 
 
 
@@ -3170,7 +3193,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Last Name" value={selectedRecord.spouse_last_name} />
+                  <InfoRow label="Spouse Last Name" value={selectedRecord.spouse_last_name} field="spouse_last_name" />
 
 
 
@@ -3178,7 +3201,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse First Name" value={selectedRecord.spouse_first_name} />
+                  <InfoRow label="Spouse First Name" value={selectedRecord.spouse_first_name} field="spouse_first_name" />
 
 
 
@@ -3186,7 +3209,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Middle Name" value={selectedRecord.spouse_middle_name} />
+                  <InfoRow label="Spouse Middle Name" value={selectedRecord.spouse_middle_name} field="spouse_middle_name" />
 
 
 
@@ -3194,7 +3217,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Contact" value={selectedRecord.spouse_contact_number} />
+                  <InfoRow label="Spouse Contact" value={selectedRecord.spouse_contact_number} field="spouse_contact_number" />
 
 
 
@@ -3258,7 +3281,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                          <span className="font-bold text-slate-700">{child.name}</span>
+                          <input type="text" value={child.name || ""} aria-label={`Child ${idx + 1} name`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, name: event.target.value } : item) }))} className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none" />
 
 
 
@@ -3266,7 +3289,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                          <span className="text-slate-400 ml-2">{child.age}yrs • {child.sex} • {child.occupation || 'N/A'}</span>
+                          <div className="grid grid-cols-3 gap-2 mt-2"><input type="number" value={child.age ?? ""} aria-label={`Child ${idx + 1} age`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, age: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /><input type="text" value={child.sex || ""} aria-label={`Child ${idx + 1} sex`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, sex: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /><input type="text" value={child.occupation || ""} aria-label={`Child ${idx + 1} occupation`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, occupation: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /></div>
 
 
 
@@ -3378,7 +3401,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Date of Death" value={selectedRecord.date_of_death} />
+                    <InfoRow label="Date of Death" value={selectedRecord.date_of_death} field="date_of_death" />
 
 
 
@@ -3386,7 +3409,9 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Name" value={`${selectedRecord.claimant_first_name || ''} ${selectedRecord.claimant_middle_name || ''} ${selectedRecord.claimant_last_name || ''}`} />
+                    <InfoRow label="Claimant First Name" value={selectedRecord.claimant_first_name} field="claimant_first_name" />
+                    <InfoRow label="Claimant Middle Name" value={selectedRecord.claimant_middle_name} field="claimant_middle_name" />
+                    <InfoRow label="Claimant Last Name" value={selectedRecord.claimant_last_name} field="claimant_last_name" />
 
 
 
@@ -3394,7 +3419,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Relationship" value={selectedRecord.claimant_relationship} />
+                    <InfoRow label="Relationship" value={selectedRecord.claimant_relationship} field="claimant_relationship" />
 
 
 
@@ -3402,7 +3427,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Contact" value={selectedRecord.claimant_contact_number} />
+                    <InfoRow label="Claimant Contact" value={selectedRecord.claimant_contact_number} field="claimant_contact_number" />
 
 
 
@@ -3410,7 +3435,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Email" value={selectedRecord.claimant_email} />
+                    <InfoRow label="Claimant Email" value={selectedRecord.claimant_email} field="claimant_email" />
 
 
 
@@ -3418,7 +3443,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Payment Mode" value={selectedRecord.claimant_payment_mode} />
+                    <InfoRow label="Claimant Payment Mode" value={selectedRecord.claimant_payment_mode} field="claimant_payment_mode" />
 
 
 
@@ -3426,7 +3451,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Account No." value={selectedRecord.claimant_account_number} />
+                    <InfoRow label="Claimant Account No." value={selectedRecord.claimant_account_number} field="claimant_account_number" />
 
 
 
@@ -3434,7 +3459,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Bank" value={selectedRecord.claimant_bank_name} />
+                    <InfoRow label="Claimant Bank" value={selectedRecord.claimant_bank_name} field="claimant_bank_name" />
 
 
 
@@ -3442,7 +3467,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Branch" value={selectedRecord.claimant_branch_name} />
+                    <InfoRow label="Claimant Branch" value={selectedRecord.claimant_branch_name} field="claimant_branch_name" />
 
 
 
@@ -3514,7 +3539,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Payment Mode" value={selectedRecord.preferred_payment_mode} />
+                    <InfoRow label="Payment Mode" value={selectedRecord.preferred_payment_mode} field="preferred_payment_mode" />
 
 
 
@@ -3522,7 +3547,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Account No." value={selectedRecord.account_number} />
+                    <InfoRow label="Account No." value={selectedRecord.account_number} field="account_number" />
 
 
 
@@ -3530,7 +3555,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Bank Name" value={selectedRecord.bank_name} />
+                    <InfoRow label="Bank Name" value={selectedRecord.bank_name} field="bank_name" />
 
 
 
@@ -3538,7 +3563,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Branch" value={selectedRecord.branch_name} />
+                    <InfoRow label="Branch" value={selectedRecord.branch_name} field="branch_name" />
 
 
 
@@ -3546,7 +3571,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Bank Address" value={selectedRecord.bank_address} />
+                    <InfoRow label="Bank Address" value={selectedRecord.bank_address} field="bank_address" />
 
 
 
@@ -3554,7 +3579,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Joint Account?" value={selectedRecord.is_joint_account} />
+                    <InfoRow label="Joint Account?" value={selectedRecord.is_joint_account} field="is_joint_account" />
 
 
 
@@ -4460,6 +4485,11 @@ export default function GranteeClaimFormsPage() {
                 <div className="flex gap-3 pt-2">
 
 
+
+                <button onClick={handleSave} disabled={updatingStatus}
+                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
+                  <CheckCircle size={16} /> {updatingStatus ? 'Saving...' : 'Save Changes'}
+                </button>
 
                 <button onClick={handleApprove} disabled={updatingStatus}
 
