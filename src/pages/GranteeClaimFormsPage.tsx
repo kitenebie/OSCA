@@ -1093,7 +1093,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const handleSave = async () => {
+  const handleSave = async (): Promise<boolean> => {
 
 
 
@@ -1101,7 +1101,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    if (!selectedRecord) return;
+    if (!selectedRecord) return false;
 
 
 
@@ -1281,6 +1281,8 @@ export default function GranteeClaimFormsPage() {
 
     setUpdatingStatus(false);
 
+    return !error;
+
 
 
 
@@ -1311,7 +1313,7 @@ export default function GranteeClaimFormsPage() {
 
     if (hasInvalidDocs) {
       // If there are invalid docs, just save and set status to Pending
-      await handleSave();
+      if (!(await handleSave())) return;
       const { error } = await supabase.from('centenarian_honoring').update({ status: 'Pending' }).eq('id', selectedRecord.id);
       if (error) {
         showToast('Failed to update claim status', 'error');
@@ -1331,7 +1333,7 @@ export default function GranteeClaimFormsPage() {
       return;
     }
 
-    await handleSave();
+    if (!(await handleSave())) return;
     const { error } = await supabase.from('centenarian_honoring').update({ status: 'Approved' }).eq('id', selectedRecord.id);
     if (error) showToast('Failed to approve', 'error');
     else {
@@ -1624,7 +1626,7 @@ export default function GranteeClaimFormsPage() {
 
       <input
         type={field === 'birthdate' || field === 'date_of_death' ? 'date' : field === 'age' ? 'number' : 'text'}
-        value={selectedRecord?.[field] ?? ''}
+        value={selectedRecord?.[field] ?? value ?? ''}
         onChange={(event) => setSelectedRecord((record: any) => ({ ...record, [field]: event.target.value }))}
         className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
       />
