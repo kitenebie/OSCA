@@ -242,6 +242,7 @@ export default function GranteeClaimFormsPage() {
 
   const [showCreateFormModal, setShowCreateFormModal] = useState(false);
   const [createFormSearch, setCreateFormSearch] = useState('');
+  const [showCreateFormSuggestions, setShowCreateFormSuggestions] = useState(false);
   const [creatingForSeniorId, setCreatingForSeniorId] = useState<string | null>(null);
 
 
@@ -518,6 +519,9 @@ export default function GranteeClaimFormsPage() {
     return `${senior.firstName} ${senior.middleName || ''} ${senior.lastName} ${senior.suffix || ''} ${senior.oscaNumber} ${senior.barangay || ''}`
       .toLowerCase().includes(query);
   });
+  const createFormSuggestions = createFormSearch.trim()
+    ? filteredEligibleSeniors.slice(0, 5)
+    : [];
 
   const handleCreateClaimForm = async (senior: any) => {
     setCreatingForSeniorId(senior.id);
@@ -4599,10 +4603,45 @@ export default function GranteeClaimFormsPage() {
                 <input
                   autoFocus
                   value={createFormSearch}
-                  onChange={event => setCreateFormSearch(event.target.value)}
+                  onFocus={() => setShowCreateFormSuggestions(true)}
+                  onChange={event => {
+                    setCreateFormSearch(event.target.value);
+                    setShowCreateFormSuggestions(true);
+                  }}
                   placeholder="Search name, OSCA number, or barangay..."
                   className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
                 />
+                {showCreateFormSuggestions && createFormSuggestions.length > 0 && (
+                  <div
+                    role="listbox"
+                    aria-label="Matching eligible seniors"
+                    className="absolute left-0 right-0 top-full z-20 mt-1 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg"
+                  >
+                    <p className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Suggestions</p>
+                    {createFormSuggestions.map(senior => (
+                      <button
+                        key={senior.id}
+                        type="button"
+                        role="option"
+                        aria-selected={false}
+                        onMouseDown={event => event.preventDefault()}
+                        onClick={() => {
+                          setCreateFormSearch([senior.firstName, senior.middleName, senior.lastName, senior.suffix].filter(Boolean).join(' '));
+                          setShowCreateFormSuggestions(false);
+                        }}
+                        className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left hover:bg-teal-50 focus:bg-teal-50 focus:outline-none"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate text-xs font-semibold text-slate-800">
+                            {[senior.firstName, senior.middleName, senior.lastName, senior.suffix].filter(Boolean).join(' ')}
+                          </span>
+                          <span className="block truncate text-[11px] text-slate-500">{senior.oscaNumber} · {senior.barangay || 'Barangay not set'}</span>
+                        </span>
+                        <Search size={13} className="shrink-0 text-slate-400" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="max-h-[55vh] overflow-y-auto space-y-2">
