@@ -602,8 +602,6 @@ export default function SeniorsListPage() {
 
             <option value="For Verification">For Verification</option>
 
-            <option value="Approved">Approved</option>
-
             <option value="Approved ID">Approved ID</option>
 
             <option value="Qualified for NSCS">Qualified for NSCS</option>
