@@ -222,7 +222,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const { showToast } = useUIStore();
+  const { showToast, selectedFormId, setCurrentPage } = useUIStore();
   const { currentUser, login } = useAuthStore();
   const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
 
@@ -552,8 +552,9 @@ export default function GranteeClaimFormsPage() {
         return;
       }
 
+      const claimFormId = `cen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const { error: insertError } = await supabase.from('centenarian_honoring').insert({
-        id: `cen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        id: claimFormId,
         senior_id: senior.id,
         status: 'Pending',
         osca_number: senior.oscaNumber,
@@ -582,6 +583,8 @@ export default function GranteeClaimFormsPage() {
         actorRole: currentUser?.role || 'admin',
         barangay: senior.barangay || '',
         severity: 'success',
+        targetPage: 'GranteeClaimForms',
+        targetId: claimFormId,
       });
 
       showToast(`Claim form created for ${senior.firstName} ${senior.lastName}.`, 'success');
@@ -930,6 +933,14 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+  useEffect(() => {
+    if (!selectedFormId || !records.length) return;
+    const formRecord = records.find((record) => record.id === selectedFormId);
+    if (!formRecord) return;
+    openDrawer(formRecord);
+    setCurrentPage('GranteeClaimForms');
+  }, [selectedFormId, records, setCurrentPage]);
 
   const closeDrawer = () => { setDrawerOpen(false); setTimeout(() => setSelectedRecord(null), 300); };
 

@@ -980,6 +980,7 @@ END $$;
 
 
 
+
 -- ============================================================
 -- 8. AUDIT LOGS & REALTIME NOTIFICATIONS TABLE
 -- ============================================================
@@ -1049,3 +1050,24 @@ BEGIN
     ALTER PUBLICATION supabase_realtime ADD TABLE user_settings;
   END IF;
 END $$;
+
+-- Add navigation targets to realtime audit notifications and allow all event
+-- kinds/entities currently emitted by the application.
+ALTER TABLE audit_logs
+  ADD COLUMN IF NOT EXISTS target_page TEXT,
+  ADD COLUMN IF NOT EXISTS target_id TEXT;
+
+ALTER TABLE audit_logs DROP CONSTRAINT IF EXISTS audit_logs_action_check;
+ALTER TABLE audit_logs ADD CONSTRAINT audit_logs_action_check
+  CHECK (action IN (
+    'CREATE', 'UPDATE', 'DELETE', 'APPROVE', 'REJECT', 'LOGIN', 'LOGOUT', 'SMS',
+    'SESSION_TERMINATE', 'SESSION_TERMINATE_ALL', 'SESSION_EXPIRED',
+    'SESSION_RENEW', 'TOGGLE'
+  ));
+
+ALTER TABLE audit_logs DROP CONSTRAINT IF EXISTS audit_logs_entity_check;
+ALTER TABLE audit_logs ADD CONSTRAINT audit_logs_entity_check
+  CHECK (entity IN (
+    'Senior', 'User', 'Role', 'Report', 'SMS', 'System', 'Session',
+    'Grantee Claim Form', 'Grantee Registration'
+  ));

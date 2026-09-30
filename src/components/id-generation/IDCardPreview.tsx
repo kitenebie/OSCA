@@ -91,6 +91,8 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
         actorRole: currentUser?.role || 'user',
         barangay: senior.barangay,
         severity: 'info',
+        targetPage: 'SeniorProfile',
+        targetId: senior.id,
       });
     } else {
       showToast('Error rendering ID card PDF.', 'error');

@@ -332,9 +332,8 @@ export const seniorsService = {
     return mapSeniorFromDB(data);
   },
 
-  async create(senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string): Promise<string> {
+  async create(senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string, id = `sen-${Date.now()}`): Promise<string> {
     // Generate ID and OSCA number
-    const id = `sen-${Date.now()}`;
     const date = new Date();
     const year = date.getFullYear();
     
@@ -818,6 +817,8 @@ export const auditLogsService = {
       actorName: row.actor_name,
       actorRole: row.actor_role,
       barangay: row.barangay || '',
+      targetPage: row.target_page || undefined,
+      targetId: row.target_id || undefined,
       timestamp: row.timestamp,
       read: row.read ?? false,
       severity: row.severity || 'info',
@@ -860,6 +861,8 @@ export const auditLogsService = {
         actor_name: newLog.actorName,
         actor_role: newLog.actorRole,
         barangay: newLog.barangay,
+        target_page: newLog.targetPage,
+        target_id: newLog.targetId,
         timestamp: newLog.timestamp,
         read: newLog.read,
         severity: newLog.severity,
@@ -900,6 +903,18 @@ export const auditLogsService = {
       const updated = logs.map((l) => ({ ...l, read: true }));
       localStorage.setItem('osca_audit_logs', JSON.stringify(updated));
       await supabase.from('audit_logs').update({ read: true }).neq('id', '');
+    } catch { /* ignore */ }
+    window.dispatchEvent(new CustomEvent('osca-audit-log-new'));
+  },
+
+  async markAsRead(id: string): Promise<void> {
+    try {
+      const stored = localStorage.getItem('osca_audit_logs');
+      const logs: AuditLogNotification[] = stored ? JSON.parse(stored) : [];
+      localStorage.setItem('osca_audit_logs', JSON.stringify(
+        logs.map((log) => log.id === id ? { ...log, read: true } : log)
+      ));
+      await supabase.from('audit_logs').update({ read: true }).eq('id', id);
     } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('osca-audit-log-new'));
   },

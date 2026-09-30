@@ -53,6 +53,8 @@ export default function NFCWriteModal({ senior, onClose, onSuccess }: NFCWriteMo
         actorRole: currentUser?.role || 'user',
         barangay: senior.barangay,
         severity: 'success',
+        targetPage: 'SeniorProfile',
+        targetId: senior.id,
       });
 
       setTimeout(() => {

@@ -22,12 +22,13 @@ interface Toast {
 interface UIState {
   currentPage: AppPages;
   selectedSeniorId: string | null;
+  selectedFormId: string | null;
   sidebarOpen: boolean;
   toasts: Toast[];
   nfcEnabled: boolean;
   sessionDismissedBy: string | null;
   
-  setCurrentPage: (page: AppPages, seniorId?: string | null) => void;
+  setCurrentPage: (page: AppPages, seniorId?: string | null, formId?: string | null) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   showToast: (message: string, type?: Toast['type']) => void;
@@ -46,21 +47,31 @@ const getStoredSeniorId = (): string | null => {
   return localStorage.getItem('senior_system_selected_senior_id');
 };
 
+const getStoredFormId = (): string | null => {
+  return localStorage.getItem('senior_system_selected_form_id');
+};
+
 export const useUIStore = create<UIState>((set, get) => ({
   currentPage: getStoredPage(),
   selectedSeniorId: getStoredSeniorId(),
+  selectedFormId: getStoredFormId(),
   sidebarOpen: true,
   toasts: [],
   nfcEnabled: false,
   sessionDismissedBy: null,
 
-  setCurrentPage: (page, seniorId = null) => {
-    set({ currentPage: page, selectedSeniorId: seniorId });
+  setCurrentPage: (page, seniorId = null, formId = null) => {
+    set({ currentPage: page, selectedSeniorId: seniorId, selectedFormId: formId });
     localStorage.setItem('senior_system_current_page', page);
     if (seniorId) {
       localStorage.setItem('senior_system_selected_senior_id', seniorId);
     } else {
       localStorage.removeItem('senior_system_selected_senior_id');
+    }
+    if (formId) {
+      localStorage.setItem('senior_system_selected_form_id', formId);
+    } else {
+      localStorage.removeItem('senior_system_selected_form_id');
     }
     // Auto-scroll to top when page changes
     window.scrollTo({ top: 0, behavior: 'smooth' });

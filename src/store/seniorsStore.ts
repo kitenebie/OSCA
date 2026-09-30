@@ -22,7 +22,7 @@ interface SeniorsState {
   setSelectedStatus: (status: string) => void;
   setSelectedPension: (pension: string) => void;
 
-  addSenior: (senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string) => Promise<string>;
+  addSenior: (senior: Omit<SeniorCitizen, 'id' | 'oscaNumber' | 'registeredDate'>, encoderName: string) => Promise<{ id: string; oscaNumber: string }>;
   updateSenior: (id: string, data: Partial<SeniorCitizen>, actorName?: string) => Promise<void>;
   deleteSenior: (id: string, actorName?: string) => Promise<void>;
   approveSenior: (id: string, officerName: string) => Promise<void>;
@@ -106,7 +106,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         processedData.thumbprintData = uploadedFingerprintUrl;
       }
 
-      const oscaNumber = await seniorsService.create(processedData, encoderName);
+      const oscaNumber = await seniorsService.create(processedData, encoderName, tempId);
 
       // Trigger Realtime Audit Log
       auditLogsService.log({
@@ -117,11 +117,13 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         actorRole: 'encoder',
         barangay: processedData.barangay,
         severity: 'success',
+        targetPage: 'SeniorProfile',
+        targetId: tempId,
       });
 
       // Realtime subscription will auto-update the list
       set({ isLoading: false });
-      return oscaNumber;
+      return { id: tempId, oscaNumber };
     } catch (error) {
       if (uploadedFingerprintUrl) await deleteStorageFile(uploadedFingerprintUrl);
       console.error('Failed to add senior:', error);
@@ -173,6 +175,8 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         actorRole: 'user',
         barangay: target?.barangay,
         severity: 'info',
+        targetPage: 'SeniorProfile',
+        targetId: id,
       });
 
       // Optimistic update
@@ -204,6 +208,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         actorRole: 'admin',
         barangay: target?.barangay,
         severity: 'warning',
+        targetPage: 'SeniorsList',
       });
 
       const updated = get().seniors.filter((s) => s.id !== id);
@@ -232,6 +237,8 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       actorRole: 'approver',
       barangay: target?.barangay,
       severity: 'success',
+      targetPage: 'SeniorProfile',
+      targetId: id,
     });
   },
 
@@ -252,6 +259,8 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       actorRole: 'approver',
       barangay: target?.barangay,
       severity: 'danger',
+      targetPage: 'SeniorProfile',
+      targetId: id,
     });
   },
 

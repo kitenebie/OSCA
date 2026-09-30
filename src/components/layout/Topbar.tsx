@@ -5,9 +5,10 @@ import { Menu, Calendar, Clock, Bell, Sun, Moon, Monitor, Check, UserPlus, FileE
 import { applySystemTheme, getStoredTheme } from '../../utils/theme';
 import { userSettingsService, auditLogsService } from '../../services/supabaseService';
 import { AuditLogNotification } from '../../types';
+import { useSeniorsStore } from '../../store/seniorsStore';
 
 export default function Topbar() {
-  const { toggleSidebar, currentPage, nfcEnabled, showToast } = useUIStore();
+  const { toggleSidebar, currentPage, nfcEnabled, showToast, setCurrentPage } = useUIStore();
   const { currentUser } = useAuthStore();
   const [time, setTime] = useState(new Date());
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -28,6 +29,55 @@ export default function Topbar() {
   }, []);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const openNotificationTarget = (notification: AuditLogNotification) => {
+    const detailText = notification.details.toLocaleLowerCase();
+    const seniors = useSeniorsStore.getState().seniors;
+    const matchedSenior = notification.targetId
+      ? seniors.find((senior) => senior.id === notification.targetId)
+      : notification.entity === 'Senior'
+        ? seniors.find((senior) =>
+            detailText.includes(senior.oscaNumber.toLocaleLowerCase()) ||
+            detailText.includes(`${senior.firstName} ${senior.lastName}`.toLocaleLowerCase())
+          )
+        : undefined;
+
+    let page = notification.targetPage;
+    let targetId = notification.targetId || (notification.targetPage === 'SeniorProfile' ? matchedSenior?.id : undefined);
+
+    if (!page) {
+      if (notification.entity === 'Senior') {
+        page = matchedSenior ? 'SeniorProfile' : 'SeniorsList';
+        targetId = matchedSenior?.id;
+      } else if (notification.entity === 'Grantee Claim Form' || notification.entity === 'Grantee Registration') {
+        page = 'GranteeClaimForms';
+      } else if (notification.entity === 'User') {
+        page = 'UserManagement';
+      } else if (notification.entity === 'SMS') {
+        page = 'SMSCenter';
+      } else if (notification.entity === 'Report') {
+        page = 'Reports';
+      } else if (notification.entity === 'Role' || notification.entity === 'System' || notification.entity === 'Session') {
+        page = 'Configuration';
+      } else {
+        page = 'Dashboard';
+      }
+    }
+
+    if (page === 'SeniorProfile' && (!targetId || !seniors.some((senior) => senior.id === targetId))) {
+      page = 'SeniorsList';
+      targetId = undefined;
+      showToast('Hindi na makita ang senior record. Binuksan ang listahan ng seniors.', 'warning');
+    }
+
+    setCurrentPage(
+      page,
+      page === 'SeniorProfile' ? targetId || null : null,
+      page === 'GranteeClaimForms' ? targetId || null : null,
+    );
+    setNotifDropdownOpen(false);
+    void auditLogsService.markAsRead(notification.id);
+  };
 
   const PAGE_TITLES: Record<AppPages, string> = {
     Dashboard: 'Census Statistics & Dashboard',
@@ -229,9 +279,18 @@ export default function Topbar() {
                         const date = new Date(n.timestamp);
                         const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                        return (
+                          return (
                           <div
                             key={n.id}
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => openNotificationTarget(n)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                openNotificationTarget(n);
+                              }
+                            }}
                             className={`group p-3 text-xs transition-all duration-200 flex items-start gap-3 border-l-2 cursor-pointer ${
                               isUnread
                                 ? 'bg-teal-50/60 hover:bg-teal-100/80 border-teal-500 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 dark:border-teal-400 font-semibold'

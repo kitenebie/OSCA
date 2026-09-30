@@ -2163,7 +2163,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-      await addSenior(mappedSenior, currentUser?.fullName || 'LGU Encoder');
+      const createdSenior = await addSenior(mappedSenior, currentUser?.fullName || 'LGU Encoder');
 
 
 
@@ -2208,6 +2208,8 @@ export default function SeniorRegistrationPage() {
 
 
         severity: 'success',
+        targetPage: 'SeniorProfile',
+        targetId: createdSenior.id,
 
 
 

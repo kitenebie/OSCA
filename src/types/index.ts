@@ -226,9 +226,11 @@ export interface SMSLog {
 
 export interface AuditLogNotification {
   id: string;
-  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT' | 'LOGIN' | 'LOGOUT' | 'SMS' | 'SESSION_TERMINATE' | 'SESSION_TERMINATE_ALL' | 'SESSION_EXPIRED' | 'SESSION_RENEW';
-  entity: 'Senior' | 'User' | 'Role' | 'Report' | 'SMS' | 'System' | 'Session';
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'APPROVE' | 'REJECT' | 'LOGIN' | 'LOGOUT' | 'SMS' | 'SESSION_TERMINATE' | 'SESSION_TERMINATE_ALL' | 'SESSION_EXPIRED' | 'SESSION_RENEW' | 'TOGGLE';
+  entity: 'Senior' | 'User' | 'Role' | 'Report' | 'SMS' | 'System' | 'Session' | 'Grantee Claim Form' | 'Grantee Registration';
   details: string;
+  targetPage?: 'Dashboard' | 'SeniorsList' | 'SeniorProfile' | 'Register' | 'Reports' | 'SMSCenter' | 'UserManagement' | 'FindUser' | 'Configuration' | 'Mapping' | 'GranteeClaimForms';
+  targetId?: string;
   actorName: string;
   actorRole: string;
   barangay?: string;

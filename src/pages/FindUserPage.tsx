@@ -128,6 +128,8 @@ export default function FindUserPage() {
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: found.barangay,
+        targetPage: 'SeniorProfile',
+        targetId: found.id,
         severity: 'info',
       });
     } else {
@@ -167,6 +169,8 @@ export default function FindUserPage() {
         actorName: currentUser?.fullName || 'System User',
         actorRole: currentUser?.role || 'user',
         barangay: randomSenior.barangay,
+        targetPage: 'SeniorProfile',
+        targetId: randomSenior.id,
         severity: 'info',
       });
     }, 600);
