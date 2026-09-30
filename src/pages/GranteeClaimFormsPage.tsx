@@ -28,7 +28,7 @@ import { auditLogsService } from '../services/supabaseService';
 
 
 
-import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart } from 'lucide-react';
+import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus } from 'lucide-react';
 
 
 
@@ -239,6 +239,10 @@ export default function GranteeClaimFormsPage() {
 
 
   const [records, setRecords] = useState<any[]>([]);
+
+  const [showCreateFormModal, setShowCreateFormModal] = useState(false);
+  const [createFormSearch, setCreateFormSearch] = useState('');
+  const [creatingForSeniorId, setCreatingForSeniorId] = useState<string | null>(null);
 
 
 
@@ -481,6 +485,93 @@ export default function GranteeClaimFormsPage() {
 
 
   useEffect(() => { fetchRecords(); }, []);
+
+  const latestRecordForSenior = (senior: any) => records.find(record => record.osca_number === senior.oscaNumber);
+  const eligibleSeniors = seniors
+    .filter(senior => senior.status === 'Qualified for Honoring')
+    .filter(senior => {
+      const latestRecord = latestRecordForSenior(senior);
+      return !latestRecord || latestRecord.status === 'Rejected' || Boolean(latestRecord.deleted_at);
+    });
+  const filteredEligibleSeniors = eligibleSeniors.filter(senior => {
+    const query = createFormSearch.trim().toLowerCase();
+    if (!query) return true;
+    return `${senior.firstName} ${senior.middleName || ''} ${senior.lastName} ${senior.suffix || ''} ${senior.oscaNumber} ${senior.barangay || ''}`
+      .toLowerCase().includes(query);
+  });
+
+  const handleCreateClaimForm = async (senior: any) => {
+    setCreatingForSeniorId(senior.id);
+    try {
+      // Re-check eligibility and duplicate forms against the database before creating.
+      const { data: currentSenior, error: seniorError } = await supabase
+        .from('seniors')
+        .select('id, status')
+        .eq('id', senior.id)
+        .maybeSingle();
+      if (seniorError) throw seniorError;
+      if (!currentSenior || currentSenior.status !== 'Qualified for Honoring') {
+        showToast('This senior is no longer qualified for the form.', 'error');
+        return;
+      }
+
+      const { data: existingRecord, error: existingError } = await supabase
+        .from('centenarian_honoring')
+        .select('id, status, deleted_at')
+        .eq('osca_number', senior.oscaNumber)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (existingError) throw existingError;
+      if (existingRecord && existingRecord.status !== 'Rejected' && !existingRecord.deleted_at) {
+        showToast('This senior already has an active claim form.', 'error');
+        await fetchRecords();
+        return;
+      }
+
+      const { error: insertError } = await supabase.from('centenarian_honoring').insert({
+        id: `cen-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        senior_id: senior.id,
+        status: 'Pending',
+        osca_number: senior.oscaNumber,
+        first_name: senior.firstName,
+        middle_name: senior.middleName || null,
+        last_name: senior.lastName,
+        suffix: senior.suffix || null,
+        birthdate: senior.birthdate || null,
+        age: senior.age || null,
+        contact_number: senior.contactNumber || null,
+        sex: senior.sex || null,
+        civil_status: senior.civilStatus || null,
+        address: senior.address || null,
+        barangay: senior.barangay || null,
+        city_town: senior.cityTown || null,
+        province: senior.province || null,
+        region: senior.region || null,
+      });
+      if (insertError) throw insertError;
+
+      auditLogsService.log({
+        action: 'CREATE',
+        entity: 'Grantee Claim Form',
+        details: `${currentUser?.fullName || 'Staff'} created a claim form for ${senior.firstName} ${senior.lastName} (${senior.oscaNumber}).`,
+        actorName: currentUser?.fullName || 'Staff',
+        actorRole: currentUser?.role || 'admin',
+        barangay: senior.barangay || '',
+        severity: 'success',
+      });
+
+      showToast(`Claim form created for ${senior.firstName} ${senior.lastName}.`, 'success');
+      setShowCreateFormModal(false);
+      setCreateFormSearch('');
+      await fetchRecords();
+    } catch (error) {
+      console.error('Create claim form error:', error);
+      showToast('Failed to create claim form. Please try again.', 'error');
+    } finally {
+      setCreatingForSeniorId(null);
+    }
+  };
 
   // Load registration toggle setting
   useEffect(() => {
@@ -1636,6 +1727,13 @@ export default function GranteeClaimFormsPage() {
 
 
 
+
+            <button
+              onClick={() => { setCreateFormSearch(''); setShowCreateFormModal(true); }}
+              className="inline-flex items-center gap-2 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
+            >
+              <Plus size={15} /> Create New Form
+            </button>
 
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">{filtered.length} Record{filtered.length !== 1 ? 's' : ''}</span>
 
@@ -4408,6 +4506,66 @@ export default function GranteeClaimFormsPage() {
 
 
       {/* Fullscreen Image Viewer */}
+
+      {/* Create Claim Form Modal */}
+      {showCreateFormModal && (
+        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateFormModal(false)}>
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fadeIn" onClick={event => event.stopPropagation()}>
+            <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-bold text-slate-800">Create New Claim Form</h3>
+                <p className="text-xs text-slate-500 mt-1">Search for a senior qualified for honoring.</p>
+              </div>
+              <button onClick={() => setShowCreateFormModal(false)} className="p-2 hover:bg-slate-100 rounded-lg" aria-label="Close">
+                <X size={18} className="text-slate-500" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="relative">
+                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  autoFocus
+                  value={createFormSearch}
+                  onChange={event => setCreateFormSearch(event.target.value)}
+                  placeholder="Search name, OSCA number, or barangay..."
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
+                />
+              </div>
+
+              <div className="max-h-[55vh] overflow-y-auto space-y-2">
+                {filteredEligibleSeniors.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <Users size={28} className="mx-auto text-slate-300 mb-2" />
+                    <p className="text-sm font-semibold text-slate-500">
+                      {eligibleSeniors.length === 0 ? 'No eligible seniors are available for a new form.' : 'No matching eligible seniors found.'}
+                    </p>
+                  </div>
+                ) : filteredEligibleSeniors.map(senior => (
+                  <div key={senior.id} className="flex items-center justify-between gap-4 p-3 border border-slate-200 rounded-xl hover:border-teal-200 transition-colors">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-800 truncate">
+                        {[senior.firstName, senior.middleName, senior.lastName, senior.suffix].filter(Boolean).join(' ')}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {senior.oscaNumber} <span className="mx-1 text-slate-300">•</span> {senior.barangay || 'Barangay not set'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => handleCreateClaimForm(senior)}
+                      disabled={creatingForSeniorId !== null}
+                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 text-teal-700 text-xs font-bold rounded-lg transition-colors"
+                    >
+                      {creatingForSeniorId === senior.id ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
+                      {creatingForSeniorId === senior.id ? 'Creating...' : 'Create Form'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Password Confirmation Modal */}
       {showPasswordModal && (

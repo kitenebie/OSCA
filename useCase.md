@@ -20,7 +20,7 @@
 | **Barangay Encoder** | Primary | Registers senior citizens, data entry, limited module access |
 | **Senior Citizen** | Primary (External) | Accesses public pages — submits claim forms, checks honoring status |
 | **System (Automated)** | Secondary | Background processes — SMS triggers, session management, real-time sync |
-| **Fingerprint Bridge** | Secondary (Hardware) | .NET 8 Windows Service — captures and verifies fingerprint biometrics |
+| **HID Fingerprint Scanner** | Secondary (Hardware) | U.are.U 4500 accessed in-browser through HID JavaScript Web SDK and HID Authentication Device Client |
 
 ---
 
@@ -42,12 +42,12 @@
 
 | UC ID | Use Case | Actors | Description |
 |-------|----------|--------|-------------|
-| UC-2.1 | Register Senior Citizen (11-Step NCSC-SCDF Form) | Barangay Encoder, Super Admin | Complete multi-step registration: Identifying Info → Family → Education → Dependency → Economic → Health → Disaster Risk → Biometrics → Address → Signature → Review |
-| UC-2.2 | Capture Biometrics (Fingerprint & Photo) | Barangay Encoder, Fingerprint Bridge | Capture profile photo and fingerprint template via .NET 8 Bridge REST API |
+| UC-2.1 | Register Senior Citizen (11-Step NCSC-SCDF Form) | Barangay Encoder, Super Admin | Complete multi-step registration: Identifying Info (including address) → Family → Education → Dependency → Economic → Health → Biometrics → Disaster Risk → Assisting Person → Signature → Review |
+| UC-2.2 | Capture Biometrics (Fingerprint & Photo) | Barangay Encoder, HID Fingerprint Scanner | Capture profile photo and scanner-produced PNG fingerprint image; upload the image on record submission |
 | UC-2.3 | View/Search Senior Records | Super Admin, MSWDO Officer, Barangay Encoder | Browse, filter, and search the senior citizen database |
 | UC-2.4 | Update Senior Profile | Super Admin, MSWDO Officer | Edit existing senior information, update contact details |
 | UC-2.5 | Approve/Reject Registration | MSWDO Officer, Super Admin | Review pending registrations and change status to Approved or Rejected |
-| UC-2.6 | Mark Senior as Deceased | MSWDO Officer, Super Admin | Update record status to deceased with `deleted_at` soft-delete |
+| UC-2.6 | Mark Senior as Deceased | MSWDO Officer, Super Admin | Update deceased status with date and cause of death fields |
 | UC-2.7 | Geotag Senior Address | Barangay Encoder, Super Admin | Pin senior's residence location on Leaflet map during registration |
 
 ---
@@ -59,6 +59,7 @@
 | UC-3.1 | Generate NFC ID Card | Super Admin, MSWDO Officer, Barangay Encoder | Create digital OSCA ID (front/back) with photo, QR code, and NFC write simulation |
 | UC-3.2 | Generate NCSC-SCDF PDF Form | Super Admin, MSWDO Officer | Auto-fill official NCSC form with senior's data using pdf-lib (client-side) |
 | UC-3.3 | Generate Centenarian Honoring PDF | Super Admin, MSWDO Officer | Auto-generate Annex A Grantee Claim Form for eligible seniors |
+| UC-3.4 | Generate DOCX Documents | Super Admin, MSWDO Officer | Generate/download OSCA and MSWDO transmittals, PhilHealth transmittal, Certificate of Transfer, DSWD certification, and milestone masterlist |
 
 ---
 
@@ -147,7 +148,7 @@ Pending → Under Review → Verified → Approved → Claimed
 
 | Base Use Case | Included Use Case | Rationale |
 |---------------|-------------------|-----------|
-| UC-2.1 Register Senior | UC-2.2 Capture Biometrics | Registration always requires biometric capture at Step 8 |
+| UC-2.1 Register Senior | UC-2.2 Capture Biometrics | The registration form offers photo and fingerprint-image capture at Step 7; fingerprint capture is not identity verification |
 | UC-4.1 Enable Honoring Registration | UC-4.2 Generate Passwords | Enabling registration always triggers password generation |
 | UC-4.4 Submit Claim Form | UC-10.2 Authenticate | Submitting a claim always requires prior OSCA ID authentication |
 | UC-4.5 Check Honoring Status | UC-10.2 Authenticate | Checking status always requires prior OSCA ID authentication |
@@ -159,7 +160,7 @@ Pending → Under Review → Verified → Approved → Claimed
 | UC-2.5 Approve Registration | UC-5.4 Send SMS Notification | When status changes to Approved/Rejected |
 | UC-4.6 Review/Approve Claim | UC-5.4 Send SMS Notification | When claim status is updated |
 | UC-5.2 Broadcast Bulk SMS | UC-5.3 Manage SMS Templates | When using a pre-built template |
-| UC-2.1 Register Senior | UC-2.7 Geotag Address | When Step 9 (Address Map Pin) is completed |
+| UC-2.1 Register Senior | UC-2.7 Geotag Address | When location data is provided with the identifying-information address |
 
 ### Generalization
 
@@ -168,6 +169,7 @@ Pending → Under Review → Verified → Approved → Claimed
 | Generate Document | UC-3.1 Generate NFC ID Card |
 | Generate Document | UC-3.2 Generate NCSC-SCDF PDF |
 | Generate Document | UC-3.3 Generate Centenarian PDF |
+| Generate Document | UC-3.4 Generate DOCX Documents |
 
 ---
 
@@ -215,5 +217,5 @@ Pending → Under Review → Verified → Approved → Claimed
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1 — updated September 29, 2026*
 *OSCA — Bayan ng Juban, Lalawigan ng Sorsogon*

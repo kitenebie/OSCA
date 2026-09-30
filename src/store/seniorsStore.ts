@@ -29,7 +29,7 @@ interface SeniorsState {
   rejectSenior: (id: string, reason: string, officerName: string) => Promise<void>;
   verifySenior: (id: string, officerName: string) => Promise<void>;
 
-  sendSMS: (recipientName: string, recipientPhone: string, barangay: string, message: string, sentBy: string) => Promise<boolean>;
+  sendSMS: (recipientName: string, recipientPhone: string, barangay: string, message: string, sentBy: string, status?: SMSLog['status']) => Promise<boolean>;
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
   resendSMS: (logId: string) => Promise<void>;
 }
@@ -262,7 +262,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     });
   },
 
-  sendSMS: async (recipientName, recipientPhone, barangay, message, sentBy) => {
+  sendSMS: async (recipientName, recipientPhone, barangay, message, sentBy, status = 'Pending') => {
     set({ isLoading: true });
     try {
       await smsLogsService.create({
@@ -270,7 +270,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         recipientPhone,
         barangay,
         message,
-        status: 'Pending',
+        status,
         timestamp: new Date().toISOString(),
         sentBy,
       });

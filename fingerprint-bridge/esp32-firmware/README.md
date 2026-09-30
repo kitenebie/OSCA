@@ -1,6 +1,8 @@
 # OSCA Fingerprint Scanner — ESP32 + R307/AS608
 
-Wireless fingerprint scanner for the OSCA web app. ESP32 connects to **your existing WiFi** (same network as your laptop/PC) — no network switching needed.
+Wireless fingerprint scanner firmware for the OSCA web app. ESP32 connects to **your existing WiFi** (same network as your laptop/PC) — no network switching needed.
+
+> **Current integration scope:** the registration page's production path uses the DigitalPersona/HID scanner and can store its PNG image. This ESP32 firmware is selectable in scanner settings and supports live preview/capture testing, but the current ESP32 UI path does not pass its BMP preview into the registration record or upload it to Storage.
 
 ## How It Works
 

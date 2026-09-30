@@ -60,6 +60,8 @@ erDiagram
         TEXT contact_number
         TEXT barangay FK
         TEXT address
+        TEXT house_no
+        TEXT street
         DOUBLE lat
         DOUBLE lng
         TEXT profile_photo
@@ -286,6 +288,30 @@ erDiagram
         TIMESTAMPTZ updated_at
     }
 
+    TRANSMITTAL_BARANGAY_SIGNATURES {
+        UUID id PK
+        TEXT document_type
+        TEXT barangay_name
+        INTEGER signature_count
+        INTEGER sort_order
+        TIMESTAMPTZ created_at
+        TIMESTAMPTZ updated_at
+    }
+
+    PHILHEALTH_TRANSMITTAL_SENIORS {
+        UUID id PK
+        TEXT senior_id FK
+        TEXT barangay_filter
+        TIMESTAMPTZ created_at
+    }
+
+    PHILHEALTH_TRANSMITTAL_SETTINGS {
+        UUID id PK
+        TEXT setting_key UK
+        TEXT setting_value
+        TIMESTAMPTZ updated_at
+    }
+
     %% ═══════════════════════════════════════════
     %% RELATIONSHIPS
     %% ═══════════════════════════════════════════
@@ -301,6 +327,7 @@ erDiagram
     USERS }o--|| ROLES : "has role"
 
     SENIORS ||--o{ CENTENARIAN_HONORING : "applies for"
+    SENIORS ||--o{ PHILHEALTH_TRANSMITTAL_SENIORS : "selected for"
 
     ROLES ||--o{ USERS : "assigned to"
 
@@ -342,7 +369,8 @@ The main entity with **80+ fields** covering:
 | Section | Fields |
 |---------|--------|
 | **Personal Info** | name, birthdate, age, sex, civil status, contact, address, coordinates |
-| **Biometrics** | profile_photo, thumbprint_data, signature_data |
+| **Address detail** | `house_no`, `street`, barangay, city/town, province, generated `address` |
+| **Biometrics** | profile_photo, thumbprint_data (fingerprint-image URL), signature_data |
 | **Registration** | osca_number, status, registered_date, registered_by |
 | **Government IDs** | GSIS, SSS, TIN, PhilHealth |
 | **NCSC Identifying** | place_of_birth, ethnic_origin, language_spoken, SC org ID |
@@ -386,7 +414,7 @@ The main entity with **80+ fields** covering:
 |--------|------|-------------|
 | `senior_id` | TEXT (FK → seniors) | Linked senior citizen |
 | `milestone_type` | TEXT | `Octogenarian-80/85`, `Nonagenarian-90/95`, `Centenarian-100` |
-| `cash_gift_amount` | NUMERIC | Award amount per RA 10868 |
+| `cash_gift_amount` | NUMERIC | Award amount for the honoring workflow |
 | `applicant_type` | TEXT | `Self` / `Representative` / `Posthumous` |
 | `status` | TEXT | `Pending` → `Endorsed` → `Approved` → `Claimed` / `Expired` |
 | Requirements | BOOLEAN | Checklist: application form, photo, endorsement, birth cert, ID |
@@ -428,7 +456,7 @@ The main entity with **80+ fields** covering:
 ### 10. `document_signatories` — Document Signatory Registry
 | Column | Type | Description |
 |--------|------|-------------|
-| `document_type` | TEXT | `osca-transmittal`, `mswdo-transmittal`, `certificate-transfer`, `certification`, `masterlist` |
+| `document_type` | TEXT | `osca-transmittal`, `mswdo-transmittal`, `certificate-transfer`, `certification`, `masterlist`, or another configured document type |
 | `role_key` | TEXT | `osca_head`, `mswdo_head`, `mayor`, `recipient`, `admin_assistant` |
 | `full_name` | TEXT | Signatory name |
 | `title` / `designation` | TEXT | Position title and professional designation |
@@ -474,6 +502,21 @@ The main entity with **80+ fields** covering:
 | `key` | TEXT (PK) | Setting identifier (e.g., `municipality_name`, `fingerprint_enabled`) |
 | `value` | TEXT | Setting value |
 | `description` | TEXT | Admin-facing description |
+
+---
+
+### 15. `transmittal_barangay_signatures` — OSCA Transmittal Rows
+| Column | Type | Description |
+|--------|------|-------------|
+| `document_type` | TEXT | Document grouping; defaults to `osca-transmittal` |
+| `barangay_name` | TEXT | Barangay included in the transmittal |
+| `signature_count` | INTEGER | Number of accomplished forms/signatures reported |
+| `sort_order` | INTEGER | Display order in the DOCX document |
+
+---
+
+### 16. `philhealth_transmittal_seniors` and `philhealth_transmittal_settings`
+These tables retain the selected senior records and configurable office address used by the PhilHealth transmittal DOCX workflow. `philhealth_transmittal_seniors.senior_id` references `seniors.id` and is removed automatically when its senior record is removed.
 
 ---
 
@@ -548,9 +591,9 @@ The main entity with **80+ fields** covering:
 | **Maps** | Leaflet with marker clustering |
 | **Biometrics** | Face capture, thumbprint, signature pad, NFC |
 | **SMS** | Integrated SMS gateway |
-| **Reports** | PDF export (NCSC form, Centenarian form, Masterlist) |
-| **Storage** | Supabase Storage (photos, signatures, documents) |
+| **Reports** | NCSC/Centenarian PDFs plus DOCX transmittals, certifications, and masterlist |
+| **Storage** | Supabase Storage (photos, signatures, fingerprint PNG images, documents) |
 
 ---
 
-*Generated from OSCA Juban source code — August 2026*
+*Generated from OSCA Juban source code — updated September 29, 2026*

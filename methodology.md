@@ -43,10 +43,10 @@ The system follows a **client-heavy Single Page Application (SPA)** architecture
 └────────────────────────────────────────────────────────┘
                          │
 ┌────────────────────────┼───────────────────────────────┐
-│          LOCAL HARDWARE BRIDGE (Optional)               │
+│          LOCAL HARDWARE CLIENT (Optional)                │
 │  ┌──────────────────────────────────────────────────┐  │
-│  │  .NET 8 Fingerprint Bridge (Windows Service)     │  │
-│  │  REST API @ http://192.168.8.34:8000             │  │
+│  │ HID Authentication Device Client + U.are.U 4500   │  │
+│  │ reached by the browser HID JavaScript SDK         │  │
 │  └──────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────┘
 ```
@@ -115,7 +115,7 @@ The PostgreSQL database (hosted on Supabase) consists of the following core tabl
 
 | Table | Purpose | Key Fields |
 |-------|---------|-----------|
-| `seniors` | Main senior citizen records | osca_number, personal info, biometrics, status, address, NCSC fields |
+| `seniors` | Main senior citizen records | osca_number, personal info, image-record URLs, status, house/street address, NCSC fields |
 | `users` | System operators/staff | username, role, barangay_assigned, session management |
 | `barangays` | Geographic divisions | name, coordinates, population counts |
 | `benefits` | Pension/benefit programs | title, amount, frequency, distribution |
@@ -128,6 +128,8 @@ The PostgreSQL database (hosted on Supabase) consists of the following core tabl
 | `report_templates` | Report definitions | type, category, parameters |
 | `notifications` | In-app notifications | type, title, content, read status |
 | `document_signatories` | Official signatories | position, name, digital signature |
+| `transmittal_barangay_signatures` | OSCA transmittal rows | barangay, signature count, document type, display order |
+| `philhealth_transmittal_seniors` / `philhealth_transmittal_settings` | PhilHealth transmittal state | selected seniors and configurable office address |
 
 ### 4.2 Data Relationships
 
@@ -143,7 +145,7 @@ seniors   (1) ──────── (N) sms_logs
 ### 4.3 Security Features
 
 - **Row Level Security (RLS)** — Supabase RLS policies restrict data access
-- **SHA-256 Password Hashing** — User passwords stored as secure hashes
+- **Application-managed credential checks** — Staff/password verification and session handling are implemented in the application data layer; production hardening should use server-side authentication and least-privilege policies
 - **Session Token Management** — 60-minute expiry, cryptographic tokens, device tracking
 - **Soft Delete** — Records marked with `deleted_at` rather than permanently removed
 - **Audit Logging** — All critical actions logged with actor, timestamp, and severity
@@ -175,10 +177,10 @@ An 11-step multi-step registration form aligned with the national standard:
 | 4 | Dependency Profile | Living arrangement, household conditions |
 | 5 | Economic Profile | Income sources, properties, monthly income range |
 | 6 | Health Profile | Disabilities, medical/dental/optical/hearing concerns, medications |
-| 7 | Disaster Risk Information | Risk area status, type, severity level |
-| 8 | Biometrics & Photo | Profile photo capture, fingerprint scan |
-| 9 | Address Map Pin | GIS coordinate tagging via Leaflet map |
-| 10 | Digital Signature | Canvas-based signature pad |
+| 7 | Biometrics & Photo | Profile photo and U.are.U 4500 PNG fingerprint-image capture |
+| 8 | Digital Signature | Canvas-based signature pad |
+| 9 | Assisting Person | Assisted-registration details |
+| 10 | Disaster Risk Information | Risk area status, type, severity level |
 | 11 | Review & Submit | Complete information review before submission |
 
 ### 5.3 Centenarian Honoring Program (R.A. 11982)
@@ -233,10 +235,17 @@ Pending → Under Review → Verified → Approved → Claimed
 
 ### 5.7 Reports Module
 
-- Master List generation (filterable by barangay, status, age)
-- Pension distribution reports
-- Census summary reports
-- PDF/screenshot export capability
+- OSCA and MSWDO transmittal DOCX documents
+- PhilHealth transmittal DOCX with persisted selections and office address
+- Certificate of Transfer and DSWD Social Pension Certification DOCX documents
+- Octogenarian/Nonagenarian/Centenarian masterlist DOCX and existing report PDF/screenshot exports
+
+### 5.7.1 Fingerprint Image Capture
+
+- The registration page calls the HID JavaScript Web SDK through the HID Authentication Device Client installed on the scanner PC.
+- It requests a PNG sample, holds it only in the form, then uploads it to Supabase Storage when the senior record is saved.
+- The resulting URL is saved in `seniors.thumbprint_data` and displayed as an image in the senior profile.
+- This is not template enrollment, identity matching, or verification. The public bucket design is a deployment risk that should be replaced by private storage and controlled delivery before production biometric use.
 
 ### 5.8 PDF Form Generation
 
@@ -331,7 +340,7 @@ All sensitive operations are logged:
 | Database & API | Supabase Cloud | `https://xbrvrugudancmchrerqu.supabase.co` |
 | File Storage | Supabase Storage | Buckets: `centenarian-docs`, `system-assets` |
 | CI/CD | GitHub Actions | Auto-deploy on push to main |
-| Fingerprint Bridge | Local Windows Service | `http://192.168.8.34:8000` |
+| HID scanner client | Local scanner PC | HID Authentication Device Client, reached by the browser SDK; no custom bridge endpoint |
 
 ### 8.2 CI/CD Pipeline
 
@@ -474,7 +483,8 @@ Admin                     System                    Senior Citizen
 ### Current Limitations
 
 - SMS gateway is simulated (logs to database) — requires Semaphore/Twilio API key for production
-- Fingerprint biometric requires Windows machine with compatible sensor
+- Fingerprint image capture requires a Windows scanner PC with U.are.U 4500 driver and HID Authentication Device Client
+- Fingerprint matching/verification is not implemented; stored images must not be treated as credentials
 - No offline mode — requires internet connection for all operations
 - Single-LGU deployment (Juban only) — not yet multi-tenant
 
@@ -497,6 +507,6 @@ The methodology emphasizes iterative development with continuous stakeholder fee
 
 ---
 
-*Document Version: 1.0*
+*Document Version: 1.1*
 *System: OSCA Senior Citizen Information System — Bayan ng Juban*
-*Date: August 2026*
+*Date: September 29, 2026*

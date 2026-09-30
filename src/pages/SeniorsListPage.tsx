@@ -459,19 +459,31 @@ export default function SeniorsListPage() {
     if (!statusModal.id || !newStatus) return;
 
     try {
+      const senior = seniors.find((s) => s.id === statusModal.id);
       await updateSenior(statusModal.id, { status: newStatus });
 
-      // Send SMS notification to the senior
-      const senior = seniors.find((s) => s.id === statusModal.id);
-      if (senior && senior.contactNumber) {
-        const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "${newStatus}".`;
-        await sendSMS(
+      if (senior) {
+        const hasContactNumber = Boolean(senior.contactNumber?.trim());
+        const smsMessage = hasContactNumber
+          ? `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "${newStatus}".`
+          : `Status update to "${newStatus}" for ${senior.firstName} ${senior.lastName} was not sent because no contact number is on file.`;
+        const logCreated = await sendSMS(
           `${senior.firstName} ${senior.lastName}`,
-          senior.contactNumber,
+          senior.contactNumber || '',
           senior.barangay,
           smsMessage,
-          currentUser?.fullName || 'OSCA System'
+          currentUser?.fullName || 'OSCA System',
+          hasContactNumber ? 'Pending' : 'Failed'
         );
+
+        if (!logCreated) {
+          showToast(
+            `Status updated, but the SMS log for ${statusModal.name} could not be saved.`,
+            "error",
+          );
+          setStatusModal({ open: false, id: "", name: "", currentStatus: "" });
+          return;
+        }
       }
 
       showToast(

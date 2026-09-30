@@ -1,6 +1,6 @@
 # OSCA — Bayan ng Juban Senior Citizen Information System
 
-Ang **OSCA (Office for Senior Citizens Affairs) Information System** ay isang komprehensibo, moderno, at ligtas na web application para sa pamamahala ng profiling, e-Census, biometrics, NFC ID generation, PDF form generation, pamamahagi ng benepisyo, at ugnayan para sa mga nakatatandang mamamayan ng **Bayan ng Juban, Lalawigan ng Sorsogon**.
+Ang **OSCA (Office for Senior Citizens Affairs) Information System** ay isang web application para sa profiling, e-Census, fingerprint-image capture, NFC ID generation, PDF/DOCX document generation, pamamahala ng benepisyo, at ugnayan para sa mga nakatatandang mamamayan ng **Bayan ng Juban, Lalawigan ng Sorsogon**.
 
 Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 (RA 10173)**.
 
@@ -11,11 +11,11 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 | # | Document | Summary |
 |---|----------|---------|
 | 1 | [Activity Diagrams](./Activity.md) | Naglalaman ng **11 Activity Diagrams** na nagpapakita ng step-by-step na daloy ng bawat major system process — mula sa User Authentication, Senior Registration (11-step NCSC-SCDF), Fingerprint Biometrics, NFC ID Generation, PDF Form Generation, SMS Notification, Dashboard & Analytics, GIS Mapping, Reports Module, User & Role Management, hanggang sa System Overview. Kasama ang legend at summary table ng lahat ng diagrams. |
-| 2 | [Entity Relationship Diagram (ERD)](./Entity.md) | Naglalaman ng **kompletong database schema** ng system gamit ang Mermaid ERD notation. Ipinapakita ang lahat ng 14 na tables (barangays, users, seniors, roles, benefits, centenarian_honoring, sms_logs, audit_logs, report_templates, document_signatories, user_sessions, user_settings, id_card_config, system_settings), ang kanilang columns at data types, at ang relationships/foreign keys sa pagitan ng mga entities. |
+| 2 | [Entity Relationship Diagram (ERD)](./Entity.md) | Naglalaman ng database schema, kabilang ang senior records, centenarian honoring, session/configuration, at transmittal/PhilHealth support tables. |
 | 3 | [Methodology](./methodology.md) | Detalyadong dokumentasyon ng **development methodology** — kasama ang System Architecture (SPA + BaaS pattern), Technology Stack, Agile Iterative SDLC, Database Design, Security Implementation (authentication flow, RLS, audit trail), lahat ng System Modules (Registration, Centenarian Honoring, SMS, GIS, Dashboard, Reports, PDF, NFC, Configuration), State Management Strategy, Deployment & Infrastructure, UI Design Principles, Testing Strategy, at Compliance Standards. |
-| 4 | [Use Case Diagram](./useCase.md) | Naglalaman ng **kompletong Use Case specification** — 6 Actors (Super Admin, MSWDO Officer, Barangay Encoder, Senior Citizen, System, Fingerprint Bridge), 10 Use Case modules na may 30+ individual use cases (UC-1 hanggang UC-10), «include»/«extend» relationships, Actor–Use Case Access Matrix, at Compliance Mapping sa NCSC-SCDF, RA 10173, RA 11982, at RA 9994. |
-| 5 | [System Workflow](./workflow.md) | Komprehensibong **technical workflow documentation** — detalyadong architecture diagram, Authentication & Session Management flow, 11-step Registration Workflow (kasama ang component filenames), Senior Profiling & Management, Fingerprint Biometrics Bridge REST API, NFC ID Card Generation, PDF Form Generation (pdf-lib), Dashboard & Analytics, GIS Mapping, SMS Notification Center, Reports Module, RBAC Implementation, User & Configuration Management, Database Schema & Migrations (20 migration files), at State Management (Zustand stores). |
-| 6 | [Sequence Diagrams](./docs/sequenceDiagram.md) | Naglalaman ng **26 na SVG Sequence Diagrams** na nagpapakita ng interaction flow sa pagitan ng components — kasama ang User Authentication, Session Validation & Auto-Refresh, Session Force-Termination, Senior Registration (11-step), Fingerprint Capture & Verification, Photo Capture (WebRTC), Digital Signature, Profile View & Edit, NFC ID Generation, NCSC PDF & Centenarian Form, Dashboard Data Loading, GIS Mapping, SMS Bulk Send, Reports Export, User Management, RBAC, Configuration & Signatories, Theme Persistence, Audit Logging, Search & Filter, Logout, App Cold Start, System Architecture Overview, at Data Flow Diagram. |
+| 4 | [Use Case Diagram](./useCase.md) | Use-case specification para sa staff, senior citizens, system services, HID scanner, registration, honoring, at document generation. |
+| 5 | [System Workflow](./workflow.md) | Technical workflow ng kasalukuyang app: 11-step registration, HID/ESP32 scanner modes, storage, PDF/DOCX documents, reports, RBAC, at Supabase services. |
+| 6 | [Sequence Diagrams](./docs/sequenceDiagram.md) | Index ng 26 SVG diagrams. May legacy diagrams dito; basahin ang note sa file bago ituring na current implementation detail. |
 
 ---
 
@@ -69,7 +69,9 @@ npm run build
 
 ### U.are.U 4500 Scanner
 
-I-install ang [HID Authentication Device Client](https://digitalpersona.hidglobal.com/lite-client/) at U.are.U 4500 driver sa Windows computer na may scanner. Buksan ang web app sa browser ng computer na iyon, piliin ang DigitalPersona sa Scanner Settings, at gamitin ang **Start Scan** para sa connection/capture test. Ang `@digitalpersona/fingerprint` at `@digitalpersona/websdk` JavaScript packages ang kausap ng HID local client; hindi kailangan ang custom .NET bridge, executable, o manual localhost endpoint. Hindi pa ito fingerprint enrollment o verification, at walang image/template na sine-save o ina-upload.
+I-install ang [HID Authentication Device Client](https://digitalpersona.hidglobal.com/lite-client/) at U.are.U 4500 driver sa Windows computer na may scanner. Buksan ang web app sa browser ng computer na iyon at gamitin ang **Start Scan**. Ang `@digitalpersona/fingerprint` at `@digitalpersona/websdk` JavaScript packages ang kausap ng HID local client; hindi kailangan ang custom .NET bridge, executable, o manual localhost endpoint.
+
+Sa **registration**, ang scan ay hinihingi bilang PNG image at ina-upload sa Supabase Storage kapag naisumite ang senior record. Ang URL nito ang inilalagay sa `seniors.thumbprint_data` at ipinapakita sa profile. Hindi ito fingerprint template, at walang enrollment, matching, o verification na ipinatutupad. Dahil public ang kasalukuyang senior storage buckets, sensitibong personal data ang fingerprint image at dapat lamang gamitin nang may malinaw na awtorisasyon at naaangkop na access controls.
 
 ---
 
@@ -90,6 +92,7 @@ I-install ang [HID Authentication Device Client](https://digitalpersona.hidgloba
 - **RA 11982 (Centenarian Honoring)** — Digitalized Annex A claim form workflow
 - Supabase Row-Level Security (RLS) para sa database access control
 - Role-based access sa lahat ng endpoints at pages
+- Ang fingerprint image ay isang sensitibong image record; ang kasalukuyang public-URL storage design ay kailangang higpitan bago gamitin sa production na may tunay na biometric credentialing.
 
 ---
 
@@ -174,4 +177,5 @@ Ang mga sumusunod na screenshots ay nagpapakita ng mga pangunahing interface ng 
 
 ---
 
+*Huling in-update: September 29, 2026*
 *Bayan ng Juban, Lalawigan ng Sorsogon — Office for Senior Citizens Affairs*

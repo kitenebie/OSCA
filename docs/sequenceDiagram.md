@@ -31,11 +31,15 @@
 
 ![Fingerprint Capture](diagrams/05_fingerprint_capture.svg)
 
+> **Current implementation note:** registration capture now uses the HID browser SDK and stores a scanner-produced PNG image only after form submission. It does not use the legacy .NET bridge.
+
 ---
 
-## 6. Fingerprint Verification
+## 6. Fingerprint Verification (Legacy Diagram)
 
 ![Fingerprint Verification](diagrams/06_fingerprint_verify.svg)
+
+> The application does not currently enroll templates or perform fingerprint matching/verification. This SVG is kept as historical design material, not a supported workflow.
 
 ---
 
@@ -159,6 +163,6 @@
 
 ---
 
-*Document generated: August 27, 2026*  
+*Documentation index updated: September 29, 2026*
 *OSCA — Bayan ng Juban, Lalawigan ng Sorsogon*  
 *Office for Senior Citizens Affairs Information System*

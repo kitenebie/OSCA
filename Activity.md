@@ -7,7 +7,7 @@
 
 ![Activity Diagram 1: User Authentication](assets/activity-diagrams/ad_01_authentication.svg)
 
-**Description:** The user opens the OSCA web application and is presented with the login page. After entering credentials (email & password), the system validates them via Supabase Auth. If valid, the user's role is fetched (Encoder, Supervisor, or Super Admin) and they are redirected to the appropriate role-based dashboard. Invalid credentials display an error message.
+**Description:** The user opens the OSCA web application and enters staff credentials. The application validates its application-managed session data, loads the user's role permissions, and routes the user to the allowed dashboard pages. Invalid credentials display an error message.
 
 ---
 
@@ -23,7 +23,7 @@
 
 ![Activity Diagram 3: Fingerprint Biometrics](assets/activity-diagrams/ad_03_biometrics.svg)
 
-**Description:** The system communicates with the .NET 8 Fingerprint Bridge Service via REST API. For **capture**, the sensor reads the fingerprint and stores the template as Base64 in the database. For **verification**, the stored template is compared against a live scan. The bridge must be online (checked via `GET /api/status`) before any operation.
+**Description:** The current registration flow uses the HID JavaScript Web SDK and HID Authentication Device Client for a U.are.U 4500 scan. A PNG image is held in the form, then uploaded to Supabase Storage on successful submission; its public URL is stored in `seniors.thumbprint_data`. This is an image record only—template enrollment, matching, and verification are not implemented. The diagram's old .NET bridge/verification labels are retained only as historical artwork.
 
 ---
 
@@ -71,7 +71,7 @@
 
 ![Activity Diagram 9: Reports Generation](assets/activity-diagrams/ad_09_reports.svg)
 
-**Description:** The reports module supports multiple report types (Master List, Demographic Summary, Barangay Report, Benefit Report). Users apply filters (date range, barangay, age group, status), and data is queried from Supabase. Reports are rendered as tables and can be exported as PDF (via jsPDF + html2canvas) or screenshot (via modern-screenshot).
+**Description:** The reports module produces document previews and downloadable DOCX files for OSCA/MSWDO/PhilHealth transmittals, Certificate of Transfer, DSWD Social Pension Certification, and the Octogenarian/Nonagenarian/Centenarian masterlist. The existing PDF/screenshot export utilities remain available for report-style outputs.
 
 ---
 
@@ -111,13 +111,13 @@
 |---|-----------------|-------------------|----------------|
 | 1 | User Authentication | All Users | Login, credential validation, RBAC routing |
 | 2 | Senior Registration | Encoder | 11-step NCSC-SCDF form, data persistence |
-| 3 | Fingerprint Biometrics | Encoder | Capture/verify via .NET Bridge REST API |
+| 3 | Fingerprint Biometrics | Encoder | HID PNG capture and storage on record submission; no matching/verification |
 | 4 | NFC ID Card Generation | Encoder, Supervisor | Card rendering, NFC encoding |
 | 5 | PDF Form Generation | Encoder, Supervisor | NCSC/Centenarian form auto-fill |
 | 6 | SMS Notification | Supervisor, Admin | Individual/bulk SMS, templates |
 | 7 | Dashboard & Analytics | All Users | Charts, KPIs, data filtering |
 | 8 | GIS Mapping | All Users | Leaflet map, markers, clusters |
-| 9 | Reports Module | Supervisor, Admin | Query, render, export reports |
+| 9 | Reports Module | Supervisor, Admin | Generate and download PDF/screenshot or DOCX documents |
 | 10 | User & Role Management | Super Admin | CRUD users, assign roles, signatories |
 | 11 | System Overview | All Users | End-to-end system flow |
 
@@ -126,3 +126,5 @@
 *OSCA — Office for Senior Citizens Affairs*  
 *Bayan ng Juban, Lalawigan ng Sorsogon*  
 *Compliant with NCSC-SCDF v4.0b3 & RA 10173 (Data Privacy Act of 2012)*
+
+*Documentation updated: September 29, 2026*

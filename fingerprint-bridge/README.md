@@ -1,8 +1,8 @@
 # U.are.U 4500 local bridge — capture test
 
-> **Legacy / inactive:** The React app now uses the official HID JavaScript Web SDK and HID Authentication Device Client. This custom .NET bridge is no longer called by the app and is not required for the U.are.U 4500 capture test. See the root README for current setup.
+> **Legacy / inactive:** The React app now uses the official HID JavaScript Web SDK and HID Authentication Device Client. This custom .NET bridge is no longer called by the app and is not required for the U.are.U 4500 capture test or registration fingerprint-image capture. See the root README for current setup.
 
-This .NET 8 bridge runs on the Windows computer to which the DigitalPersona / HID U.are.U 4500 is connected. The React app previously called its loopback API. It is a **detection and capture-quality test only**. It does not enroll or verify people, and it never returns or stores fingerprint images or templates.
+This .NET 8 bridge runs on the Windows computer to which the DigitalPersona / HID U.are.U 4500 is connected. The React app previously called its loopback API. It is a **detection and capture-quality test only**. It does not enroll or verify people, and it never returns or stores fingerprint images or templates. The current web application can instead capture a PNG through the HID browser SDK and upload it during senior registration; that behavior is outside this bridge.
 
 ## Setup
 
