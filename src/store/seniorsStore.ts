@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { SeniorCitizen, SMSLog, Benefit } from '../types';
+import { SeniorCitizen, SMSLog, Benefit, User } from '../types';
 import { seniorsService, smsLogsService, benefitsService, auditLogsService } from '../services/supabaseService';
 import { deleteStorageFile, uploadFingerprintImage, uploadProfilePhoto, uploadSignature } from '../services/storageService';
+import { getBarangayScope } from '../utils/dataAccess';
 
 interface SeniorsState {
   seniors: SeniorCitizen[];
@@ -13,9 +14,10 @@ interface SeniorsState {
   selectedPension: string;
   isLoading: boolean;
   isInitialized: boolean;
+  accessScopeKey: string | null;
 
   // Init & realtime
-  initialize: () => Promise<void>;
+  initialize: (user: User) => Promise<void>;
 
   setSearchQuery: (query: string) => void;
   setSelectedBarangay: (brgy: string) => void;
@@ -44,28 +46,32 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
   selectedPension: 'All',
   isLoading: false,
   isInitialized: false,
+  accessScopeKey: null,
 
-  initialize: async () => {
-    if (get().isInitialized) return;
+  initialize: async (user) => {
+    const barangayScope = getBarangayScope(user);
+    const accessScopeKey = `${user.id}:${barangayScope ?? 'none'}:${barangayScope === undefined ? 'all' : 'scoped'}`;
+    if (get().isInitialized && get().accessScopeKey === accessScopeKey) return;
+
     set({ isLoading: true });
 
     try {
       const [seniors, benefits, smsLogs] = await Promise.all([
-        seniorsService.getAll(),
+        seniorsService.getAll(barangayScope),
         benefitsService.getAll(),
-        smsLogsService.getAll(),
+        smsLogsService.getAll(barangayScope),
       ]);
 
-      set({ seniors, benefits, smsLogs, isInitialized: true, isLoading: false });
+      set({ seniors, benefits, smsLogs, isInitialized: true, accessScopeKey, isLoading: false });
 
       // Subscribe to realtime changes
       seniorsService.subscribe((updatedSeniors) => {
         set({ seniors: updatedSeniors });
-      });
+      }, barangayScope);
 
       smsLogsService.subscribe((updatedLogs) => {
         set({ smsLogs: updatedLogs });
-      });
+      }, barangayScope);
 
       benefitsService.subscribe((updatedBenefits) => {
         set({ benefits: updatedBenefits });
@@ -137,8 +143,11 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     let uploadedFingerprintUrl: string | null = null;
     let updateSaved = false;
     try {
+      const target = get().seniors.find((senior) => senior.id === id);
+      if (!target) throw new Error('This senior record is outside your assigned barangay.');
+
       let processedFields = { ...updatedFields };
-      const previousFingerprintUrl = get().seniors.find(senior => senior.id === id)?.thumbprintData;
+      const previousFingerprintUrl = target.thumbprintData;
 
       // Upload new profile photo if it's base64
       if (processedFields.profilePhoto && processedFields.profilePhoto.startsWith('data:')) {
@@ -164,7 +173,6 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         void deleteStorageFile(previousFingerprintUrl).catch(() => undefined);
       }
 
-      const target = get().seniors.find(s => s.id === id);
       const name = target ? `${target.firstName} ${target.lastName}` : id;
 
       auditLogsService.log({
@@ -196,6 +204,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     set({ isLoading: true });
     try {
       const target = get().seniors.find(s => s.id === id);
+      if (!target) throw new Error('This senior record is outside your assigned barangay.');
       const name = target ? `${target.firstName} ${target.lastName}` : id;
 
       await seniorsService.delete(id);

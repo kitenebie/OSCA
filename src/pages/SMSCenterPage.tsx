@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import SMSComposer from '../components/sms/SMSComposer';
 import { useSeniorsStore } from '../store/seniorsStore';
-import { smsLogsService } from '../services/supabaseService';
 import { Mail, Send, CheckCircle2, ShieldCheck, HelpCircle, Terminal, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Status sort priority: Failed → Pending → Sent
@@ -37,21 +36,6 @@ function formatTimestamp(timestamp: string): string {
 export default function SMSCenterPage() {
   const { smsLogs, resendSMS } = useSeniorsStore();
   const [currentPage, setCurrentPage] = useState(1);
-
-  // Realtime: fetch fresh data on mount and subscribe to changes
-  useEffect(() => {
-    // Fetch latest on mount
-    smsLogsService.getAll().then((logs) => {
-      useSeniorsStore.setState({ smsLogs: logs });
-    });
-
-    // Subscribe to realtime updates
-    const unsubscribe = smsLogsService.subscribe((updatedLogs) => {
-      useSeniorsStore.setState({ smsLogs: updatedLogs });
-    });
-
-    return () => { unsubscribe(); };
-  }, []);
 
   const totalLogs = smsLogs.length;
 

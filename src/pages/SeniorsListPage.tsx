@@ -44,6 +44,7 @@ import CentenarianFormPDF from "../components/Centenarian_form_PDF";
 import { fillCentenarianForm } from "../utils/centenarianFormFiller";
 
 import { centenarianService } from "../services/supabaseService";
+import { getBarangayScope } from "../utils/dataAccess";
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
@@ -117,13 +118,12 @@ export default function SeniorsListPage() {
 
   const canRegister = hasPermission("canCreateSenior");
 
-  const isEncoder = currentUser?.role === "Barangay Encoder";
+  const barangayScope = getBarangayScope(currentUser);
+  const isBarangayScoped = barangayScope !== undefined;
+  const defaultBarangay = barangayScope || "";
 
-  const defaultBarangay = isEncoder ? currentUser.barangayAssigned : "All";
-
-  // Enforce barangay encoder restriction at search level
-
-  const activeBarangayFilter = isEncoder ? defaultBarangay : filterBarangay;
+  // Every non-super-admin account is restricted to its assigned barangay.
+  const activeBarangayFilter = isBarangayScoped ? defaultBarangay : filterBarangay;
 
   const handleOpenNcscPdf = async (e: React.MouseEvent, seniorId: string) => {
     e.stopPropagation();
@@ -565,8 +565,8 @@ export default function SeniorsListPage() {
 
           <select
             id="barangay"
-            disabled={isEncoder}
-            value={isEncoder ? currentUser.barangayAssigned : filterBarangay}
+            disabled={isBarangayScoped}
+            value={isBarangayScoped ? defaultBarangay : filterBarangay}
             onChange={(e) => setFilterBarangay(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >

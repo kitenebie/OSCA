@@ -6,11 +6,13 @@ import StatCard from '../components/dashboard/StatCard';
 import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
 import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucide-react';
+import { getBarangayScope } from '../utils/dataAccess';
 
 export default function DashboardPage() {
   const { seniors, setSelectedStatus, setSelectedPension } = useSeniorsStore();
   const { currentUser } = useAuthStore();
   const { setCurrentPage } = useUIStore();
+  const barangayScope = getBarangayScope(currentUser);
 
   const totalSeniors = seniors.length;
   const pensionSeniors = seniors.filter((s) => s.pensionBeneficiary).length;
@@ -144,13 +146,13 @@ export default function DashboardPage() {
       </div>
 
       {/* Localized Scope Notification Banner */}
-      {currentUser?.role === 'Barangay Encoder' && (
+      {barangayScope !== undefined && (
         <div className="flex items-start gap-3 p-4 bg-teal-500/10 border border-teal-500/20 text-teal-800 rounded-2xl">
           <ShieldCheck className="text-teal-600 shrink-0 mt-0.5" size={18} />
           <div>
             <h5 className="font-bold text-xs uppercase tracking-wide">Localized Scope Protection Active</h5>
             <p className="text-[10px] text-teal-700 leading-normal mt-0.5">
-              Your view is filtered to <strong>Brgy. {currentUser.barangayAssigned}</strong>. All new registrations will be automatically linked to your assigned barangay. Your account is limited to registering and editing your own barangay records in accordance with RBAC rules.
+              {barangayScope ? <>Your view is filtered to <strong>Brgy. {barangayScope}</strong>. All new registrations will be automatically linked to your assigned barangay.</> : <>Your account has no assigned barangay, so no senior records are available. Contact a Super Admin to assign one.</>}
             </p>
           </div>
         </div>

@@ -4544,7 +4544,7 @@ export default function ConfigurationPage() {
 
             <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-relaxed">
 
-              Edit the text labels and content that appear on ID Card Variant 1 and Variant 2. Changes will reflect on all newly generated IDs.
+              Edit the text labels and content that appear on the ID card. Changes will reflect on all newly generated IDs.
 
             </p>
 
@@ -4556,9 +4556,11 @@ export default function ConfigurationPage() {
 
             ) : (
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
 
-                {/* Variant 1 */}
+                {/* Variant 1 is retired; retain its saved records without exposing them in the UI. */}
+
+                {idConfigVariant1.length < 0 && (
 
                 <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
 
@@ -4784,7 +4786,9 @@ export default function ConfigurationPage() {
 
 
 
-                {/* Variant 2 */}
+                )}
+
+                {/* Active ID layout */}
 
                 <div className="bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 space-y-4">
 
@@ -4800,11 +4804,11 @@ export default function ConfigurationPage() {
 
                       <h6 className="font-extrabold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
 
-                        Variant 2
+                        ID Card Layout
 
                       </h6>
 
-                      <p className="text-[10px] text-slate-400">Modern OSCA ID Layout</p>
+                      <p className="text-[10px] text-slate-400">Official Juban OSCA ID Layout</p>
 
                     </div>
 

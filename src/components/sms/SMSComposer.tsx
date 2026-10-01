@@ -4,6 +4,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService } from '../../services/supabaseService';
 import { useBarangays } from '../../hooks/useBarangays';
+import { getBarangayScope } from '../../utils/dataAccess';
 import { Send, FileText, Users, MapPin, Sparkles, MessageSquare, Search, ChevronDown, X } from 'lucide-react';
 
 /* ─── Searchable Select Component ─── */
@@ -151,11 +152,12 @@ export default function SMSComposer() {
   const { barangays: barangaysData } = useBarangays();
   const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
   const { currentUser } = useAuthStore();
+  const barangayScope = getBarangayScope(currentUser);
   const showToast = useUIStore((state) => state.showToast);
 
   const [recipientType, setRecipientType] = useState<'individual' | 'barangay' | 'all'>('individual');
   const [selectedSeniorId, setSelectedSeniorId] = useState('');
-  const [selectedBarangay, setSelectedBarangay] = useState('All');
+  const [selectedBarangay, setSelectedBarangay] = useState(() => barangayScope ?? 'All');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
@@ -269,6 +271,9 @@ export default function SMSComposer() {
 
   // Filter seniors who have contact numbers
   const seniorsWithContact = seniors.filter((s) => s.contactNumber);
+  const accessibleBarangays = barangayScope
+    ? barangaysData.filter((barangay) => barangay.name === barangayScope)
+    : barangaysData;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -346,11 +351,11 @@ export default function SMSComposer() {
                 id="barangay-select"
                 value={selectedBarangay}
                 onChange={(val) => setSelectedBarangay(val)}
-                placeholder="All Barangays (LGU Juban)"
+                placeholder={barangayScope ? `Brgy. ${barangayScope}` : 'All Barangays (LGU Juban)'}
                 required
                 options={[
-                  { value: 'All', label: 'All Barangays (LGU Juban)' },
-                  ...barangaysData.map((b) => ({
+                  ...(barangayScope ? [] : [{ value: 'All', label: 'All Barangays (LGU Juban)' }]),
+                  ...accessibleBarangays.map((b) => ({
                     value: b.name,
                     label: `${b.name} (Est. ${b.seniorCount} seniors)`
                   }))

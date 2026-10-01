@@ -30,15 +30,19 @@ export default function App() {
   const initSeniors = useSeniorsStore((s) => s.initialize);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  // Initialize Supabase data on mount
+  // Restore the application session before loading barangay-scoped data.
   useEffect(() => {
     const init = async () => {
       await initAuth();
       setIsCheckingSession(false);
     };
     init();
-    initSeniors();
-  }, []);
+  }, [initAuth]);
+
+  useEffect(() => {
+    if (!currentUser) return;
+    initSeniors(currentUser);
+  }, [currentUser?.id, currentUser?.role, currentUser?.barangayAssigned, initSeniors]);
 
   // Load and apply user theme from Supabase after login
   useEffect(() => {

@@ -312,22 +312,34 @@ function mapBenefitFromDB(row: any): Benefit {
 // SENIORS SERVICE
 // ============================================================
 
+let seniorsRealtimeChannel: any = null;
+
 export const seniorsService = {
-  async getAll(): Promise<SeniorCitizen[]> {
-    const { data, error } = await supabase
+  async getAll(barangayScope?: string | null): Promise<SeniorCitizen[]> {
+    // A non-super-admin without an assigned barangay has no senior-record scope.
+    if (barangayScope === null) return [];
+
+    let query = supabase
       .from('seniors')
       .select('*')
       .order('created_at', { ascending: false });
+    if (barangayScope) query = query.eq('barangay', barangayScope);
+
+    const { data, error } = await query;
     if (error) throw error;
     return (data || []).map(mapSeniorFromDB);
   },
 
-  async getById(id: string): Promise<SeniorCitizen | null> {
-    const { data, error } = await supabase
+  async getById(id: string, barangayScope?: string | null): Promise<SeniorCitizen | null> {
+    if (barangayScope === null) return null;
+
+    let query = supabase
       .from('seniors')
       .select('*')
-      .eq('id', id)
-      .single();
+      .eq('id', id);
+    if (barangayScope) query = query.eq('barangay', barangayScope);
+
+    const { data, error } = await query.single();
     if (error) return null;
     return mapSeniorFromDB(data);
   },
@@ -371,21 +383,33 @@ export const seniorsService = {
   },
 
   // Realtime subscription
-  subscribe(callback: (seniors: SeniorCitizen[]) => void) {
-    // Remove existing channel if any (prevents double-subscribe in StrictMode)
-    supabase.removeChannel(supabase.channel('seniors-realtime'));
+  subscribe(callback: (seniors: SeniorCitizen[]) => void, barangayScope?: string | null) {
+    if (barangayScope === null) return () => undefined;
+
+    // Keep one scoped subscription so an older session cannot repopulate the
+    // store after the user changes.
+    if (seniorsRealtimeChannel) void supabase.removeChannel(seniorsRealtimeChannel);
     
     const channel = supabase
       .channel('seniors-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'seniors' }, async () => {
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'seniors',
+        ...(barangayScope ? { filter: `barangay=eq.${barangayScope}` } : {}),
+      }, async () => {
         // Refetch all on any change
-        const seniors = await seniorsService.getAll();
+        const seniors = await seniorsService.getAll(barangayScope);
         callback(seniors);
       });
     channel.subscribe();
+    seniorsRealtimeChannel = channel;
 
     return () => {
-      supabase.removeChannel(channel);
+      if (seniorsRealtimeChannel === channel) {
+        seniorsRealtimeChannel = null;
+        void supabase.removeChannel(channel);
+      }
     };
   },
 };
@@ -532,12 +556,19 @@ export const benefitsService = {
 // SMS LOGS SERVICE
 // ============================================================
 
+let smsLogsRealtimeChannel: any = null;
+
 export const smsLogsService = {
-  async getAll(): Promise<SMSLog[]> {
-    const { data, error } = await supabase
+  async getAll(barangayScope?: string | null): Promise<SMSLog[]> {
+    if (barangayScope === null) return [];
+
+    let query = supabase
       .from('sms_logs')
       .select('*')
       .order('timestamp', { ascending: false });
+    if (barangayScope) query = query.eq('barangay', barangayScope);
+
+    const { data, error } = await query;
     if (error) throw error;
     return (data || []).map(mapSmsLogFromDB);
   },
@@ -587,17 +618,30 @@ export const smsLogsService = {
     if (error) throw error;
   },
 
-  subscribe(callback: (logs: SMSLog[]) => void) {
-    supabase.removeChannel(supabase.channel('sms-logs-realtime'));
+  subscribe(callback: (logs: SMSLog[]) => void, barangayScope?: string | null) {
+    if (barangayScope === null) return () => undefined;
+
+    if (smsLogsRealtimeChannel) void supabase.removeChannel(smsLogsRealtimeChannel);
     
     const channel = supabase
       .channel('sms-logs-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sms_logs' }, async () => {
-        const logs = await smsLogsService.getAll();
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'sms_logs',
+        ...(barangayScope ? { filter: `barangay=eq.${barangayScope}` } : {}),
+      }, async () => {
+        const logs = await smsLogsService.getAll(barangayScope);
         callback(logs);
       });
     channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
+    smsLogsRealtimeChannel = channel;
+    return () => {
+      if (smsLogsRealtimeChannel === channel) {
+        smsLogsRealtimeChannel = null;
+        void supabase.removeChannel(channel);
+      }
+    };
   },
 };
 

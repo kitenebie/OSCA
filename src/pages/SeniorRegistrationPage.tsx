@@ -16,6 +16,7 @@ import { useUIStore } from '../store/uiStore';
 
 
 import { useAuthStore } from '../store/authStore';
+import { getBarangayScope } from '../utils/dataAccess';
 
 
 
@@ -568,6 +569,10 @@ export default function SeniorRegistrationPage() {
 
 
   const { currentUser } = useAuthStore();
+  const barangayScope = getBarangayScope(currentUser);
+  const availableBarangays = barangayScope
+    ? barangaysData.filter((barangay) => barangay.name === barangayScope)
+    : barangaysData;
 
 
 
@@ -880,7 +885,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-    barangay: editingSenior?.barangay || (currentUser?.role === 'Barangay Encoder' ? currentUser.barangayAssigned : '') || '',
+    barangay: editingSenior?.barangay || getBarangayScope(currentUser) || '',
 
 
 
@@ -1233,6 +1238,8 @@ export default function SeniorRegistrationPage() {
 
 
   const handleBarangayChange = (brgyName: string) => {
+
+    if (barangayScope && brgyName !== barangayScope) return;
 
 
 
@@ -1600,6 +1607,11 @@ export default function SeniorRegistrationPage() {
 
     e.preventDefault();
 
+    if (barangayScope === null) {
+      showToast('Your account has no assigned barangay. Contact a Super Admin before registering a senior.', 'error');
+      return;
+    }
+
 
 
     if (!validateStep(11)) return;
@@ -1658,6 +1670,7 @@ export default function SeniorRegistrationPage() {
 
 
 
+    const recordBarangay = barangayScope ?? form.barangay;
     const mappedSenior = {
 
 
@@ -1694,11 +1707,11 @@ export default function SeniorRegistrationPage() {
 
 
 
-      barangay: form.barangay,
+      barangay: recordBarangay,
 
 
 
-      address: [form.houseNo, form.street, form.barangay, form.cityTown, form.province].filter(Boolean).join(', '),
+      address: [form.houseNo, form.street, recordBarangay, form.cityTown, form.province].filter(Boolean).join(', '),
 
       houseNo: form.houseNo || '',
 
@@ -2191,7 +2204,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-        details: `New Senior Citizen registered: ${form.firstName} ${form.lastName} — Barangay ${form.barangay}`,
+        details: `New Senior Citizen registered: ${form.firstName} ${form.lastName} — Barangay ${recordBarangay}`,
 
 
 
@@ -2203,7 +2216,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-        barangay: form.barangay,
+        barangay: recordBarangay,
 
 
 
@@ -2748,7 +2761,7 @@ export default function SeniorRegistrationPage() {
 
 
 
-          {currentStep === 1 && <IdentifyingInformation form={form} setForm={setForm} barangaysData={barangaysData} currentUser={currentUser} handleBarangayChange={handleBarangayChange} markTouched={markTouched} inputErr={inputErr} />}
+          {currentStep === 1 && <IdentifyingInformation form={form} setForm={setForm} barangaysData={availableBarangays} currentUser={currentUser} handleBarangayChange={handleBarangayChange} markTouched={markTouched} inputErr={inputErr} />}
 
 
 

@@ -255,11 +255,7 @@ export default function SeniorProfilePage() {
 
 
 
-  const [selectedVariant, setSelectedVariant] = useState<
-
-    "variant1" | "variant2"
-
-  >("variant1");
+  const selectedVariant = "variant2" as const;
 
 
 
@@ -1748,7 +1744,6 @@ export default function SeniorProfilePage() {
 
             selectedVariant={selectedVariant}
 
-            onVariantChange={setSelectedVariant}
 
           />
 

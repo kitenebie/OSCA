@@ -5,7 +5,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService, signatoriesService } from '../../services/supabaseService';
 import { useSettingsStore } from '../../store/settingsStore';
-import { FileDown, ShieldCheck, Layers, Sparkles, CreditCard } from 'lucide-react';
+import { FileDown, ShieldCheck } from 'lucide-react';
 import { renderBarcodeBits } from '../../utils/idGenerator';
 const phLogo = '/ph_logo.png';
 const fingerprintImg = '/fingerprint.png';
@@ -20,12 +20,8 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
   const { showToast } = useUIStore();
   const { currentUser } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
-  const [internalVariant, setInternalVariant] = useState<'variant1' | 'variant2'>('variant1');
+  const [internalVariant] = useState<'variant1' | 'variant2'>('variant2');
   const selectedVariant = propVariant ?? internalVariant;
-  const setSelectedVariant = (v: 'variant1' | 'variant2') => {
-    setInternalVariant(v);
-    onVariantChange?.(v);
-  };
 
   // Fetch signatories from database
   const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });
@@ -133,45 +129,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   ? 'Not Approved (Download Disabled)'
                   : 'I-download (CR80 PDF)'}
             </span>
-          </button>
-        </div>
-      </div>
-
-      {/* ID Card Variation Selection Tabs */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-100/80 p-2.5 rounded-xl border border-slate-200/60">
-        <div className="flex items-center gap-2">
-          <Layers size={16} className="text-teal-600 shrink-0" />
-          <div>
-            <h5 className="font-bold text-xs text-slate-800">Select ID Design Variant</h5>
-            <p className="text-[10px] text-slate-500">Click to switch layout (Variant 1: Modern Digital ID / Variant 2: Official Juban Form)</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 w-full sm:w-auto shrink-0">
-          <button
-            type="button"
-            onClick={() => setSelectedVariant('variant1')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 ${
-              selectedVariant === 'variant1'
-                ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
-            }`}
-          >
-            <Sparkles size={13} className={selectedVariant === 'variant1' ? 'text-teal-600' : 'text-slate-400'} />
-            <span>Variant 1 (Digital ID)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setSelectedVariant('variant2')}
-            className={`flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-150 active:scale-95 ${
-              selectedVariant === 'variant2'
-                ? 'bg-white text-teal-700 shadow-sm border border-slate-200'
-                : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/60'
-            }`}
-          >
-            <CreditCard size={13} className={selectedVariant === 'variant2' ? 'text-teal-600' : 'text-slate-400'} />
-            <span>Variant 2 (Official Juban Form)</span>
           </button>
         </div>
       </div>
