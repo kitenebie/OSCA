@@ -119699,7 +119699,7 @@ export default function LoginPage() {
 
 
 
-      showToast("Please enter your username.", "error");
+      showToast("Please enter your username or email address.", "error");
 
 
 
@@ -133379,7 +133379,7 @@ export default function LoginPage() {
 
 
 
-      showToast("Username must not exceed 255 characters.", "error");
+      showToast("Username or email must not exceed 255 characters.", "error");
 
 
 
@@ -170999,7 +170999,7 @@ export default function LoginPage() {
 
 
 
-          `Invalid username or password. ${remaining} attempt(s) remaining.`,
+          `Invalid username/email or password. ${remaining} attempt(s) remaining.`,
 
 
 
@@ -890358,7 +890358,7 @@ export default function LoginPage() {
 
 
 
-                      Username
+                      Username or Email
 
 
 
@@ -906318,7 +906318,7 @@ export default function LoginPage() {
 
 
 
-                        placeholder="Enter your username"
+                        placeholder="Enter your username or email"
 
 
 

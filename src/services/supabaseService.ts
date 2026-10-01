@@ -412,16 +412,34 @@ export const usersService = {
     return mapUserFromDB(data);
   },
 
-  async verifyLogin(username: string, passwordHash: string): Promise<User | null> {
-    const { data, error } = await supabase
+  async verifyLogin(loginId: string, passwordHash: string): Promise<User | null> {
+    const identifier = loginId.trim();
+
+    // Check username first so a username always takes precedence if it happens
+    // to have the same value as somebody else's email address.
+    const byUsername = await supabase
       .from('users')
       .select('*')
-      .ilike('username', username)
+      .ilike('username', identifier)
       .eq('status', 'Active')
       .eq('password', passwordHash)
-      .single();
-    if (error || !data) return null;
-    return mapUserFromDB(data);
+      .maybeSingle();
+
+    if (byUsername.data) return mapUserFromDB(byUsername.data);
+
+    // Email is optional and not unique in the current schema. Limit the result
+    // to one matching active account so a malformed legacy dataset cannot make
+    // every email login fail with a multiple-rows error.
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .ilike('email', identifier)
+      .eq('status', 'Active')
+      .eq('password', passwordHash)
+      .limit(1)
+      .maybeSingle();
+
+    return data ? mapUserFromDB(data) : null;
   },
 
   async create(user: Omit<User, 'id'>): Promise<User> {
