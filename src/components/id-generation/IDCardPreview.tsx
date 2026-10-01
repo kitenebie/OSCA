@@ -12,16 +12,13 @@ const fingerprintImg = '/fingerprint.png';
 
 interface IDCardPreviewProps {
   senior: SeniorCitizen;
-  selectedVariant?: 'variant1' | 'variant2';
-  onVariantChange?: (v: 'variant1' | 'variant2') => void;
 }
 
-export default function IDCardPreview({ senior, selectedVariant: propVariant, onVariantChange }: IDCardPreviewProps) {
+export default function IDCardPreview({ senior }: IDCardPreviewProps) {
   const { showToast } = useUIStore();
   const { currentUser } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
-  const [internalVariant] = useState<'variant1' | 'variant2'>('variant2');
-  const selectedVariant = propVariant ?? internalVariant;
+  const selectedVariant: 'variant1' | 'variant2' = 'variant2';
 
   // Fetch signatories from database
   const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });

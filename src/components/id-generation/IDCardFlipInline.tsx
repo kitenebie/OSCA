@@ -6,7 +6,6 @@ import { renderBarcodeBits } from '../../utils/idGenerator';
 
 interface Props {
   senior: SeniorCitizen;
-  selectedVariant: 'variant1' | 'variant2';
 }
 
 const RA9994_BENEFITS = [
@@ -27,8 +26,9 @@ const C = {
   darkText: '#1a1a1a',
 } as const;
 
-export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
+export default function IDCardFlipInline({ senior }: Props) {
   const [flipped, setFlipped] = useState(false);
+  const selectedVariant: 'variant1' | 'variant2' = 'variant2';
 
   // Fetch signatories from database
   const [oscaHead, setOscaHead] = useState<{ fullName: string; signatureData: string }>({ fullName: '', signatureData: '' });

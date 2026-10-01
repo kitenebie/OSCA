@@ -5058,9 +5058,7 @@ export default function ConfigurationPage() {
 
                 Configure the names and signatures for the OSCA Head and
 
-                Municipal Mayor. These will appear on generated ID Cards
-
-                (Variant 1 and Variant 2).
+                Municipal Mayor. These will appear on generated ID Cards.
 
               </p>
 
@@ -5360,7 +5358,7 @@ export default function ConfigurationPage() {
 
                 <strong>badge text</strong> appears on the OSCA badge, and <strong>footer</strong> is at the bottom.
 
-                Signatories will be printed on <strong>Variant 1</strong> and <strong>Variant 2</strong> templates.
+                Signatories will be printed on the active ID card template.
 
                 Changes apply to all newly generated IDs.
 

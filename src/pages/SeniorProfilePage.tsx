@@ -255,10 +255,6 @@ export default function SeniorProfilePage() {
 
 
 
-  const selectedVariant = "variant2" as const;
-
-
-
   const [showDeceasedForm, setShowDeceasedForm] = useState(false);
 
 
@@ -1722,7 +1718,7 @@ export default function SeniorProfilePage() {
 
 
 
-          <IDCardFlipInline senior={senior} selectedVariant={selectedVariant} />
+          <IDCardFlipInline senior={senior} />
 
         </div>
 
@@ -1741,8 +1737,6 @@ export default function SeniorProfilePage() {
           <IDCardPreview
 
             senior={senior}
-
-            selectedVariant={selectedVariant}
 
 
           />
