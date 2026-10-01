@@ -13,13 +13,21 @@ export default function DashboardPage() {
   const { currentUser } = useAuthStore();
   const { setCurrentPage } = useUIStore();
   const barangayScope = getBarangayScope(currentUser);
+  // Treat the store as a source, not the access boundary. This prevents a
+  // previously loaded municipality-wide dataset from appearing during a role
+  // or barangay assignment change.
+  const dashboardSeniors = barangayScope === undefined
+    ? seniors
+    : barangayScope
+      ? seniors.filter((senior) => senior.barangay === barangayScope)
+      : [];
 
-  const totalSeniors = seniors.length;
-  const pensionSeniors = seniors.filter((s) => s.pensionBeneficiary).length;
-  const pendingSeniors = seniors.filter(
+  const totalSeniors = dashboardSeniors.length;
+  const pensionSeniors = dashboardSeniors.filter((s) => s.pensionBeneficiary).length;
+  const pendingSeniors = dashboardSeniors.filter(
     (s) => s.status === 'Pending' || s.status === 'For Verification'
   ).length;
-  const approvedSeniors = seniors.filter((s) => s.status === 'Approved').length;
+  const approvedSeniors = dashboardSeniors.filter((s) => s.status === 'Approved').length;
 
   // Navigation handlers for stat cards
   const handleTotalClick = () => {
@@ -138,10 +146,10 @@ export default function DashboardPage() {
       {/* Dashboard Visualizer widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
-          <BarangayChart />
+          <BarangayChart seniors={dashboardSeniors} barangayScope={barangayScope} />
         </div>
         <div className="lg:col-span-2">
-          <PendingApprovalsWidget />
+          <PendingApprovalsWidget seniors={dashboardSeniors} />
         </div>
       </div>
 

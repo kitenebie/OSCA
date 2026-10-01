@@ -3,9 +3,14 @@ import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { Check, X, ArrowUpRight, ShieldAlert, UserCheck } from 'lucide-react';
+import { SeniorCitizen } from '../../types';
 
-export default function PendingApprovalsWidget() {
-  const { seniors, approveSenior, rejectSenior } = useSeniorsStore();
+interface PendingApprovalsWidgetProps {
+  seniors: SeniorCitizen[];
+}
+
+export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidgetProps) {
+  const { approveSenior, rejectSenior } = useSeniorsStore();
   const { setCurrentPage } = useUIStore();
   const { currentUser, hasPermission } = useAuthStore();
 

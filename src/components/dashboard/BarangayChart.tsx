@@ -5,10 +5,16 @@ import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useBarangays } from '../../hooks/useBarangays';
 import { BarChart, PieChart, TrendingUp, Heart, Users } from 'lucide-react';
+import { SeniorCitizen } from '../../types';
 
-export default function BarangayChart() {
+interface BarangayChartProps {
+  seniors: SeniorCitizen[];
+  /** undefined is the Super Admin's municipality-wide scope. */
+  barangayScope: string | null | undefined;
+}
+
+export default function BarangayChart({ seniors, barangayScope }: BarangayChartProps) {
   const { barangays: barangaysData } = useBarangays();
-  const seniors = useSeniorsStore((state) => state.seniors);
   const setSelectedBarangay = useSeniorsStore((state) => state.setSelectedBarangay);
   const { setCurrentPage } = useUIStore();
   const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>('barangay');
@@ -33,8 +39,15 @@ export default function BarangayChart() {
 
   // 1. Barangay Distribution
   const barangayCounts: Record<string, number> = {};
-  // Initialize with all Juban barangays
-  barangaysData.forEach(b => {
+  const visibleBarangays = barangayScope === undefined
+    ? barangaysData
+    : barangayScope
+      ? barangaysData.filter((barangay) => barangay.name === barangayScope)
+      : [];
+
+  // Only Super Admin sees the full municipality list. Barangay-scoped users
+  // see their assigned barangay, including an empty state when it has no data.
+  visibleBarangays.forEach(b => {
     barangayCounts[b.name] = 0;
   });
   // Accumulate
@@ -89,7 +102,7 @@ export default function BarangayChart() {
 
   // 5. Gender per Barangay (grouped bar)
   const genderBarangayCounts: Record<string, { Male: number; Female: number }> = {};
-  barangaysData.forEach((b) => {
+  visibleBarangays.forEach((b) => {
     genderBarangayCounts[b.name] = { Male: 0, Female: 0 };
   });
   seniors.forEach((s) => {
@@ -257,7 +270,7 @@ export default function BarangayChart() {
   const statusChartSeries = Object.values(statusCounts);
 
   // Compute trend dynamic colors (Up = Green, Down = Red, Same/Base = Blue)
-  const actualTrendValues = trendValues.length > 0 ? trendValues : [2, 4, 3, 5, 8, 12];
+  const actualTrendValues = trendValues.length > 0 ? trendValues : [0];
   const trendColors = actualTrendValues.map((val, idx) => {
     if (idx === 0) return '#3B82F6'; // Blue baseline
     const prevVal = actualTrendValues[idx - 1];
@@ -278,7 +291,7 @@ export default function BarangayChart() {
     },
     colors: trendColors,
     xaxis: {
-      categories: trendLabels.length > 0 ? trendLabels : ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      categories: trendLabels.length > 0 ? trendLabels : ['No registrations'],
       labels: { style: { colors: chartLabelColor, fontSize: '10px' } }
     },
     yaxis: {
@@ -374,7 +387,9 @@ export default function BarangayChart() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
           <h4 className="font-bold text-slate-800 text-sm md:text-base">E-Census Visualizations</h4>
-          <p className="text-[11px] text-slate-400">Demographic analysis of Juban, Sorsogon senior citizens</p>
+          <p className="text-[11px] text-slate-400">
+            {barangayScope ? `Demographic analysis for Brgy. ${barangayScope}` : 'Demographic analysis of Juban, Sorsogon senior citizens'}
+          </p>
         </div>
         
         {/* Navigation Tabs */}
@@ -506,7 +521,9 @@ export default function BarangayChart() {
                 </div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4 text-center">Gender per Barangay</span>
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wider mb-4 text-center">
+                  {barangayScope ? 'Gender Distribution' : 'Gender per Barangay'}
+                </span>
                 <ReactApexChart
                   options={genderGroupedBarOptions}
                   series={genderGroupedBarSeries}
