@@ -65,6 +65,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
 
   const barangayNames = sortedBarangays.map(([name]) => name);
   const barangayDataValues = sortedBarangays.map(([, count]) => count);
+  const showBarangayDistribution = barangayScope === undefined;
 
   // 2. Age Bracket Counts
   let brackets = {
@@ -138,6 +139,27 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
   });
   const trendValues = sortedMonths.map(m => monthlyCounts[m]);
 
+  // Barangay-scoped users see day-by-day registrations for their own
+  // barangay; Super Admins retain the municipality-wide barangay breakdown.
+  const dailyCounts: Record<string, number> = {};
+  seniors.forEach((senior) => {
+    const registrationDay = senior.registeredDate?.slice(0, 10);
+    if (registrationDay && /^\d{4}-\d{2}-\d{2}$/.test(registrationDay)) {
+      dailyCounts[registrationDay] = (dailyCounts[registrationDay] || 0) + 1;
+    }
+  });
+  const sortedDays = Object.keys(dailyCounts).sort().slice(-30);
+  const dailyLabels = sortedDays.map((day) =>
+    new Date(`${day}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  );
+  const dailyValues = sortedDays.map((day) => dailyCounts[day]);
+  const firstChartLabels = showBarangayDistribution
+    ? barangayNames
+    : dailyLabels.length > 0 ? dailyLabels : ['No registrations'];
+  const firstChartValues = showBarangayDistribution
+    ? barangayDataValues
+    : dailyValues.length > 0 ? dailyValues : [0];
+
   // --- Apex Charts Configuration ---
 
   // Bar Chart options
@@ -147,6 +169,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
       toolbar: { show: false },
       events: {
         click: function(event, chartContext, config) {
+          if (!showBarangayDistribution) return;
           const clickedIndex = config.dataPointIndex;
           if (clickedIndex !== -1 && clickedIndex !== undefined) {
             const bName = barangayNames[clickedIndex];
@@ -159,7 +182,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     plotOptions: {
       bar: {
         borderRadius: 4,
-        horizontal: true,
+        horizontal: showBarangayDistribution,
         barHeight: '75%',
         distributed: true
       }
@@ -200,7 +223,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
       offsetX: 0
     },
     xaxis: {
-      categories: barangayNames,
+      categories: firstChartLabels,
       labels: { style: { colors: chartLabelColor, fontSize: '10px', fontFamily: 'Inter' } }
     },
     yaxis: {
@@ -209,14 +232,14 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     grid: { borderColor: chartGridColor },
     tooltip: {
       theme: chartTooltipTheme,
-      y: { formatter: (val) => `${val} Senior Citizens` }
+      y: { formatter: (val) => `${val} ${showBarangayDistribution ? 'Senior Citizens' : 'Registrations'}` }
     },
     legend: { show: false }
   };
 
   const barChartSeries = [{
-    name: 'Senior Citizens',
-    data: barangayDataValues
+    name: showBarangayDistribution ? 'Senior Citizens' : 'Registrations',
+    data: firstChartValues
   }];
 
   // Donut Chart options (Demographics: Age & Status)
@@ -402,7 +425,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <BarChart size={13} />
-            <span>Per Barangay</span>
+            <span>{showBarangayDistribution ? 'Per Barangay' : 'Per Day'}</span>
           </button>
           <button
             onClick={() => setActiveTab('demographic')}
@@ -447,9 +470,15 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
               type="bar" 
               height={380} 
             />
-            <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
-              💡 Click any bar to instantly filter the profiles registry list
-            </div>
+            {showBarangayDistribution ? (
+              <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
+                💡 Click any bar to instantly filter the profiles registry list
+              </div>
+            ) : (
+              <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
+                Daily registrations for your assigned barangay (last 30 active dates)
+              </div>
+            )}
           </div>
         )}
 
