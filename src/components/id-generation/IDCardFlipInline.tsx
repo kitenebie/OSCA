@@ -61,7 +61,7 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
           <div>
             <span className="font-bold text-xs uppercase tracking-wide">ID Card Preview</span>
             <span className="ml-2 text-[9px] font-semibold text-slate-400 uppercase tracking-wide">
-              {selectedVariant === 'variant1' ? '(Smart Digital ID)' : '(Official Juban Form)'}
+              {selectedVariant === 'variant1' ? '(Digital ID)' : '(Official Juban Form)'}
             </span>
           </div>
         </div>
@@ -307,12 +307,6 @@ export default function IDCardFlipInline({ senior, selectedVariant }: Props) {
                       <div style={{ fontSize: 7, fontWeight: 800, color: C.white, letterSpacing: '0.5px', textTransform: 'uppercase', lineHeight: 1.1 }}>MUNICIPALITY OF JUBAN</div>
                       <div style={{ fontSize: 5.5, fontWeight: 600, color: 'rgba(254,254,254,0.8)', textTransform: 'uppercase', lineHeight: 1.1 }}>OSCA — Sorsogon, Philippines</div>
                     </div>
-                  </div>
-
-                  {/* Smart tag indicator top-right */}
-                  <div style={{ position: 'absolute', top: 10, right: 14, zIndex: 10, display: 'flex', alignItems: 'center', gap: 3 }}>
-                    <div style={{ width: 5, height: 5, borderRadius: '50%', background: C.yellow, boxShadow: `0 0 4px ${C.yellow}` }} />
-                    <span style={{ fontSize: 5, fontWeight: 700, color: C.white, fontFamily: "'Consolas','SF Mono',monospace", letterSpacing: '0.8px', textTransform: 'uppercase' }}>SMART TAG</span>
                   </div>
 
                   {/* Benefits & Privileges text (matching Variant 2) */}

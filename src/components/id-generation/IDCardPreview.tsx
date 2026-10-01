@@ -5,8 +5,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { auditLogsService, signatoriesService } from '../../services/supabaseService';
 import { useSettingsStore } from '../../store/settingsStore';
-import { FileDown, Radio, ShieldCheck, Layers, Sparkles, CreditCard } from 'lucide-react';
-import NFCWriteModal from './NFCWriteModal';
+import { FileDown, ShieldCheck, Layers, Sparkles, CreditCard } from 'lucide-react';
 import { renderBarcodeBits } from '../../utils/idGenerator';
 const phLogo = '/ph_logo.png';
 const fingerprintImg = '/fingerprint.png';
@@ -18,11 +17,9 @@ interface IDCardPreviewProps {
 }
 
 export default function IDCardPreview({ senior, selectedVariant: propVariant, onVariantChange }: IDCardPreviewProps) {
-  const { showToast, nfcEnabled } = useUIStore();
+  const { showToast } = useUIStore();
   const { currentUser } = useAuthStore();
   const [isExporting, setIsExporting] = useState(false);
-  const [isNFCOpen, setIsNFCOpen] = useState(false);
-  const [nfcWritten, setNfcWritten] = useState(false);
   const [internalVariant, setInternalVariant] = useState<'variant1' | 'variant2'>('variant1');
   const selectedVariant = propVariant ?? internalVariant;
   const setSelectedVariant = (v: 'variant1' | 'variant2') => {
@@ -115,39 +112,24 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
       {/* Action Buttons Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100">
         <div>
-          <h4 className="font-bold text-slate-800 text-sm md:text-base">{nfcEnabled ? 'NFC OSCA ID Card' : 'OSCA ID Card'}</h4>
-          <p className="text-[11px] text-slate-400">Generate, print, and write biometric identity cards</p>
+          <h4 className="font-bold text-slate-800 text-sm md:text-base">OSCA ID Card</h4>
+          <p className="text-[11px] text-slate-400">Generate and print senior citizen identity cards</p>
         </div>
         
         <div className="flex gap-2.5">
-          {/* Write to NFC button */}
-          {nfcEnabled && (
-            <button
-              type="button"
-              onClick={() => setIsNFCOpen(true)}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold shadow-sm border transition-all duration-150 active:scale-95
-                ${nfcWritten 
-                  ? 'bg-emerald-50 border-emerald-200 text-emerald-600' 
-                  : 'bg-teal-50 border-teal-200 text-teal-700 hover:bg-teal-100'}`}
-            >
-              <Radio size={14} className={nfcWritten ? 'text-emerald-500' : 'text-teal-600 animate-pulse'} />
-              <span>{nfcWritten ? 'ID NFC Written' : 'Magsulat sa NFC (Write)'}</span>
-            </button>
-          )}
-
           {/* Download PDF button */}
           <button
             type="button"
-            disabled={isExporting || senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased'}
+            disabled={isExporting || senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'}
             onClick={handleExportPDF}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-all duration-150 active:scale-95"
-            title={senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
+            title={senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
           >
             <FileDown size={14} />
             <span>
               {isExporting
                 ? 'Rendering...'
-                : senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactived'|| senior.status === 'Deceased'
+                : senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'
                   ? 'Not Approved (Download Disabled)'
                   : 'I-download (CR80 PDF)'}
             </span>
@@ -161,7 +143,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
           <Layers size={16} className="text-teal-600 shrink-0" />
           <div>
             <h5 className="font-bold text-xs text-slate-800">Select ID Design Variant</h5>
-            <p className="text-[10px] text-slate-500">Click to switch layout (Variant 1: Modern Digital Smart ID / Variant 2: Official Juban Form)</p>
+            <p className="text-[10px] text-slate-500">Click to switch layout (Variant 1: Modern Digital ID / Variant 2: Official Juban Form)</p>
           </div>
         </div>
 
@@ -176,7 +158,7 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
             }`}
           >
             <Sparkles size={13} className={selectedVariant === 'variant1' ? 'text-teal-600' : 'text-slate-400'} />
-            <span>Variant 1 (Smart Digital ID)</span>
+            <span>Variant 1 (Digital ID)</span>
           </button>
 
           <button
@@ -511,26 +493,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
                   padding: 4,
                   lineHeight: 1.3,
                 }}>2x2{'\n'}PHOTO</div>
-              )}
-              {/* NFC chip mock */}
-              {nfcEnabled && (
-                <div style={{
-                  position: 'absolute',
-                  top: 3,
-                  right: 3,
-                  width: 14,
-                  height: 10,
-                  background: 'linear-gradient(135deg, #f59e0b, #eab308)',
-                  borderRadius: 2,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  padding: 2,
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                }}>
-                  <span style={{ width: '100%', height: 1, background: 'rgba(120,80,0,0.2)' }} />
-                  <span style={{ width: '100%', height: 1, background: 'rgba(120,80,0,0.2)' }} />
-                </div>
               )}
             </div>
 
@@ -1152,33 +1114,6 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
               </div>
             </div>
 
-            {/* NFC status indicator */}
-            <div style={{
-              position: 'absolute',
-              top: 10,
-              right: 14,
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 3,
-            }}>
-              <div style={{
-                width: 5,
-                height: 5,
-                borderRadius: '50%',
-                background: C.yellow,
-                boxShadow: `0 0 4px ${C.yellow}`,
-              }} />
-              <span style={{
-                fontSize: 5,
-                fontWeight: 700,
-                color: C.white,
-                fontFamily: "'Consolas', 'SF Mono', monospace",
-                letterSpacing: '0.8px',
-                textTransform: 'uppercase',
-              }}>{nfcEnabled ? getConfig('variant1', 'back_nfc_label', 'NFC SMART TAG') : 'SMART TAG'}</span>
-            </div>
-
             {/* ── BENEFITS & PRIVILEGES TEXT BLOCK (from Variant 2) ── */}
             <div style={{
               position: 'absolute',
@@ -1509,24 +1444,12 @@ export default function IDCardPreview({ senior, selectedVariant: propVariant, on
       <div className="flex items-start gap-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200/50">
         <ShieldCheck className="text-teal-600 mt-0.5 shrink-0" size={16} />
         <div>
-          <h5 className="font-bold text-xs text-slate-800">Smart LGU Identity Credentials</h5>
+          <h5 className="font-bold text-xs text-slate-800">LGU Identity Credentials</h5>
           <p className="text-[10px] text-slate-500 leading-normal mt-0.5">
-            This card contains an embedded simulated NDEF smart segment (Sector 0/1) for seamless touch-ins at municipal transport nodes, pension distribution terminals, and free clinic registration desks.
+            This card is an official proof of senior citizen registration and eligibility for applicable local services and benefits.
           </p>
         </div>
       </div>
-
-      {/* NFC Write Overlay modal */}
-      {isNFCOpen && (
-        <NFCWriteModal 
-          senior={senior}
-          onClose={() => setIsNFCOpen(false)}
-          onSuccess={() => {
-            setNfcWritten(true);
-            setIsNFCOpen(false);
-          }}
-        />
-      )}
 
     </div>
   );

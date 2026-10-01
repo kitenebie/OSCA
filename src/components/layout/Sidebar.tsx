@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 export default function Sidebar() {
-  const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar, nfcEnabled } = useUIStore();
+  const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar } = useUIStore();
   const { currentUser, logout, hasPermission, roles } = useAuthStore();
 
   const menuItems = [
@@ -42,7 +42,7 @@ export default function Sidebar() {
     },
     { 
       id: 'FindUser' as AppPages, 
-      label: nfcEnabled ? 'Find User / NFC' : 'Find User', 
+      label: 'Find User',
       icon: Scan, 
       permission: 'canAccessFindUser' as const 
     },

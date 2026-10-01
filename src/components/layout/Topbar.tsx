@@ -8,7 +8,7 @@ import { AuditLogNotification } from '../../types';
 import { useSeniorsStore } from '../../store/seniorsStore';
 
 export default function Topbar() {
-  const { toggleSidebar, currentPage, nfcEnabled, showToast, setCurrentPage } = useUIStore();
+  const { toggleSidebar, currentPage, showToast, setCurrentPage } = useUIStore();
   const { currentUser } = useAuthStore();
   const [time, setTime] = useState(new Date());
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
@@ -85,9 +85,10 @@ export default function Topbar() {
     SeniorProfile: 'Senior Citizen Detailed Dossier',
     Register: 'Senior Citizen Registration Portal',
     Reports: 'Forms, Templates & Census Reports',
+    GranteeClaimForms: 'Grantee Claim Forms',
     SMSCenter: 'SMS Communications & Notifications',
     UserManagement: 'System User Administration',
-    FindUser: nfcEnabled ? 'Find User & Biometric NFC Scanner' : 'Find User & Biometric Scanner',
+    FindUser: 'Find User & ID Verification',
     Configuration: 'System Configuration & Parameters',
     Mapping: 'Demographics & Barangay GIS Mapping'
   };

@@ -44,8 +44,6 @@ import {
 
 import {
 
-  Sliders,
-
   HelpCircle,
 
   Shield,
@@ -890,7 +888,7 @@ const PERMISSION_LABELS: {
 
     key: "canAccessFindUser",
 
-    label: "Page: NFC / Find User",
+    label: "Page: Find User",
 
     group: "Pages Access",
 
@@ -928,7 +926,7 @@ const PERMISSION_LABELS: {
 
 export default function ConfigurationPage() {
 
-  const { nfcEnabled, setNfcEnabled, showToast } = useUIStore();
+  const { showToast } = useUIStore();
 
   const [testFingerprintUrl, setTestFingerprintUrl] = useState<string | null>(
 
@@ -2506,7 +2504,7 @@ export default function ConfigurationPage() {
 
   const [activeConfigTab, setActiveConfigTab] = useState<
 
-    "roles" | "id_config" | "nfc" | "appearance" | "biometrics" | "fingerprint_settings" | "system_settings" | "constant"
+    "roles" | "id_config" | "appearance" | "biometrics" | "fingerprint_settings" | "system_settings" | "constant"
 
   >("roles");
 
@@ -3303,28 +3301,6 @@ export default function ConfigurationPage() {
 
 
 
-  const handleNfcToggle = () => {
-
-    const nextState = !nfcEnabled;
-
-    setNfcEnabled(nextState);
-
-    showToast(
-
-      nextState
-
-        ? "NFC-enabled features activated."
-
-        : "NFC features deactivated.",
-
-      "info",
-
-    );
-
-  };
-
-
-
   return (
 
     <div className="space-y-6 animate-fadeIn font-sans">
@@ -3500,8 +3476,6 @@ export default function ConfigurationPage() {
             },
 
 
-
-            { id: "nfc" as const, label: "Hardware & NFC", icon: Sliders },
 
             {
 
@@ -4701,7 +4675,7 @@ export default function ConfigurationPage() {
 
                     {/* Back Fields */}
 
-                    {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_')).length > 0 && (
+                    {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_') && f.fieldKey !== 'back_nfc_label').length > 0 && (
 
                       <div className="space-y-3 mt-4">
 
@@ -4711,7 +4685,7 @@ export default function ConfigurationPage() {
 
                         </div>
 
-                        {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_')).map((field) => (
+                        {idConfigVariant1.filter(f => f.fieldKey.startsWith('back_') && f.fieldKey !== 'back_nfc_label').map((field) => (
 
                           <div key={field.fieldKey} className="space-y-1">
 
@@ -5360,102 +5334,6 @@ export default function ConfigurationPage() {
         </div>
 
         </UsbSignaturePadProvider>
-
-      )}
-
-
-
-      {/* ====== TAB: NFC CONFIGURATION ====== */}
-
-      {activeConfigTab === "nfc" && (
-
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-
-          <div className="border-b border-slate-100 p-4 bg-slate-50/50 flex items-center justify-between">
-
-            <div className="flex items-center gap-2">
-
-              <Sliders size={16} className="text-teal-600" />
-
-              <h5 className="font-bold text-slate-800 text-xs md:text-sm">
-
-                Hardware & Smart Card Parameters
-
-              </h5>
-
-            </div>
-
-            <span className="text-[10px] font-mono font-bold bg-teal-50 text-teal-700 px-2.5 py-0.5 rounded-full border border-teal-100 uppercase">
-
-              {nfcEnabled ? "Active: NFC" : "Active: Standard"}
-
-            </span>
-
-          </div>
-
-
-
-          <div className="p-6">
-
-            <div className="flex flex-col md:flex-row md:items-center justify-between p-4 rounded-xl border border-slate-200/60 hover:border-teal-500/30 transition-all gap-4">
-
-              <div className="space-y-1 max-w-md">
-
-                <span className="font-extrabold text-slate-800 text-xs md:text-sm block">
-
-                  NFC-Enabled OSCA ID Card
-
-                </span>
-
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-
-                  Toggle NFC (NTAG213) support for biometric scans, automated
-
-                  logging, and quick profile retrieval.
-
-                </p>
-
-              </div>
-
-              <button
-
-                onClick={handleNfcToggle}
-
-                className="flex items-center gap-3 self-start md:self-auto shrink-0 cursor-pointer"
-
-              >
-
-                <div
-
-                  className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${nfcEnabled ? "bg-teal-600" : "bg-slate-200"}`}
-
-                >
-
-                  <div
-
-                    className={`w-4 h-4 rounded-full bg-white shadow-md transform transition-transform duration-300 ${nfcEnabled ? "translate-x-6" : "translate-x-0"}`}
-
-                  />
-
-                </div>
-
-                <span
-
-                  className={`text-xs font-bold font-mono ${nfcEnabled ? "text-teal-600" : "text-slate-400"}`}
-
-                >
-
-                  {nfcEnabled ? "ENABLED" : "DISABLED"}
-
-                </span>
-
-              </button>
-
-            </div>
-
-          </div>
-
-        </div>
 
       )}
 

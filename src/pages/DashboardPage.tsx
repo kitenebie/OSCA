@@ -10,7 +10,7 @@ import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucid
 export default function DashboardPage() {
   const { seniors, setSelectedStatus, setSelectedPension } = useSeniorsStore();
   const { currentUser } = useAuthStore();
-  const { nfcEnabled, setCurrentPage } = useUIStore();
+  const { setCurrentPage } = useUIStore();
 
   const totalSeniors = seniors.length;
   const pensionSeniors = seniors.filter((s) => s.pensionBeneficiary).length;
@@ -123,7 +123,7 @@ export default function DashboardPage() {
         <StatCard
           title="Active Approved"
           value={approvedSeniors}
-          description={nfcEnabled ? "Active records issued with NFC cards" : "Active records issued with ID cards"}
+          description="Active records issued with ID cards"
           change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% Active`}
           changeType="increase"
           icon={Landmark}

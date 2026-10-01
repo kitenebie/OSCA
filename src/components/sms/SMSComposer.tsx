@@ -139,7 +139,7 @@ const SMS_TEMPLATES = [
   },
   {
     title: 'Aprubado na ang Senior Citizen ID',
-    text: 'Magandang araw [name]! Ang inyong aplikasyon para sa Senior Citizen ID ay APRUBADO na. Maaari na po ninyong kunin ang inyong physical NFC ID card sa OSCA Office, Juban Municipal Hall simula Lunes. Mangyaring magdala ng kopya ng inyong registration form. Salamat po!'
+    text: 'Magandang araw [name]! Ang inyong aplikasyon para sa Senior Citizen ID ay APRUBADO na. Maaari na po ninyong kunin ang inyong physical ID card sa OSCA Office, Juban Municipal Hall simula Lunes. Mangyaring magdala ng kopya ng inyong registration form. Salamat po!'
   },
   {
     title: 'Paalala sa Birthday Cash Voucher',

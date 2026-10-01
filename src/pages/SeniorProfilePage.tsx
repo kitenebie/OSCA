@@ -1732,7 +1732,7 @@ export default function SeniorProfilePage() {
 
 
 
-        {/* RIGHT COLUMN: Interactive Double Sided Smart ID Card and full census details */}
+        {/* RIGHT COLUMN: Interactive double-sided ID card and full census details */}
 
 
 

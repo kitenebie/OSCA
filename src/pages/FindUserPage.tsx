@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { SeniorCitizen } from '../types';
 import { useUIStore } from '../store/uiStore';
@@ -13,24 +13,16 @@ import {
   Scan, 
   Search, 
   CheckCircle, 
-  AlertTriangle, 
-  Radio, 
-  Smartphone, 
   HelpCircle, 
   UserCheck, 
   CreditCard, 
   RefreshCw, 
-  CornerDownRight, 
-  Clock, 
-  ShieldAlert,
-  ArrowRight,
   Sparkles,
-  Volume2
 } from 'lucide-react';
 
 export default function FindUserPage() {
   const { seniors } = useSeniorsStore();
-  const { showToast, nfcEnabled } = useUIStore();
+  const { showToast } = useUIStore();
   const { currentUser } = useAuthStore();
   
   const [searchId, setSearchId] = useState('OSCA-JUB-');
@@ -44,30 +36,7 @@ export default function FindUserPage() {
     darkText:'#1a1a1a',
   } as const;
   const [selectedSenior, setSelectedSenior] = useState<SeniorCitizen | null>(null);
-  const [isScanning, setIsScanning] = useState(true);
   const [isFlipped, setIsFlipped] = useState(false);
-
-  const formatNfcText = (text: string) => {
-    if (nfcEnabled) return text;
-    // Replace "NFC" (case-insensitive), clean up spaces and trailing slashes
-    return text
-      .replace(/nfc/gi, '')
-      .replace(/\/\s*$/, '')
-      .replace(/^\s*\//, '')
-      .replace(/\/\s*\//g, '/')
-      .replace(/\s\/\s/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-
-  const [scanLogs, setScanLogs] = useState<string[]>([]);
-
-  useEffect(() => {
-    setScanLogs([
-      `[${new Date().toLocaleTimeString()}] RFID / NFC Antenna initialized on Port 3000.`,
-      `[${new Date().toLocaleTimeString()}] Polling for OSCA proximity smart badges...`,
-    ].map(formatNfcText));
-  }, [nfcEnabled]);
 
   // Audio mock beep utilizing browser AudioContext for a professional touch
   const playBeep = () => {
@@ -88,11 +57,6 @@ export default function FindUserPage() {
     } catch (e) {
       // AudioContext might be blocked by browser policy until interaction, ignore gracefully
     }
-  };
-
-  const addLog = (message: string) => {
-    const formatted = formatNfcText(message);
-    setScanLogs((prev) => [`[${new Date().toLocaleTimeString()}] ${formatted}`, ...prev.slice(0, 10)]);
   };
 
   // Handle Search submit
@@ -118,7 +82,6 @@ export default function FindUserPage() {
       playBeep();
       setSelectedSenior(found);
       setIsFlipped(false);
-      addLog(`ID matched via search database query: ${found.oscaNumber} - ${found.firstName} ${found.lastName}`);
       showToast(`Found the profile of ${found.firstName} ${found.lastName}!`, 'success');
 
       auditLogsService.log({
@@ -133,47 +96,8 @@ export default function FindUserPage() {
         severity: 'info',
       });
     } else {
-      addLog(`Failed database lookup for query: "${searchId}"`);
       showToast('No Senior Citizen found with that ID or name.', 'error');
     }
-  };
-
-  // Simulate NFC Proximity scan of a random senior
-  const handleSimulateScan = () => {
-    if (!isScanning) {
-      showToast('Please turn on the Scanning Laser switch first.', 'warning');
-      return;
-    }
-
-    addLog('NFC Proximity sensor detecting smart tag...');
-    
-    // Pick a random senior
-    setTimeout(() => {
-      if (seniors.length === 0) {
-        showToast('No senior citizens in the database to scan.', 'error');
-        return;
-      }
-      const randomIndex = Math.floor(Math.random() * seniors.length);
-      const randomSenior = seniors[randomIndex];
-      
-      playBeep();
-      setSelectedSenior(randomSenior);
-      setIsFlipped(false);
-      addLog(`NFC ISO/IEC 14443-A Tag scanned successfully! ID: ${randomSenior.oscaNumber}`);
-      showToast(formatNfcText(`NFC Verified: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.barangay})`), 'success');
-
-      auditLogsService.log({
-        action: 'CREATE',
-        entity: 'Senior',
-        details: `Scanned via Proximity Scanner the ID Card of Senior: ${randomSenior.firstName} ${randomSenior.lastName} (${randomSenior.oscaNumber})`,
-        actorName: currentUser?.fullName || 'System User',
-        actorRole: currentUser?.role || 'user',
-        barangay: randomSenior.barangay,
-        targetPage: 'SeniorProfile',
-        targetId: randomSenior.id,
-        severity: 'info',
-      });
-    }, 600);
   };
 
   // Generate QR code for the flippable ID card
@@ -192,41 +116,28 @@ export default function FindUserPage() {
     <div className="space-y-6" id="find-user-container">
       
       {/* Header Banner */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-teal-600">
             <Scan size={18} className="animate-pulse" />
             <span className="text-[10px] font-extrabold tracking-widest uppercase font-mono bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
-              {formatNfcText('Biometric NFC Hardware Node')}
+               OSCA Profile Lookup
             </span>
           </div>
           <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight uppercase">
-            Find User & ID Scanner (Tag Verification)
+            Find User & ID Verification
           </h2>
           <p className="text-xs text-slate-400">
-            Verify the OSCA ID and information using the automated biometric scanning module or database ID query.
+            Verify OSCA ID information through a database search.
           </p>
         </div>
 
-        {/* Info panel */}
-        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 p-3 rounded-2xl shrink-0">
-          <div className="w-8 h-8 rounded-full bg-teal-500/10 flex items-center justify-center text-teal-600">
-            <Radio size={15} className="animate-ping" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider font-mono">Antenna Status</span>
-            </div>
-            <p className="text-xs font-black text-slate-700">ONLINE / POLLING ACTIVE</p>
-          </div>
-        </div>
       </div>
 
       {/* Main Two-Column Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
-        {/* ================= COLUMN 1: CONTROLS & ANIMATED SCANNER ================= */}
+        {/* ================= COLUMN 1: SEARCH CONTROLS ================= */}
         <div className="lg:col-span-5 space-y-6">
           
           {/* Box 1: Search Form */}
@@ -268,125 +179,6 @@ export default function FindUserPage() {
             </div>
           </div>
 
-          {/* Box 2: High-Tech Scanner Plate UI */}
-          {nfcEnabled && (
-            <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                  <Scan size={14} className="text-teal-600 animate-spin" style={{ animationDuration: '6s' }} />
-                  {formatNfcText('NFC / RFID Proximity Scanner')}
-                </h3>
-                
-                {/* Scan Toggle Switch */}
-                <div className="flex items-center gap-2">
-                  <span className={`text-[9px] font-bold uppercase tracking-wider ${isScanning ? 'text-teal-600' : 'text-slate-400'}`}>
-                    {isScanning ? 'Active' : 'Muted'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setIsScanning(!isScanning)}
-                    className={`relative w-9 h-5 rounded-full transition-colors flex items-center p-0.5 cursor-pointer
-                      ${isScanning ? 'bg-teal-600' : 'bg-slate-200'}`}
-                  >
-                    <span className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-250
-                      ${isScanning ? 'translate-x-4' : 'translate-x-0'}`}
-                    ></span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Simulated Scanner Terminal screen */}
-              <div className="relative w-full aspect-video md:aspect-[4/3] bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 flex flex-col items-center justify-center p-4">
-                
-                {/* Matrix code rain bg placeholder or ambient grid */}
-                <div className="absolute inset-0 bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:16px_16px] opacity-50"></div>
-                
-                {/* Hologram Circle */}
-                <div className={`w-36 h-36 rounded-full border border-dashed flex items-center justify-center transition-all duration-500
-                  ${isScanning 
-                    ? 'border-teal-500/40 bg-teal-500/5 animate-pulse' 
-                    : 'border-slate-200 bg-slate-100/10'}`}
-                >
-                  <div className={`w-28 h-28 rounded-full border border-teal-500/10 flex items-center justify-center relative
-                    ${isScanning ? 'animate-spin' : ''}`}
-                    style={{ animationDuration: '10s' }}
-                  >
-                    <Smartphone size={32} className={`text-teal-600/10 transform -rotate-12`} />
-                  </div>
-                </div>
-
-                {/* Laser beam swipe down line (VERTICAL ANIMATION) */}
-                {isScanning && (
-                  <div 
-                    className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-teal-500 to-transparent shadow-[0_0_12px_#14b8a6] animate-laserSweep pointer-events-none z-10"
-                    style={{
-                      animation: 'laserSweep 3s infinite ease-in-out'
-                    }}
-                  ></div>
-                )}
-
-                {/* Tech Stats overlay info inside scanner */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[8px] font-mono text-slate-400 tracking-wider">
-                  <span>FREQ: 13.56 MHz</span>
-                  <span className="flex items-center gap-1">
-                    <span className={`w-1.5 h-1.5 rounded-full ${isScanning ? 'bg-teal-500 animate-ping' : 'bg-rose-500'}`}></span>
-                    {isScanning ? 'READY FOR TAG' : 'MUTED'}
-                  </span>
-                  <span>ISO/IEC 14443A</span>
-                </div>
-
-                {/* Simulated Tag detected success popup inside scanner screen */}
-                {selectedSenior && (
-                  <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-teal-50/95 border border-teal-200 text-teal-800 px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 shadow-md backdrop-blur-sm animate-bounce">
-                    <CheckCircle size={10} className="text-teal-600 shrink-0" />
-                    <span>TAG READ OK: #{selectedSenior.oscaNumber.split('-').pop()}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Quick Action Button for Scan simulation */}
-              <button
-                type="button"
-                disabled={!isScanning}
-                onClick={handleSimulateScan}
-                className="w-full py-3.5 bg-gradient-to-r from-teal-700 to-teal-800 hover:from-teal-600 hover:to-teal-700 disabled:from-slate-100 disabled:to-slate-150 disabled:text-slate-400 text-white font-extrabold text-xs rounded-2xl shadow-md hover:shadow-lg transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-                id="simulate-scan-btn"
-              >
-                <Radio size={14} className={isScanning ? 'animate-pulse' : ''} />
-                <span>{formatNfcText('Start Proximity Tap (Simulate NFC Tag Scan)')}</span>
-              </button>
-            </div>
-          )}
-
-          {/* Box 3: Live Scan logs */}
-          {nfcEnabled && (
-            <div className="bg-slate-50 text-slate-600 rounded-3xl p-5 md:p-6 shadow-sm space-y-3.5 border border-slate-200">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-extrabold text-teal-700 font-mono tracking-widest uppercase">
-                  Telemetry Log Stream
-                </span>
-                <button 
-                  onClick={() => {
-                    setScanLogs([`[${new Date().toLocaleTimeString()}] Logs cleared. Real-time antenna monitoring running.`]);
-                  }}
-                  className="text-[9px] text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors cursor-pointer"
-                >
-                  <RefreshCw size={10} />
-                  <span>Clear Logs</span>
-                </button>
-              </div>
-
-              <div className="font-mono text-[9px] md:text-[10px] space-y-2 max-h-[140px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-200">
-                {scanLogs.map((log, index) => (
-                  <p key={index} className={`leading-normal border-b border-slate-200/50 pb-1.5 flex gap-1.5 ${index === 0 ? 'text-teal-600 font-bold' : 'text-slate-500'}`}>
-                    <CornerDownRight size={10} className="shrink-0 mt-0.5 text-teal-600" />
-                    <span className="break-all">{log}</span>
-                  </p>
-                ))}
-              </div>
-            </div>
-          )}
-
         </div>
 
         {/* ================= COLUMN 2: EXPECTED RESULT & FLIPPABLE ID ================= */}
@@ -404,10 +196,7 @@ export default function FindUserPage() {
               <div className="max-w-md space-y-2">
                 <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Currently Waiting...</h3>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  {nfcEnabled 
-                    ? 'No scan or search performed yet. Type the Senior ID above or press "Proximity Tap" to test the system.'
-                    : 'No scan or search performed yet. Type the Senior ID above to find the profile.'
-                  }
+                  No search performed yet. Type the Senior ID above to find the profile.
                 </p>
               </div>
 
@@ -422,7 +211,6 @@ export default function FindUserPage() {
                         playBeep();
                         setSelectedSenior(s);
                         setIsFlipped(false);
-                        addLog(`Manual sample selected: ${s.oscaNumber}`);
                       }}
                       className="px-3 py-1.5 bg-slate-50 hover:bg-teal-50 border border-slate-150 hover:border-teal-200 rounded-xl text-[10px] font-mono font-bold text-slate-600 hover:text-teal-700 transition-all cursor-pointer"
                     >
@@ -442,10 +230,10 @@ export default function FindUserPage() {
                 <div className="w-full flex items-center justify-between pb-3 border-b border-slate-100">
                   <div>
                     <span className="text-[9px] font-extrabold text-teal-600 uppercase font-mono tracking-wider bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">
-                      SECURE CR80 SMART CARD
+                      OFFICIAL CR80 ID CARD
                     </span>
                     <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight mt-1">
-                      Flippable Digital OSCA ID Card
+                      OSCA ID Card Preview
                     </h3>
                   </div>
                   
@@ -761,26 +549,6 @@ export default function FindUserPage() {
                               padding: 4,
                               lineHeight: 1.3,
                             }}>2x2{'\n'}PHOTO</div>
-                          )}
-                          {/* NFC chip mock */}
-                          {nfcEnabled && (
-                            <div style={{
-                              position: 'absolute',
-                              top: 3,
-                              right: 3,
-                              width: 14,
-                              height: 10,
-                              background: 'linear-gradient(135deg, #f59e0b, #eab308)',
-                              borderRadius: 2,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              justifyContent: 'space-between',
-                              padding: 2,
-                              boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
-                            }}>
-                              <span style={{ width: '100%', height: 1, background: 'rgba(120,80,0,0.2)' }} />
-                              <span style={{ width: '100%', height: 1, background: 'rgba(120,80,0,0.2)' }} />
-                            </div>
                           )}
                         </div>
 
@@ -1128,33 +896,6 @@ export default function FindUserPage() {
                               lineHeight: 1.1,
                             }}>OSCA — Sorsogon, Philippines</div>
                           </div>
-                        </div>
-
-                        {/* NFC status indicator */}
-                        <div style={{
-                          position: 'absolute',
-                          top: 10,
-                          right: 14,
-                          zIndex: 10,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 3,
-                        }}>
-                          <div style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: '50%',
-                            background: C.yellow,
-                            boxShadow: `0 0 4px ${C.yellow}`,
-                          }} />
-                          <span style={{
-                            fontSize: 5,
-                            fontWeight: 700,
-                            color: C.white,
-                            fontFamily: "'Consolas', 'SF Mono', monospace",
-                            letterSpacing: '0.8px',
-                            textTransform: 'uppercase',
-                          }}>{nfcEnabled ? 'NFC SMART TAG' : 'SMART TAG'}</span>
                         </div>
 
                         {/* ── TERMS & CONDITIONS TEXT BLOCK ── */}

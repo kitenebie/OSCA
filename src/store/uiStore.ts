@@ -25,7 +25,6 @@ interface UIState {
   selectedFormId: string | null;
   sidebarOpen: boolean;
   toasts: Toast[];
-  nfcEnabled: boolean;
   sessionDismissedBy: string | null;
   
   setCurrentPage: (page: AppPages, seniorId?: string | null, formId?: string | null) => void;
@@ -33,7 +32,6 @@ interface UIState {
   setSidebarOpen: (open: boolean) => void;
   showToast: (message: string, type?: Toast['type']) => void;
   removeToast: (id: string) => void;
-  setNfcEnabled: (enabled: boolean) => void;
   showSessionDismissed: (terminatedBy: string) => void;
   clearSessionDismissed: () => void;
 }
@@ -57,7 +55,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   selectedFormId: getStoredFormId(),
   sidebarOpen: true,
   toasts: [],
-  nfcEnabled: false,
   sessionDismissedBy: null,
 
   setCurrentPage: (page, seniorId = null, formId = null) => {
@@ -94,8 +91,6 @@ export const useUIStore = create<UIState>((set, get) => ({
   removeToast: (id) => {
     set((state) => ({ toasts: state.toasts.filter((t) => t.id !== id) }));
   },
-
-  setNfcEnabled: (enabled) => set({ nfcEnabled: enabled }),
 
   showSessionDismissed: (terminatedBy) => set({ sessionDismissedBy: terminatedBy }),
   clearSessionDismissed: () => set({ sessionDismissedBy: null }),
