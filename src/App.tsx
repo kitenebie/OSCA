@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { userSettingsService } from './services/supabaseService';
 import { useAuthStore } from './store/authStore';
 import { useSeniorsStore } from './store/seniorsStore';
-import { useUIStore } from './store/uiStore';
+import { AppPages, useUIStore } from './store/uiStore';
 import LoginPage from './pages/LoginPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import DashboardPage from './pages/DashboardPage';
@@ -21,10 +21,38 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import SessionDismissedModal from './components/rbac/SessionDismissedModal';
 import { applySystemTheme } from './utils/theme';
+import { RolePermission } from './types';
+
+const PAGE_PERMISSIONS: Record<AppPages, keyof RolePermission['permissions']> = {
+  Dashboard: 'canAccessDashboard',
+  SeniorsList: 'canAccessSeniorsList',
+  SeniorProfile: 'canAccessSeniorProfile',
+  Register: 'canAccessRegister',
+  Reports: 'canAccessReports',
+  SMSCenter: 'canAccessSMSCenter',
+  UserManagement: 'canAccessUserManagement',
+  FindUser: 'canAccessFindUser',
+  Configuration: 'canAccessConfiguration',
+  Mapping: 'canAccessMapping',
+  GranteeClaimForms: 'canAccessReports',
+};
+
+const FALLBACK_PAGE_ORDER: AppPages[] = [
+  'Dashboard',
+  'SeniorsList',
+  'Mapping',
+  'FindUser',
+  'Register',
+  'Reports',
+  'GranteeClaimForms',
+  'SMSCenter',
+  'UserManagement',
+  'Configuration',
+];
 
 export default function App() {
-  const { currentUser } = useAuthStore();
-  const { currentPage, toasts, removeToast, sessionDismissedBy, clearSessionDismissed } = useUIStore();
+  const { currentUser, hasPermission } = useAuthStore();
+  const { currentPage, toasts, removeToast, sessionDismissedBy, clearSessionDismissed, setCurrentPage, showToast } = useUIStore();
   const logout = useAuthStore((s) => s.logout);
   const initAuth = useAuthStore((s) => s.initialize);
   const initSeniors = useSeniorsStore((s) => s.initialize);
@@ -60,6 +88,18 @@ export default function App() {
   useEffect(() => {
     console.log(`Active Page: ${currentPage}`);
   }, [currentPage]);
+
+  const canAccessCurrentPage = hasPermission(PAGE_PERMISSIONS[currentPage]);
+  const fallbackPage = FALLBACK_PAGE_ORDER.find((page) => hasPermission(PAGE_PERMISSIONS[page]));
+
+  // Validate the requested page before rendering it. This also covers a page
+  // restored from local storage, direct in-app navigation, and notifications.
+  useEffect(() => {
+    if (!currentUser || canAccessCurrentPage || !fallbackPage) return;
+
+    setCurrentPage(fallbackPage);
+    showToast('Wala kang access sa page na iyon. Dinala ka sa isang page na pinapayagan para sa iyong account.', 'warning');
+  }, [currentUser, currentPage, canAccessCurrentPage, fallbackPage, setCurrentPage, showToast]);
 
   // Render Page Router
   const renderPage = () => {
@@ -127,7 +167,11 @@ export default function App() {
         <LoginPage />
       ) : (
         <DashboardLayout>
-          {renderPage()}
+          {canAccessCurrentPage ? renderPage() : (
+            <div className="min-h-[240px] flex items-center justify-center text-sm text-slate-500">
+              Verifying page access...
+            </div>
+          )}
         </DashboardLayout>
       )}
 
