@@ -670,6 +670,28 @@ export const barangaysService = {
 // ROLES SERVICE
 // ============================================================
 
+const normalizeRoleName = (role: string) => {
+  const normalized = role.replace(/[^a-z0-9]/gi, '').toLowerCase();
+  const legacyAliases: Record<string, string> = {
+    barangayencoder: 'brgyencoder',
+    barangayadmin: 'brgyadmin',
+    mswdoofficer: 'brgyadmin',
+    viewer: 'generalviewer',
+  };
+  return legacyAliases[normalized] ?? normalized;
+};
+
+const isSuperAdminRole = (role: string) => normalizeRoleName(role) === 'superadmin';
+
+const roleNamesMatch = (first: string, second: string) =>
+  normalizeRoleName(first) === normalizeRoleName(second);
+
+const resolvePermission = (
+  localValue: boolean | undefined,
+  databaseValue: boolean | null | undefined,
+  fallback = false,
+) => localValue ?? databaseValue ?? fallback;
+
 export const rolesService = {
   async getAll(): Promise<RolePermission[]> {
     let localRoles: RolePermission[] = [];
@@ -682,45 +704,45 @@ export const rolesService = {
     if (error || !data) return localRoles;
 
     return data.map((row: any) => {
-      const match = localRoles.find((r) => r.role === row.role);
-      const isSuperAdmin = row.role === 'super-admin' || row.role === 'Super Admin';
+      const match = localRoles.find((r) => roleNamesMatch(r.role, row.role));
+      const isSuperAdmin = isSuperAdminRole(row.role);
 
       return {
         role: row.role,
         permissions: {
           // Records CRUD (Seniors)
-          canViewSeniors: match?.permissions.canViewSeniors ?? row.can_view_seniors ?? true,
-          canCreateSenior: match?.permissions.canCreateSenior ?? row.can_create_senior ?? isSuperAdmin,
-          canEditSenior: match?.permissions.canEditSenior ?? row.can_edit_senior ?? isSuperAdmin,
-          canDeleteSenior: match?.permissions.canDeleteSenior ?? row.can_delete_senior ?? isSuperAdmin,
-          canApproveReject: match?.permissions.canApproveReject ?? row.can_approve_reject ?? isSuperAdmin,
+          canViewSeniors: isSuperAdmin || resolvePermission(match?.permissions.canViewSeniors, row.can_view_seniors, true),
+          canCreateSenior: isSuperAdmin || resolvePermission(match?.permissions.canCreateSenior, row.can_create_senior),
+          canEditSenior: isSuperAdmin || resolvePermission(match?.permissions.canEditSenior, row.can_edit_senior),
+          canDeleteSenior: isSuperAdmin || resolvePermission(match?.permissions.canDeleteSenior, row.can_delete_senior),
+          canApproveReject: isSuperAdmin || resolvePermission(match?.permissions.canApproveReject, row.can_approve_reject),
 
           // User Administration (Users)
-          canViewUsers: match?.permissions.canViewUsers ?? row.can_view_users ?? (row.can_manage_users || isSuperAdmin),
-          canCreateUser: match?.permissions.canCreateUser ?? row.can_create_user ?? (row.can_manage_users || isSuperAdmin),
-          canEditUser: match?.permissions.canEditUser ?? row.can_edit_user ?? (row.can_manage_users || isSuperAdmin),
-          canDeleteUser: match?.permissions.canDeleteUser ?? row.can_delete_user ?? isSuperAdmin,
-          canManageUsers: match?.permissions.canManageUsers ?? row.can_manage_users ?? isSuperAdmin,
+          canViewUsers: isSuperAdmin || resolvePermission(match?.permissions.canViewUsers, row.can_view_users, !!row.can_manage_users),
+          canCreateUser: isSuperAdmin || resolvePermission(match?.permissions.canCreateUser, row.can_create_user, !!row.can_manage_users),
+          canEditUser: isSuperAdmin || resolvePermission(match?.permissions.canEditUser, row.can_edit_user, !!row.can_manage_users),
+          canDeleteUser: isSuperAdmin || resolvePermission(match?.permissions.canDeleteUser, row.can_delete_user),
+          canManageUsers: isSuperAdmin || resolvePermission(match?.permissions.canManageUsers, row.can_manage_users),
 
           // Reports & Documents
-          canGenerateReports: match?.permissions.canGenerateReports ?? row.can_generate_reports ?? true,
-          canDeleteReports: match?.permissions.canDeleteReports ?? row.can_delete_reports ?? isSuperAdmin,
+          canGenerateReports: isSuperAdmin || resolvePermission(match?.permissions.canGenerateReports, row.can_generate_reports, true),
+          canDeleteReports: isSuperAdmin || resolvePermission(match?.permissions.canDeleteReports, row.can_delete_reports),
 
           // Notifications & SMS
-          canSendSMS: match?.permissions.canSendSMS ?? row.can_send_sms ?? true,
-          canManageNotifications: match?.permissions.canManageNotifications ?? row.can_manage_notifications ?? true,
+          canSendSMS: isSuperAdmin || resolvePermission(match?.permissions.canSendSMS, row.can_send_sms, true),
+          canManageNotifications: isSuperAdmin || resolvePermission(match?.permissions.canManageNotifications, row.can_manage_notifications, true),
 
           // Page Access Control
-          canAccessDashboard: match?.permissions.canAccessDashboard ?? row.can_access_dashboard ?? true,
-          canAccessSeniorsList: match?.permissions.canAccessSeniorsList ?? row.can_access_seniors_list ?? true,
-          canAccessSeniorProfile: match?.permissions.canAccessSeniorProfile ?? row.can_access_senior_profile ?? true,
-          canAccessRegister: match?.permissions.canAccessRegister ?? row.can_access_register ?? (row.can_create_senior || isSuperAdmin),
-          canAccessReports: match?.permissions.canAccessReports ?? row.can_access_reports ?? (row.can_generate_reports || isSuperAdmin),
-          canAccessSMSCenter: match?.permissions.canAccessSMSCenter ?? row.can_access_sms_center ?? (row.can_send_sms || isSuperAdmin),
-          canAccessUserManagement: match?.permissions.canAccessUserManagement ?? row.can_access_user_management ?? (row.can_manage_users || isSuperAdmin),
-          canAccessFindUser: match?.permissions.canAccessFindUser ?? row.can_access_find_user ?? true,
-          canAccessConfiguration: match?.permissions.canAccessConfiguration ?? row.can_access_configuration ?? (row.can_manage_users || isSuperAdmin),
-          canAccessMapping: match?.permissions.canAccessMapping ?? row.can_access_mapping ?? true,
+          canAccessDashboard: isSuperAdmin || resolvePermission(match?.permissions.canAccessDashboard, row.can_access_dashboard, true),
+          canAccessSeniorsList: isSuperAdmin || resolvePermission(match?.permissions.canAccessSeniorsList, row.can_access_seniors_list, true),
+          canAccessSeniorProfile: isSuperAdmin || resolvePermission(match?.permissions.canAccessSeniorProfile, row.can_access_senior_profile, true),
+          canAccessRegister: isSuperAdmin || resolvePermission(match?.permissions.canAccessRegister, row.can_access_register, !!row.can_create_senior),
+          canAccessReports: isSuperAdmin || resolvePermission(match?.permissions.canAccessReports, row.can_access_reports, !!row.can_generate_reports),
+          canAccessSMSCenter: isSuperAdmin || resolvePermission(match?.permissions.canAccessSMSCenter, row.can_access_sms_center, !!row.can_send_sms),
+          canAccessUserManagement: isSuperAdmin || resolvePermission(match?.permissions.canAccessUserManagement, row.can_access_user_management, !!row.can_manage_users),
+          canAccessFindUser: isSuperAdmin || resolvePermission(match?.permissions.canAccessFindUser, row.can_access_find_user, true),
+          canAccessConfiguration: isSuperAdmin || resolvePermission(match?.permissions.canAccessConfiguration, row.can_access_configuration, !!row.can_manage_users),
+          canAccessMapping: isSuperAdmin || resolvePermission(match?.permissions.canAccessMapping, row.can_access_mapping, true),
         },
       };
     });

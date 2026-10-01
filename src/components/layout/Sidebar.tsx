@@ -19,7 +19,7 @@ import {
 
 export default function Sidebar() {
   const { currentPage, setCurrentPage, sidebarOpen, toggleSidebar } = useUIStore();
-  const { currentUser, logout, hasPermission, roles } = useAuthStore();
+  const { currentUser, logout, hasPermission } = useAuthStore();
 
   const menuItems = [
     { 
@@ -94,21 +94,6 @@ export default function Sidebar() {
   }, [systemSettingsLoaded, loadSystemSettings]);
 
   const getBrand = (key: string, fallback: string) => sidebarSettings[key] || fallback;
-
-  // Auto-logout if user has no accessible menu items (no permissions)
-  useEffect(() => {
-    if (!currentUser) return;
-    if (roles.length === 0) return; // Wait until roles are loaded
-    const accessibleItems = menuItems.filter((item) => hasPermission(item.permission));
-    if (accessibleItems.length === 0) {
-      console.log('[SECURITY] User has no accessible pages. Auto-logging out.');
-      const doLogout = async () => {
-        await logout();
-        window.location.reload();
-      };
-      doLogout();
-    }
-  }, [currentUser, roles]);
 
   const handleLogout = async () => {
     await logout();

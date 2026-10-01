@@ -546,7 +546,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = get().currentUser;
     if (!user) return false;
 
-    const roleDef = get().roles.find((r) => r.role === user.role);
+    const normalizeRole = (role: string) => {
+      const normalized = role.replace(/[^a-z0-9]/gi, '').toLowerCase();
+      const legacyAliases: Record<string, string> = {
+        barangayencoder: 'brgyencoder',
+        barangayadmin: 'brgyadmin',
+        mswdoofficer: 'brgyadmin',
+        viewer: 'generalviewer',
+      };
+      return legacyAliases[normalized] ?? normalized;
+    };
+
+    const normalizedUserRole = normalizeRole(user.role);
+    const isSuperAdmin = normalizedUserRole === 'superadmin';
+    if (isSuperAdmin) return true;
+
+    const roleDef = get().roles.find((r) => normalizeRole(r.role) === normalizedUserRole);
     if (!roleDef) return false;
 
     return roleDef.permissions[permissionName] ?? false;

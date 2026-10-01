@@ -2639,7 +2639,7 @@ export default function ConfigurationPage() {
 
   ) => {
 
-    if (roleName === "super-admin") return;
+    if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") return;
 
     setRoles((prev) =>
 
@@ -2675,7 +2675,7 @@ export default function ConfigurationPage() {
 
   const setAllPermissionsForRole = (roleName: string, value: boolean) => {
 
-    if (roleName === "super-admin") return;
+    if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") return;
 
     setRoles((prev) =>
 
@@ -3167,7 +3167,7 @@ export default function ConfigurationPage() {
 
   const handleDeleteRole = (roleName: string) => {
 
-    if (roleName === "super-admin") {
+    if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") {
 
       showToast("Cannot delete the super-admin role.", "error");
 
@@ -3249,13 +3249,47 @@ export default function ConfigurationPage() {
 
         can_edit_senior: r.permissions.canEditSenior,
 
+        can_delete_senior: r.permissions.canDeleteSenior,
+
         can_approve_reject: r.permissions.canApproveReject,
+
+        can_view_users: r.permissions.canViewUsers,
+
+        can_create_user: r.permissions.canCreateUser,
+
+        can_edit_user: r.permissions.canEditUser,
+
+        can_delete_user: r.permissions.canDeleteUser,
 
         can_manage_users: r.permissions.canManageUsers,
 
         can_generate_reports: r.permissions.canGenerateReports,
 
+        can_delete_reports: r.permissions.canDeleteReports,
+
         can_send_sms: r.permissions.canSendSMS,
+
+        can_manage_notifications: r.permissions.canManageNotifications,
+
+        can_access_dashboard: r.permissions.canAccessDashboard,
+
+        can_access_seniors_list: r.permissions.canAccessSeniorsList,
+
+        can_access_senior_profile: r.permissions.canAccessSeniorProfile,
+
+        can_access_register: r.permissions.canAccessRegister,
+
+        can_access_reports: r.permissions.canAccessReports,
+
+        can_access_sms_center: r.permissions.canAccessSMSCenter,
+
+        can_access_user_management: r.permissions.canAccessUserManagement,
+
+        can_access_find_user: r.permissions.canAccessFindUser,
+
+        can_access_configuration: r.permissions.canAccessConfiguration,
+
+        can_access_mapping: r.permissions.canAccessMapping,
 
       }));
 
@@ -3267,9 +3301,10 @@ export default function ConfigurationPage() {
 
 
 
-      // Re-initialize auth store roles
-
-      await useAuthStore.getState().initialize();
+      // Refresh roles immediately. initialize() is intentionally a one-time
+      // bootstrap, so it cannot be used to reload a saved role configuration.
+      const refreshedRoles = await rolesService.getAll();
+      useAuthStore.setState({ roles: refreshedRoles });
 
 
 
@@ -3845,7 +3880,7 @@ export default function ConfigurationPage() {
 
 
 
-                  const isSuperAdmin = activeRole.role === "super-admin";
+                  const isSuperAdmin = activeRole.role.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin";
 
                   const groups = [
 
@@ -4323,7 +4358,7 @@ export default function ConfigurationPage() {
 
                                 }
 
-                                disabled={role.role === "super-admin"}
+                                disabled={role.role.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin"}
 
                                 className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all cursor-pointer disabled:cursor-not-allowed ${
 
@@ -4379,7 +4414,7 @@ export default function ConfigurationPage() {
 
                           <td className="py-3 px-2 text-center">
 
-                            {role.role !== "super-admin" ? (
+                            {role.role.replace(/[^a-z0-9]/gi, "").toLowerCase() !== "superadmin" ? (
 
                               <button
 
