@@ -355679,7 +355679,7 @@ export default function LoginPage() {
 
 
 
-                    Digital OSCA ID Card (SOON)
+                    OSCA ID Card
 
 
 
@@ -361379,7 +361379,7 @@ export default function LoginPage() {
 
 
 
-                    currently developing a Digital OSCA ID Card, which will
+                    issuing a standard OSCA ID card, which will
 
 
 
@@ -723918,7 +723918,7 @@ export default function LoginPage() {
 
 
 
-                      your Digital OSCA ID Card.
+                      your OSCA ID Card.
 
 
 
