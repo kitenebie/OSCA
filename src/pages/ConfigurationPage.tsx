@@ -42,6 +42,8 @@ import {
 
 } from "../utils/theme";
 
+import { isSuperAdmin } from "../utils/dataAccess";
+
 import {
 
   HelpCircle,
@@ -983,6 +985,8 @@ export default function ConfigurationPage() {
   }, []);
 
   const { hasPermission, currentUser } = useAuthStore();
+
+  const userIsSuperAdmin = isSuperAdmin(currentUser?.role);
 
   const { updateSystemSettings: updateGlobalSettings, updateIdCardConfig: updateGlobalIdConfig } = useSettingsStore();
 
@@ -2506,7 +2510,7 @@ export default function ConfigurationPage() {
 
     "roles" | "id_config" | "appearance" | "biometrics" | "fingerprint_settings" | "system_settings" | "constant"
 
-  >("roles");
+  >(userIsSuperAdmin ? "roles" : "appearance");
 
 
 
@@ -2570,7 +2574,7 @@ export default function ConfigurationPage() {
 
   // Fetch barangays when Constant tab is active
   useEffect(() => {
-    if (activeConfigTab === 'constant') {
+    if (userIsSuperAdmin && activeConfigTab === 'constant') {
       setConstLoading(true);
       barangaysService.getAll()
         .then((data) => setConstBarangays(data.map(b => ({ id: b.id, name: b.name }))))
@@ -2582,7 +2586,15 @@ export default function ConfigurationPage() {
       });
       return () => { unsub(); };
     }
-  }, [activeConfigTab]);
+  }, [activeConfigTab, userIsSuperAdmin]);
+
+  // A role may be updated while this page is open. Never leave a non-super
+  // admin on a tab that is reserved for Super Admins.
+  useEffect(() => {
+    if (!userIsSuperAdmin && ["roles", "id_config", "system_settings", "constant"].includes(activeConfigTab)) {
+      setActiveConfigTab("appearance");
+    }
+  }, [activeConfigTab, userIsSuperAdmin]);
 
   const handleAddBarangay = async () => {
     const trimmed = newBarangayName.trim();
@@ -3342,7 +3354,7 @@ export default function ConfigurationPage() {
 
       {/* Page Title & Tab Navigation */}
 
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col">
 
         <div className="p-5 border-b border-slate-100 dark:border-slate-700">
 
@@ -3360,9 +3372,11 @@ export default function ConfigurationPage() {
 
           </p>
 
+        </div>
+
       {/* ====== TAB: CONSTANT ====== */}
-      {activeConfigTab === "constant" && (
-        <div className="space-y-6 px-6 pb-8">
+      {userIsSuperAdmin && activeConfigTab === "constant" && (
+        <div className="order-3 space-y-6 px-6 pb-8">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -3490,13 +3504,9 @@ export default function ConfigurationPage() {
         </div>
       )}
 
-    </div>
-
-
-
         {/* Tab Bar */}
 
-        <div className="flex overflow-x-auto px-4 py-2 gap-1 bg-slate-50/50 dark:bg-slate-900/50">
+        <div className="order-2 flex overflow-x-auto px-4 py-2 gap-1 bg-slate-50/50 dark:bg-slate-900/50">
 
           {[
 
@@ -3568,7 +3578,7 @@ export default function ConfigurationPage() {
               icon: Landmark,
             },
 
-          ].map((tab) => {
+          ].filter((tab) => userIsSuperAdmin || !["roles", "id_config", "system_settings", "constant"].includes(tab.id)).map((tab) => {
 
             const Icon = tab.icon;
 
@@ -3618,7 +3628,7 @@ export default function ConfigurationPage() {
 
       {/* ====== TAB: ROLE CONFIGURATION ====== */}
 
-      {activeConfigTab === "roles" && (
+      {userIsSuperAdmin && activeConfigTab === "roles" && (
 
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
 
@@ -4500,7 +4510,7 @@ export default function ConfigurationPage() {
 
       {/* ====== TAB: ID CARD CONFIGURATION ====== */}
 
-      {activeConfigTab === "id_config" && (
+      {userIsSuperAdmin && activeConfigTab === "id_config" && (
 
         <UsbSignaturePadProvider>
 
@@ -6456,7 +6466,7 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
       {/* ====== TAB: SYSTEM SETTINGS ====== */}
 
-      {activeConfigTab === "system_settings" && (
+      {userIsSuperAdmin && activeConfigTab === "system_settings" && (
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 shadow-sm overflow-hidden">
 
