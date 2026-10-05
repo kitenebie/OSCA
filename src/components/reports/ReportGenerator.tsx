@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
@@ -57,6 +57,9 @@ const partitionSeniors = (items: SeniorCitizen[]) => {
 export default function ReportGenerator() {
   const { barangays: barangaysData } = useBarangays();
   const seniors         = useSeniorsStore((state) => state.seniors);
+  const isLoading       = useSeniorsStore((state) => state.isLoading);
+  const isInitialized   = useSeniorsStore((state) => state.isInitialized);
+  const refreshSeniors  = useSeniorsStore((state) => state.refreshSeniors);
   const showToast       = useUIStore((state) => state.showToast);
   const { currentUser } = useAuthStore();
 
@@ -69,7 +72,14 @@ export default function ReportGenerator() {
   const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevBlobRef  = useRef<string | null>(null);
 
-  const filteredSeniors = seniors.filter((s) => {
+  useEffect(() => {
+    if (!currentUser) return;
+    void refreshSeniors(currentUser).catch(() => {
+      showToast('Unable to fetch the latest masterlist records.', 'error');
+    });
+  }, [currentUser?.id, currentUser?.role, currentUser?.barangayAssigned, refreshSeniors, showToast]);
+
+  const filteredSeniors = useMemo(() => seniors.filter((s) => {
     const matchBarangay = filterBarangay === 'All' || s.barangay === filterBarangay;
     const matchStatus = selectedTemplate === 'social-pension' || selectedTemplate === 'deceased'
       ? true
@@ -80,7 +90,7 @@ export default function ReportGenerator() {
         ? s.isDeceased || s.status === 'Deceased'
         : true;
     return matchBarangay && matchStatus && isTemplateMatch;
-  });
+  }), [seniors, filterBarangay, filterStatus, selectedTemplate]);
 
   const reportTitle = selectedTemplate === 'master'
     ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS'
@@ -91,17 +101,21 @@ export default function ReportGenerator() {
         : 'MASTERLIST OF DECEASED SENIOR CITIZENS';
 
   const generatePreview = useCallback(async () => {
-    if (filteredSeniors.length === 0) { setPdfBlobUrl(null); return; }
+    if (isLoading || !isInitialized || filteredSeniors.length === 0) { setPdfBlobUrl(null); return; }
     setIsGenerating(true);
-    await new Promise((r) => setTimeout(r, 500));
-    // Revoke previous blob URL to free memory
-    if (prevBlobRef.current) URL.revokeObjectURL(prevBlobRef.current);
-    const url = await generatePDFBlobUrl(HIDDEN_SHEET_ID, 'p', 'a4');
-    prevBlobRef.current = url;
-    setPdfBlobUrl(url);
-    setIsGenerating(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTemplate, filterBarangay, filterStatus, seniors.length]);
+    try {
+      await new Promise((r) => setTimeout(r, 500));
+      const url = await generatePDFBlobUrl(HIDDEN_SHEET_ID, 'p', 'a4');
+      if (prevBlobRef.current) URL.revokeObjectURL(prevBlobRef.current);
+      prevBlobRef.current = url;
+      setPdfBlobUrl(url);
+    } catch (error) {
+      console.error('Failed to generate masterlist preview:', error);
+      showToast('Unable to generate the masterlist preview.', 'error');
+    } finally {
+      setIsGenerating(false);
+    }
+  }, [filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -452,6 +466,11 @@ export default function ReportGenerator() {
                 <RefreshCw size={28} className="animate-spin text-teal-500" />
                 <p className="text-xs font-semibold">Generating PDF preview...</p>
                 <p className="text-[10px] text-slate-300">Please wait</p>
+              </div>
+            ) : isLoading || !isInitialized ? (
+              <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">
+                <RefreshCw size={28} className="animate-spin text-teal-500" />
+                <p className="text-xs font-semibold">Loading latest masterlist records...</p>
               </div>
             ) : filteredSeniors.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">

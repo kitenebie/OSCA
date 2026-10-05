@@ -18,6 +18,7 @@ interface SeniorsState {
 
   // Init & realtime
   initialize: (user: User) => Promise<void>;
+  refreshSeniors: (user: User) => Promise<void>;
 
   setSearchQuery: (query: string) => void;
   setSelectedBarangay: (brgy: string) => void;
@@ -79,6 +80,20 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     } catch (error) {
       console.error('Failed to initialize seniors store:', error);
       set({ isLoading: false });
+    }
+  },
+
+  refreshSeniors: async (user) => {
+    const barangayScope = getBarangayScope(user);
+    const accessScopeKey = `${user.id}:${barangayScope ?? 'none'}:${barangayScope === undefined ? 'all' : 'scoped'}`;
+    set({ isLoading: true });
+    try {
+      const seniors = await seniorsService.getAll(barangayScope);
+      set({ seniors, isInitialized: true, accessScopeKey, isLoading: false });
+    } catch (error) {
+      console.error('Failed to refresh senior records:', error);
+      set({ isLoading: false });
+      throw error;
     }
   },
 

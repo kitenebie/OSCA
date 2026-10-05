@@ -565,3 +565,25 @@ textarea {
 .docx-preview-container table th {
   border: 1px solid #000;
 }
+
+/* Documents are print artifacts, so keep their paper colors in dark mode. */
+html.dark .doc-preview,
+html.dark .docx-preview-container .docx-wrapper > section.docx,
+html.dark iframe[title$="PDF Preview"] {
+  color-scheme: light;
+}
+
+html.dark .doc-preview table th,
+html.dark .docx-preview-container table th {
+  background: #fff !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+html.dark .doc-preview table td,
+html.dark .docx-preview-container table td,
+html.dark .docx-preview-container .docx-wrapper > section.docx {
+  color: #000 !important;
+  background-color: #fff !important;
+  border-color: #000 !important;
+}

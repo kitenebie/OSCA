@@ -367,6 +367,15 @@ export default function SeniorsListPage() {
 
   const [rejectionReason, setRejectionReason] = useState("");
 
+  const getStatusOptionClass = (status: string, selected: string, idle: string) => {
+    const isSelected = newStatus === status;
+    const hasAnotherSelection = Boolean(newStatus) && !isSelected;
+    return `${isSelected
+      ? `${selected} ring-2 ring-offset-2 ring-slate-800 dark:ring-white scale-[1.02] shadow-md`
+      : `${idle} ${hasAnotherSelection ? 'opacity-40 saturate-50 hover:opacity-65' : ''}`
+    } cursor-pointer`;
+  };
+
   // Status Timeline Help Modal
   const [showStatusHelp, setShowStatusHelp] = useState(false);
 
@@ -1328,11 +1337,8 @@ export default function SeniorsListPage() {
                     <button
                       key={opt.label}
                       onClick={() => setNewStatus(opt.label)}
-                      className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${baseColors[opt.color]} ${
-                        newStatus === opt.label
-                          ? "ring-2 ring-offset-2 ring-slate-800 dark:ring-white scale-[1.02] cursor-pointer"
-                          : "cursor-pointer"
-                      }`}
+                      aria-pressed={newStatus === opt.label}
+                      className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${getStatusOptionClass(opt.label, baseColors[opt.color], baseColors[opt.color])}`}
                     >
                       {opt.label}
                     </button>
@@ -1347,11 +1353,8 @@ export default function SeniorsListPage() {
               </div>
               <button
                 onClick={() => setNewStatus("For Verification")}
-                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all bg-blue-500 hover:bg-blue-600 text-white ${
-                  newStatus === "For Verification"
-                    ? "ring-2 ring-offset-2 ring-slate-800 dark:ring-white scale-[1.02] cursor-pointer"
-                    : "cursor-pointer"
-                }`}
+                aria-pressed={newStatus === "For Verification"}
+                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${getStatusOptionClass("For Verification", "bg-blue-500 text-white", "bg-blue-500 hover:bg-blue-600 text-white")}`}
               >
                 For Verification
               </button>
@@ -1366,11 +1369,8 @@ export default function SeniorsListPage() {
                   </div>
                   <button
                     onClick={() => setNewStatus("Rejected")}
-                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${
-                      newStatus === "Rejected"
-                        ? "bg-red-500 text-white scale-[1.02] cursor-pointer"
-                        : "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
-                    }`}
+                    aria-pressed={newStatus === "Rejected"}
+                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${getStatusOptionClass("Rejected", "bg-red-500 text-white", "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20")}`}
                   >
                     Rejected
                   </button>
@@ -1408,21 +1408,15 @@ export default function SeniorsListPage() {
               </div>
               <button
                 onClick={() => setNewStatus("Deactivated")}
-                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${
-                  newStatus === "Deactivated"
-                    ? "bg-red-500 text-white scale-[1.02] cursor-pointer"
-                    : "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
-                }`}
+                aria-pressed={newStatus === "Deactivated"}
+                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${getStatusOptionClass("Deactivated", "bg-red-500 text-white", "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20")}`}
               >
                 Deactivated
               </button>
               <button
                 onClick={() => setNewStatus("Deceased")}
-                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${
-                  newStatus === "Deceased"
-                    ? "bg-red-500 text-white scale-[1.02] cursor-pointer"
-                    : "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 cursor-pointer"
-                }`}
+                aria-pressed={newStatus === "Deceased"}
+                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${getStatusOptionClass("Deceased", "bg-red-500 text-white", "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20")}`}
               >
                 Deceased
               </button>
