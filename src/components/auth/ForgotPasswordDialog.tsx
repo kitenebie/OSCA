@@ -31,7 +31,7 @@ export default function ForgotPasswordDialog({ isOpen, onClose }: Props) {
     console.info('[password-reset] Sending request', { functionName });
     const { error } = await supabase.functions.invoke(
       functionName,
-      { body: isResetFlow ? { token, password } : { email } },
+      { body: isResetFlow ? { token, newPassword: password } : { email } },
     );
     setBusy(false);
     if (error) {
