@@ -5,6 +5,8 @@ interface StepProps {
   form: any;
   setForm: (f: any) => void;
   previewOscaNumber: string;
+  originalForm?: Record<string, any>;
+  isEditMode?: boolean;
 }
 
 const ReviewField = ({ label, value }: { label: string; value: any }) => (
@@ -45,7 +47,20 @@ const SignaturePreview = ({ src, alt }: { src: string | null | undefined; alt: s
   )
 );
 
-export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepProps) {
+const formatComparisonValue = (key: string, value: any) => {
+  if (value === null || value === undefined || value === '') return 'N/A';
+  if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+  if (/(photo|signature|fingerprint|thumbprint)/i.test(key)) return value ? 'On file' : 'Not provided';
+  if (Array.isArray(value)) return value.every((item) => typeof item !== 'object') ? value.join(', ') || 'None' : `${value.length} entr${value.length === 1 ? 'y' : 'ies'}`;
+  if (typeof value === 'object') return 'Details saved';
+  return String(value);
+};
+
+export default function ReviewSubmit({ form, setForm, previewOscaNumber, originalForm, isEditMode }: StepProps) {
+  const changes = isEditMode && originalForm
+    ? Object.entries(form).filter(([key, value]) => !key.startsWith('_') && JSON.stringify(value) !== JSON.stringify(originalForm[key]))
+    : [];
+
   return (
     <div className="space-y-6 max-w-full animate-fadeIn">
       {/* Header */}
@@ -65,6 +80,30 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber }: StepP
         </div>
         <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-teal-600 text-white uppercase">Auto-generated</span>
       </div>
+
+      {isEditMode && (
+        <ReviewSection title="Current Record vs Changes">
+          {changes.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {changes.map(([key, value]) => (
+                <div key={key} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <h6 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (letter) => letter.toUpperCase())}</h6>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="min-w-0">
+                      <span className="block text-[10px] font-semibold uppercase text-slate-400">Current</span>
+                      <span className="break-words text-sm text-slate-700">{formatComparisonValue(key, originalForm?.[key])}</span>
+                    </div>
+                    <div className="min-w-0">
+                      <span className="flex items-center gap-1 text-[10px] font-semibold uppercase text-slate-400">Changes <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold text-amber-700">Changed</span></span>
+                      <span className="break-words text-sm font-semibold text-slate-800">{formatComparisonValue(key, value)}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : <p className="text-sm text-slate-500">No changes made to this record.</p>}
+        </ReviewSection>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* ===== I. IDENTIFYING INFORMATION ===== */}
