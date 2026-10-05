@@ -16,7 +16,7 @@ Deno.serve(async (request) => {
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`;
     await admin.from('password_reset_tokens').delete().eq('user_id', user.id).is('used_at', null);
     await admin.from('password_reset_tokens').insert({ user_id: user.id, token_hash: await sha256(token), expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() });
-    const appUrl = (Deno.env.get('APP_URL') || 'https://me.oscajuban.online').replace(/\/$/, '');
+    const appUrl = (Deno.env.get('APP_URL')).replace(/\/$/, '');
     const link = `${appUrl}/?reset_token=${encodeURIComponent(token)}`;
     await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
     <!DOCTYPE html>
