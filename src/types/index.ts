@@ -134,6 +134,7 @@ export interface SeniorCitizen {
   interviewerName?: string;
   interviewerOrganization?: string;
   interviewDate?: string;
+  interviewPlace?: string;
   ncscReferenceCode?: string;
 
 
@@ -237,6 +238,20 @@ export interface AuditLogNotification {
   timestamp: string;
   read: boolean;
   severity: 'info' | 'success' | 'warning' | 'danger';
+}
+
+export interface SeniorRecordHistory {
+  id: string;
+  seniorId: string;
+  seniorName: string;
+  oscaNumber: string;
+  barangay: string;
+  action: 'CREATE' | 'UPDATE';
+  previousData: Record<string, unknown> | null;
+  currentData: Record<string, unknown>;
+  changes: Record<string, { previous: unknown; current: unknown }>;
+  changedBy?: string;
+  changedAt: string;
 }
 
 export interface ReportTemplate {

@@ -1,5 +1,5 @@
 import { supabase } from '../../utils/supabase';
-import { SeniorCitizen, User, Benefit, SMSLog, Barangay, RolePermission, ReportTemplate, AuditLogNotification, NCSCDataForm, CentenarianApplication } from '../types';
+import { SeniorCitizen, User, Benefit, SMSLog, Barangay, RolePermission, ReportTemplate, AuditLogNotification, SeniorRecordHistory, NCSCDataForm, CentenarianApplication } from '../types';
 
 // ============================================================
 // TYPE MAPPERS (DB snake_case → App camelCase)
@@ -127,6 +127,7 @@ function mapSeniorFromDB(row: any): SeniorCitizen {
     interviewerName: row.interviewer_name || '',
     interviewerOrganization: row.interviewer_organization || '',
     interviewDate: row.interview_date || '',
+    interviewPlace: row.interview_place || '',
     ncscReferenceCode: row.ncsc_reference_code || '',
 
     // Deceased / Vital Status
@@ -261,6 +262,7 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.interviewerName !== undefined) mapped.interviewer_name = senior.interviewerName;
   if (senior.interviewerOrganization !== undefined) mapped.interviewer_organization = senior.interviewerOrganization;
   if (senior.interviewDate !== undefined) mapped.interview_date = senior.interviewDate;
+  if (senior.interviewPlace !== undefined) mapped.interview_place = senior.interviewPlace;
   if (senior.ncscReferenceCode !== undefined) mapped.ncsc_reference_code = senior.ncscReferenceCode;
 
   if (senior.isDeceased !== undefined) mapped.is_deceased = senior.isDeceased;
@@ -1009,6 +1011,29 @@ export const auditLogsService = {
       await supabase.from('audit_logs').delete().neq('id', '');
     } catch { /* ignore */ }
     window.dispatchEvent(new CustomEvent('osca-audit-log-new'));
+  },
+};
+
+export const seniorRecordHistoryService = {
+  async getAll(): Promise<SeniorRecordHistory[]> {
+    const { data, error } = await supabase
+      .from('seniors_record_history')
+      .select('*')
+      .order('changed_at', { ascending: false });
+    if (error) throw error;
+    return (data || []).map((row: any) => ({
+      id: row.id,
+      seniorId: row.senior_id,
+      seniorName: row.senior_name,
+      oscaNumber: row.osca_number || '',
+      barangay: row.barangay || '',
+      action: row.action,
+      previousData: row.previous_data,
+      currentData: row.current_data,
+      changes: row.changes || {},
+      changedBy: row.changed_by || undefined,
+      changedAt: row.changed_at,
+    }));
   },
 };
 
