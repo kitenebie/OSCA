@@ -57,6 +57,7 @@ export default function SeniorsListPage() {
     selectedPension,
     setSelectedPension,
     updateSenior,
+    rejectSenior,
     deleteSenior,
   } = useSeniorsStore();
 
@@ -364,6 +365,8 @@ export default function SeniorsListPage() {
 
   const [newStatus, setNewStatus] = useState<string>("");
 
+  const [rejectionReason, setRejectionReason] = useState("");
+
   // Status Timeline Help Modal
   const [showStatusHelp, setShowStatusHelp] = useState(false);
 
@@ -453,6 +456,7 @@ export default function SeniorsListPage() {
     setStatusModal({ open: true, id, name, currentStatus });
 
     setNewStatus(currentStatus);
+    setRejectionReason("");
   };
 
   const handleStatusConfirm = async () => {
@@ -460,7 +464,18 @@ export default function SeniorsListPage() {
 
     try {
       const senior = seniors.find((s) => s.id === statusModal.id);
-      await updateSenior(statusModal.id, { status: newStatus });
+      const officerName = currentUser?.fullName || "OSCA System";
+
+      if (newStatus === "Rejected") {
+        const reason = rejectionReason.trim();
+        if (!reason) {
+          showToast("Please enter the reason for rejection.", "error");
+          return;
+        }
+        await rejectSenior(statusModal.id, reason, officerName);
+      } else {
+        await updateSenior(statusModal.id, { status: newStatus }, officerName);
+      }
 
       if (senior) {
         const hasContactNumber = Boolean(senior.contactNumber?.trim());
@@ -1359,6 +1374,29 @@ export default function SeniorsListPage() {
                   >
                     Rejected
                   </button>
+                  {newStatus === "Rejected" && (
+                    <div className="space-y-1.5 pt-1">
+                      <label
+                        htmlFor="rejection-reason"
+                        className="block text-xs font-bold text-red-700 dark:text-red-300"
+                      >
+                        Reason for rejection <span className="text-red-500">*</span>
+                      </label>
+                      <textarea
+                        id="rejection-reason"
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Enter the reason for rejecting this registration"
+                        rows={3}
+                        maxLength={500}
+                        autoFocus
+                        className="w-full resize-none rounded-xl border border-red-200 bg-red-50/50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-800 dark:bg-red-950/20 dark:text-slate-100"
+                      />
+                      <p className="text-[10px] text-slate-400">
+                        This reason will be saved in the senior record and shown when the profile is viewed.
+                      </p>
+                    </div>
+                  )}
                 </>
               )}
 
@@ -1407,10 +1445,13 @@ export default function SeniorsListPage() {
 
               <button
                 onClick={handleStatusConfirm}
-                disabled={newStatus === statusModal.currentStatus}
+                disabled={
+                  newStatus === statusModal.currentStatus ||
+                  (newStatus === "Rejected" && !rejectionReason.trim())
+                }
                 className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                Update Status
+                {newStatus === "Rejected" ? "Submit Rejection" : "Update Status"}
               </button>
             </div>
           </div>
