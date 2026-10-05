@@ -566,8 +566,8 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Mobile No. <span className="text-red-500">*</span></label>
 
-                    <input type="tel" required value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value.replace(/\D/g, '').slice(0, 11) })} onBlur={() => markTouched('contactNumber')} placeholder="09123456789" maxLength={11} className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('contactNumber') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} />
-                    {form.contactNumber && (form.contactNumber.length !== 11 || !form.contactNumber.startsWith('09')) && <p className="text-red-500 text-xs mt-1">Format: 09XXXXXXXXX (11 digits, starts with 09)</p>}
+                    <input type="tel" inputMode="numeric" required value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value.replace(/\D/g, '').slice(0, 12) })} onBlur={() => markTouched('contactNumber')} placeholder="091234567890" maxLength={12} pattern="09[0-9]{10}" title="Enter exactly 12 digits starting with 09." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('contactNumber') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} />
+                    {form.contactNumber && !/^09\d{10}$/.test(form.contactNumber) && <p className="text-red-500 text-xs mt-1">Format: 09XXXXXXXXXX (12 digits, starts with 09)</p>}
 
                   </div>
 
@@ -583,7 +583,8 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Email Address</label>
 
-                    <input type="email" value={form.emailAddress} onChange={(e) => setForm({ ...form, emailAddress: e.target.value })} placeholder="email@example.com" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="email" value={form.emailAddress} onChange={(e) => setForm({ ...form, emailAddress: e.target.value })} onBlur={() => markTouched('emailAddress')} placeholder="email@example.com" maxLength={254} autoComplete="email" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emailAddress') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    {form.emailAddress.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.emailAddress.trim()) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address.</p>}
 
                   </div>
 
@@ -755,8 +756,8 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Emergency Contact Phone</label>
 
-                    <input type="tel" value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value.replace(/\D/g, '').slice(0, 11) })} placeholder="09123456789" maxLength={11} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
-                    {form.emergencyContactPhone && (form.emergencyContactPhone.length !== 11 || !form.emergencyContactPhone.startsWith('09')) && <p className="text-red-500 text-xs mt-1">Format: 09XXXXXXXXX (11 digits, starts with 09)</p>}
+                    <input type="tel" inputMode="numeric" value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value.replace(/\D/g, '').slice(0, 12) })} onBlur={() => markTouched('emergencyContactPhone')} placeholder="091234567890" maxLength={12} pattern="09[0-9]{10}" title="Enter exactly 12 digits starting with 09." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emergencyContactPhone') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} />
+                    {form.emergencyContactPhone && !/^09\d{10}$/.test(form.emergencyContactPhone) && <p className="text-red-500 text-xs mt-1">Format: 09XXXXXXXXXX (12 digits, starts with 09)</p>}
 
                   </div>
 

@@ -59,6 +59,31 @@ function validatePassword(password: string): PasswordValidation {
   };
 }
 
+function validateUserDetails(user: { fullName: string; username: string; email: string; contactNumber: string }): string | null {
+  const fullName = user.fullName.trim();
+  const username = user.username.trim().toLowerCase();
+  const email = user.email.trim();
+  const contactNumber = user.contactNumber.trim();
+
+  if (fullName.length < 2 || fullName.length > 100 || !/^[\p{L}\p{M}]+(?:[ .'-][\p{L}\p{M}]+)*\.?$/u.test(fullName)) {
+    return 'Enter a valid name using letters, spaces, periods, apostrophes, or hyphens.';
+  }
+  if (!/^[a-z0-9][a-z0-9._-]{2,31}$/.test(username)) {
+    return 'Username must be 3–32 characters and use only letters, numbers, dots, underscores, or hyphens.';
+  }
+  if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    return 'Enter a valid email address.';
+  }
+  if (!/^09\d{10}$/.test(contactNumber)) {
+    return 'Mobile number must be exactly 12 digits and start with 09.';
+  }
+  return null;
+}
+
+const filterNameInput = (value: string) => value.replace(/[^\p{L}\p{M} .'-]/gu, '').slice(0, 100);
+const filterUsernameInput = (value: string) => value.toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 32);
+const filterMobileInput = (value: string) => value.replace(/\D/g, '').slice(0, 12);
+
 // Password strength indicator component
 function PasswordStrengthIndicator({ validation }: { validation: PasswordValidation }) {
   const checks = [
@@ -262,6 +287,23 @@ export default function UserManagement() {
     e.preventDefault();
     if (!editModal.user) return;
 
+    const normalizedForm = {
+      ...editForm,
+      fullName: editForm.fullName.trim(),
+      username: editForm.username.trim().toLowerCase(),
+      email: editForm.email.trim().toLowerCase(),
+      contactNumber: editForm.contactNumber.trim(),
+    };
+    const detailsError = validateUserDetails(normalizedForm);
+    if (detailsError) {
+      showToast(detailsError, 'error');
+      return;
+    }
+    if (users.some((user) => user.id !== editModal.user!.id && user.username.toLowerCase() === normalizedForm.username)) {
+      showToast('Error: This username is already registered.', 'error');
+      return;
+    }
+
     // If password fields are filled, validate
     if (editPassword || editConfirmPassword) {
       const validation = validatePassword(editPassword);
@@ -276,7 +318,7 @@ export default function UserManagement() {
     }
 
     try {
-      const updateData: Record<string, unknown> = { ...editForm };
+      const updateData: Record<string, unknown> = { ...normalizedForm };
 
       // Upload photo if changed
       if (editPhoto && editPhoto.startsWith('data:')) {
@@ -289,7 +331,7 @@ export default function UserManagement() {
         updateData.password = await hashPassword(editPassword);
       }
       await updateUser(editModal.user.id, updateData);
-      showToast(`Successfully updated si ${editForm.fullName}!`, 'success');
+      showToast(`Successfully updated si ${normalizedForm.fullName}!`, 'success');
       setEditModal({ open: false, user: null });
       setEditPassword('');
       setEditConfirmPassword('');
@@ -321,8 +363,20 @@ export default function UserManagement() {
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (users.some((u) => u.username.toLowerCase() === formData.username.toLowerCase())) {
+
+    const normalizedForm = {
+      ...formData,
+      fullName: formData.fullName.trim(),
+      username: formData.username.trim().toLowerCase(),
+      email: formData.email.trim().toLowerCase(),
+      contactNumber: formData.contactNumber.trim(),
+    };
+    const detailsError = validateUserDetails(normalizedForm);
+    if (detailsError) {
+      showToast(detailsError, 'error');
+      return;
+    }
+    if (users.some((u) => u.username.toLowerCase() === normalizedForm.username)) {
       showToast('Error: This username is already registered.', 'error');
       return;
     }
@@ -348,8 +402,8 @@ export default function UserManagement() {
         photoUrl = await uploadUserPhoto(createPhoto, tempId);
       }
 
-      await addUser({ ...formData, password: hashedPw, profilePhoto: photoUrl } as any);
-      showToast(`Successfully added ${formData.fullName}!`, 'success');
+      await addUser({ ...normalizedForm, password: hashedPw, profilePhoto: photoUrl } as any);
+      showToast(`Successfully added ${normalizedForm.fullName}!`, 'success');
       
       // Reset form
       setFormData({
@@ -526,8 +580,11 @@ export default function UserManagement() {
                 <input
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={100}
+                  title="Use letters, spaces, periods, apostrophes, or hyphens."
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, fullName: filterNameInput(e.target.value) })}
                   placeholder="e.g. Maria Clara dela Cruz"
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
@@ -539,8 +596,13 @@ export default function UserManagement() {
                   <input
                     type="text"
                     required
+                    minLength={3}
+                    maxLength={32}
+                    pattern="[A-Za-z0-9._-]{3,32}"
+                    title="Use 3–32 letters, numbers, dots, underscores, or hyphens."
+                    autoCapitalize="none"
                     value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                    onChange={(e) => setFormData({ ...formData, username: filterUsernameInput(e.target.value) })}
                     placeholder="e.g. mclara"
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono"
                   />
@@ -592,8 +654,10 @@ export default function UserManagement() {
                 <input
                   type="email"
                   required
+                  maxLength={254}
+                  autoComplete="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value.toLowerCase() })}
                   placeholder="e.g. m.clara@carmonagov.ph"
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
@@ -602,11 +666,15 @@ export default function UserManagement() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Contact Number</label>
                 <input
-                  type="text"
+                  type="tel"
                   required
+                  inputMode="numeric"
+                  maxLength={12}
+                  pattern="09[0-9]{10}"
+                  title="Enter exactly 12 digits starting with 09."
                   value={formData.contactNumber}
-                  onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
-                  placeholder="e.g. +63 917 111 2222"
+                  onChange={(e) => setFormData({ ...formData, contactNumber: filterMobileInput(e.target.value) })}
+                  placeholder="091234567890"
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
@@ -735,8 +803,11 @@ export default function UserManagement() {
                 <input
                   type="text"
                   required
+                  minLength={2}
+                  maxLength={100}
+                  title="Use letters, spaces, periods, apostrophes, or hyphens."
                   value={editForm.fullName}
-                  onChange={(e) => setEditForm({ ...editForm, fullName: e.target.value })}
+                  onChange={(e) => setEditForm({ ...editForm, fullName: filterNameInput(e.target.value) })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
@@ -747,8 +818,13 @@ export default function UserManagement() {
                   <input
                     type="text"
                     required
+                    minLength={3}
+                    maxLength={32}
+                    pattern="[A-Za-z0-9._-]{3,32}"
+                    title="Use 3–32 letters, numbers, dots, underscores, or hyphens."
+                    autoCapitalize="none"
                     value={editForm.username}
-                    onChange={(e) => setEditForm({ ...editForm, username: e.target.value.toLowerCase().replace(/\s+/g, '') })}
+                    onChange={(e) => setEditForm({ ...editForm, username: filterUsernameInput(e.target.value) })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono"
                   />
                 </div>
@@ -797,8 +873,10 @@ export default function UserManagement() {
                 <input
                   type="email"
                   required
+                  maxLength={254}
+                  autoComplete="email"
                   value={editForm.email}
-                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  onChange={(e) => setEditForm({ ...editForm, email: e.target.value.toLowerCase() })}
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
@@ -807,10 +885,14 @@ export default function UserManagement() {
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Contact Number</label>
                   <input
-                    type="text"
+                    type="tel"
                     required
+                    inputMode="numeric"
+                    maxLength={12}
+                    pattern="09[0-9]{10}"
+                    title="Enter exactly 12 digits starting with 09."
                     value={editForm.contactNumber}
-                    onChange={(e) => setEditForm({ ...editForm, contactNumber: e.target.value })}
+                    onChange={(e) => setEditForm({ ...editForm, contactNumber: filterMobileInput(e.target.value) })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                   />
                 </div>

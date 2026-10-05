@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { UsbSignaturePadProvider } from '../contexts/UsbSignaturePadContext';
 
 
@@ -661,7 +661,16 @@ function SeniorRegistrationWizard() {
 
 
 
-  const isInvalid = (field: string) => touched[field] && !(form as any)[field]?.toString().trim();
+  const isValidMobileNumber = (value: string) => /^09\d{10}$/.test(value);
+  const isValidEmailAddress = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+  const isInvalid = (field: string) => {
+    if (!touched[field]) return false;
+    const value = String((form as any)[field] || '').trim();
+    if (field === 'contactNumber') return !isValidMobileNumber(value);
+    if (field === 'emailAddress') return Boolean(value) && !isValidEmailAddress(value);
+    if (field === 'emergencyContactPhone') return Boolean(value) && !isValidMobileNumber(value);
+    return !value;
+  };
 
 
 
@@ -1252,6 +1261,8 @@ function SeniorRegistrationWizard() {
 
   });
 
+  const originalForm = useRef(form);
+
 
 
   // Dynamic coordinates tracking on Barangay change
@@ -1385,6 +1396,22 @@ function SeniorRegistrationWizard() {
       }
 
 
+
+      if (!isValidMobileNumber(form.contactNumber)) {
+        markTouched('contactNumber');
+        showToast('Mobile number must be exactly 12 digits and start with 09.', 'warning');
+        return false;
+      }
+      if (form.emailAddress.trim() && !isValidEmailAddress(form.emailAddress.trim())) {
+        markTouched('emailAddress');
+        showToast('Please enter a valid email address.', 'warning');
+        return false;
+      }
+      if (form.emergencyContactPhone && !isValidMobileNumber(form.emergencyContactPhone)) {
+        markTouched('emergencyContactPhone');
+        showToast('Emergency mobile number must be exactly 12 digits and start with 09.', 'warning');
+        return false;
+      }
 
       // Birthdate must be at least 60 years old
 
@@ -2862,7 +2889,7 @@ function SeniorRegistrationWizard() {
 
 
 
-          {currentStep === 11 && <ReviewSubmit form={form} setForm={setForm} previewOscaNumber={previewOscaNumber} />}
+          {currentStep === 11 && <ReviewSubmit form={form} setForm={setForm} previewOscaNumber={previewOscaNumber} originalForm={originalForm.current} isEditMode={isEditMode} />}
 
 
 
