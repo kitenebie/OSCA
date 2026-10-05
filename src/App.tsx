@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { userSettingsService } from './services/supabaseService';
 import { useAuthStore } from './store/authStore';
 import { useSeniorsStore } from './store/seniorsStore';
@@ -21,7 +21,7 @@ import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
 import SessionDismissedModal from './components/rbac/SessionDismissedModal';
-import { applySystemTheme } from './utils/theme';
+import { applySystemTheme, getStoredTheme } from './utils/theme';
 import { RolePermission } from './types';
 
 const PAGE_PERMISSIONS: Record<AppPages, keyof RolePermission['permissions']> = {
@@ -60,6 +60,11 @@ export default function App() {
   const initAuth = useAuthStore((s) => s.initialize);
   const initSeniors = useSeniorsStore((s) => s.initialize);
   const [isCheckingSession, setIsCheckingSession] = useState(true);
+
+  // Restore the last cached theme before the logged-out landing page is painted.
+  useLayoutEffect(() => {
+    applySystemTheme(getStoredTheme());
+  }, []);
 
   // Restore the application session before loading barangay-scoped data.
   useEffect(() => {
