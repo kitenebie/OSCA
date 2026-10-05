@@ -3,7 +3,6 @@ import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
-import { formatCurrency } from '../../utils/idGenerator';
 import { exportElementToPDF, generatePDFBlobUrl } from '../../utils/pdfExport';
 import { auditLogsService } from '../../services/supabaseService';
 import { FileDown, Printer, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
@@ -95,7 +94,9 @@ export default function ReportGenerator() {
     const isTemplateMatch = selectedTemplate === 'social-pension'
       ? s.pensionBeneficiary
       : selectedTemplate === 'deceased'
-        ? s.isDeceased || s.status === 'Deceased'
+        ? s.isDeceased && Boolean(s.dateOfDeath)
+        : selectedTemplate === 'pension'
+          ? s.pensionBeneficiary
         : true;
     return matchBarangay && matchStatus && isTemplateMatch;
   }), [seniors, filterBarangay, filterStatus, selectedTemplate]);
@@ -341,13 +342,13 @@ export default function ReportGenerator() {
                         <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
                         <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
-                        <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.dateOfDeath || 'Not recorded'}</td>
+                        <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.dateOfDeath}</td>
                       </tr>)}</tbody>
                     </table>
                   ) : (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Beneficiary Name','Barangay','Age','Qualified Track','SocPen Amount','Status'].map((h) => (
+                        {['OSCA ID','Beneficiary Name','Barangay','Age','Registered','Enrollment','Status'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -358,11 +359,11 @@ export default function ReportGenerator() {
                             <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.firstName} {s.lastName}</td>
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
-                            <td style={{ ...cell, color:'#64748b' }}>{s.pensionBeneficiary ? 'SocPen Indigent Grant' : 'Non-Beneficiary'}</td>
-                            <td style={{ ...cell, textAlign:'right', fontFamily:'monospace', fontWeight:700, color:'#0f766e' }}>{s.pensionBeneficiary ? formatCurrency(1000) : formatCurrency(0)}</td>
+                            <td style={{ ...cell, textAlign:'right', fontFamily:'monospace', color:'#94a3b8' }}>{s.registeredDate}</td>
+                            <td style={{ ...cell, textAlign:'center', fontWeight:700, color:'#0f766e' }}>{s.pensionBeneficiary ? 'Enrolled' : '—'}</td>
                             <td style={{ ...cell, textAlign:'center' }}>
                               <span style={{ fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'3px', textTransform:'uppercase', fontFamily:'monospace', background: s.pensionBeneficiary ? '#f0fdf4' : '#f1f5f9', color: s.pensionBeneficiary ? '#15803d' : '#94a3b8', border: '1px solid ' + (s.pensionBeneficiary ? '#bbf7d0' : '#e2e8f0') }}>
-                                {s.pensionBeneficiary ? 'Eligible' : 'Not Enrolled'}
+                                {s.status}
                               </span>
                             </td>
                           </tr>

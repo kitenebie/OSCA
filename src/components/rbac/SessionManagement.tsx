@@ -406,7 +406,7 @@ export default function SessionManagement() {
       )}
 
       {/* Info Footer */}
-      <div className="flex items-start gap-2 p-3 bg-amber-50/60 border border-amber-100 rounded-xl">
+      <div className="flex items-start gap-2 p-3 border-amber-100 rounded-xl">
         <AlertTriangle size={14} className="text-amber-500 shrink-0 mt-0.5" />
         <div className="text-[11px] text-amber-700 leading-relaxed">
           <strong>Note:</strong> Terminating a session will immediately log out the user on their next activity check (within 30 seconds).

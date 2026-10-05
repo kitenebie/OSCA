@@ -1387,7 +1387,7 @@ export default function SeniorProfilePage() {
 
 
 
-            {senior.isDeceased ? (
+            {senior.isDeceased && senior.dateOfDeath ? (
 
               <div className="mt-4 w-full p-3 rounded-2xl border bg-slate-100 border-slate-300 text-left">
 
@@ -1463,7 +1463,7 @@ export default function SeniorProfilePage() {
 
                     <Skull size={11} />
 
-                    Mark as Deceased
+                    {senior.isDeceased ? 'Add death details' : 'Mark as Deceased'}
 
                   </button>
 

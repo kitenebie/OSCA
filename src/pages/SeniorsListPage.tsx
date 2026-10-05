@@ -371,6 +371,7 @@ export default function SeniorsListPage() {
   const [newStatus, setNewStatus] = useState<string>("");
 
   const [rejectionReason, setRejectionReason] = useState("");
+  const [dateOfDeath, setDateOfDeath] = useState("");
 
   const getStatusOptionClass = (status: string, selected: string, idle: string) => {
     const isSelected = newStatus === status;
@@ -471,6 +472,7 @@ export default function SeniorsListPage() {
 
     setNewStatus(currentStatus);
     setRejectionReason("");
+    setDateOfDeath(seniors.find((senior) => senior.id === id)?.dateOfDeath || "");
   };
 
   const handleStatusConfirm = async () => {
@@ -487,6 +489,12 @@ export default function SeniorsListPage() {
           return;
         }
         await rejectSenior(statusModal.id, reason, officerName);
+      } else if (newStatus === "Deceased") {
+        if (!dateOfDeath) {
+          showToast("Date of death is required for a deceased record.", "error");
+          return;
+        }
+        await updateSenior(statusModal.id, { status: "Deceased", isDeceased: true, dateOfDeath }, officerName);
       } else {
         await updateSenior(statusModal.id, { status: newStatus }, officerName);
       }
@@ -1425,6 +1433,12 @@ export default function SeniorsListPage() {
               >
                 Deceased
               </button>
+              {newStatus === "Deceased" && (
+                <div className="space-y-1.5 pt-1">
+                  <label htmlFor="date-of-death" className="block text-xs font-bold text-slate-700 dark:text-slate-200">Date of death <span className="text-red-500">*</span></label>
+                  <input id="date-of-death" type="date" value={dateOfDeath} onChange={(event) => setDateOfDeath(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm text-slate-700 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -1446,7 +1460,8 @@ export default function SeniorsListPage() {
                 onClick={handleStatusConfirm}
                 disabled={
                   newStatus === statusModal.currentStatus ||
-                  (newStatus === "Rejected" && !rejectionReason.trim())
+                  (newStatus === "Rejected" && !rejectionReason.trim()) ||
+                  (newStatus === "Deceased" && !dateOfDeath)
                 }
                 className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
