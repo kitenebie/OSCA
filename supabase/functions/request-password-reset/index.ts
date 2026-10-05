@@ -31,11 +31,11 @@ Deno.serve(async (request) => {
     const link = `${appUrl}/?reset_token=${encodeURIComponent(token)}`;
     console.log('[password-reset] Email configuration', {
       hasResendApiKey: Boolean(Deno.env.get('RESEND_API_KEY')),
-      from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>',
+      from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <me.oscajuban.online>',
       appUrl,
     });
     try {
-      const { data: emailData, error: emailError } = await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
+      const { data: emailData, error: emailError } = await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <me.oscajuban.online>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
     <!DOCTYPE html>
     <html lang="en">
       <head>
