@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
+import { useSettingsStore } from '../../store/settingsStore';
 import { formatCurrency } from '../../utils/idGenerator';
 import { exportElementToPDF, generatePDFBlobUrl } from '../../utils/pdfExport';
 import { auditLogsService } from '../../services/supabaseService';
@@ -62,15 +63,18 @@ export default function ReportGenerator() {
   const refreshSeniors  = useSeniorsStore((state) => state.refreshSeniors);
   const showToast       = useUIStore((state) => state.showToast);
   const { currentUser } = useAuthStore();
+  const { systemSettings, systemSettingsLoaded, loadSystemSettings } = useSettingsStore();
 
   const [selectedTemplate, setSelectedTemplate] = useState('master');
   const [filterBarangay,   setFilterBarangay]   = useState('All');
-  const [filterStatus,     setFilterStatus]     = useState('Approved');
+  const [filterStatus,     setFilterStatus]     = useState('All');
   const [isRendering,      setIsRendering]      = useState(false);
   const [isGenerating,     setIsGenerating]     = useState(false);
   const [pdfBlobUrl,       setPdfBlobUrl]       = useState<string | null>(null);
   const debounceRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevBlobRef  = useRef<string | null>(null);
+  const systemLogoUrl = systemSettings['logo_url'] || '/juban-logo.png';
+  const faviconUrl = systemSettings['favicon_url'] || '/favicon.ico';
 
   useEffect(() => {
     if (!currentUser) return;
@@ -78,6 +82,10 @@ export default function ReportGenerator() {
       showToast('Unable to fetch the latest masterlist records.', 'error');
     });
   }, [currentUser?.id, currentUser?.role, currentUser?.barangayAssigned, refreshSeniors, showToast]);
+
+  useEffect(() => {
+    if (!systemSettingsLoaded) void loadSystemSettings();
+  }, [systemSettingsLoaded, loadSystemSettings]);
 
   const filteredSeniors = useMemo(() => seniors.filter((s) => {
     const matchBarangay = filterBarangay === 'All' || s.barangay === filterBarangay;
@@ -115,7 +123,7 @@ export default function ReportGenerator() {
     } finally {
       setIsGenerating(false);
     }
-  }, [filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast]);
+  }, [faviconUrl, filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast, systemLogoUrl]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -168,8 +176,15 @@ export default function ReportGenerator() {
   const headerStyle = {
     borderBottom: '2px double #cbd5e1',
     paddingBottom: '20px',
+    position: 'relative' as const,
     textAlign: 'center' as const,
   };
+
+  const reportLogoStyle = { position: 'absolute' as const, top: 0, width: '36px', height: '36px', objectFit: 'contain' as const };
+  const reportLogos = <>
+    <img src={systemLogoUrl} alt="" aria-hidden="true" style={{ ...reportLogoStyle, left: 0 }} />
+    <img src={faviconUrl} alt="" aria-hidden="true" style={{ ...reportLogoStyle, right: 0 }} />
+  </>;
 
   const partitionedPages = partitionSeniors(filteredSeniors);
 
@@ -185,6 +200,7 @@ export default function ReportGenerator() {
           // ─── CENSUS: Single Page ───
           <div className="pdf-page" style={pageStyle}>
             <div style={headerStyle}>
+              {reportLogos}
               <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republic of the Philippines</p>
               <p style={{ fontSize:'10px', fontWeight:900, color:'#0f172a', letterSpacing:'0.08em', textTransform:'uppercase', margin:'3px 0 0' }}>Municipal Social Welfare and Development Office</p>
               <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Municipality of Juban, Province of Sorsogon</p>
@@ -262,6 +278,7 @@ export default function ReportGenerator() {
               <div key={pageIdx} className="pdf-page" style={pageStyle}>
                 {isFirstPage ? (
                   <div style={headerStyle}>
+                    {reportLogos}
                     <p style={{ fontSize:'8px', fontWeight:700, color:'#64748b', letterSpacing:'0.1em', textTransform:'uppercase', margin:0 }}>Republic of the Philippines</p>
                     <p style={{ fontSize:'10px', fontWeight:900, color:'#0f172a', letterSpacing:'0.08em', textTransform:'uppercase', margin:'3px 0 0' }}>Municipal Social Welfare and Development Office</p>
                     <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Municipality of Juban, Province of Sorsogon</p>
