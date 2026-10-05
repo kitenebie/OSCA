@@ -23,11 +23,17 @@ Deno.serve(async (request) => {
 
   const { data: user } = await admin.from('users').select('id, email').ilike('email', normalizedEmail).eq('status', 'Active').maybeSingle();
   if (user) {
+    let emailSendFailed = false;
     const token = `${crypto.randomUUID()}${crypto.randomUUID()}`;
     await admin.from('password_reset_tokens').delete().eq('user_id', user.id).is('used_at', null);
     await admin.from('password_reset_tokens').insert({ user_id: user.id, token_hash: await sha256(token), expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() });
-    const appUrl = (Deno.env.get('APP_URL')).replace(/\/$/, '');
+    const appUrl = (Deno.env.get('APP_URL') || 'https://me.oscajuban.online').replace(/\/$/, '');
     const link = `${appUrl}/?reset_token=${encodeURIComponent(token)}`;
+    console.log('[password-reset] Email configuration', {
+      hasResendApiKey: Boolean(Deno.env.get('RESEND_API_KEY')),
+      from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>',
+      appUrl,
+    });
     try {
       const { data: emailData, error: emailError } = await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
     <!DOCTYPE html>
@@ -327,6 +333,7 @@ Deno.serve(async (request) => {
   ` });
 
       if (emailError) {
+        emailSendFailed = true;
         console.error('[password-reset] Email send failed', {
           recipient: maskEmail(user.email),
           error: emailError.message || String(emailError),
@@ -338,10 +345,17 @@ Deno.serve(async (request) => {
         });
       }
     } catch (error) {
+      emailSendFailed = true;
       console.error('[password-reset] Email send threw an exception', {
         recipient: maskEmail(user.email),
         error: error instanceof Error ? error.message : String(error),
       });
+    }
+    if (emailSendFailed) {
+      return Response.json(
+        { error: 'The password reset email could not be sent.' },
+        { status: 502, headers: cors },
+      );
     }
   } else {
     console.log('[password-reset] No active account found; no email sent', {
