@@ -225,11 +225,12 @@ function startSessionMonitor(store: any) {
     }
   }, 30000); // Every 30 seconds
 
-  // Touch session (update last_activity) every 5 minutes
+  // Keep an active staff session alive. Inactive sessions still expire after
+  // the configured window, and administrators can still terminate them.
   activityTouchInterval = setInterval(async () => {
     const token = getStoredSessionToken();
     if (token) {
-      await sessionService.touchSession(token);
+      await sessionService.extendSession(token);
     }
   }, 5 * 60 * 1000);
 }

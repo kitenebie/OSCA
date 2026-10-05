@@ -12,6 +12,7 @@ export type AppPages =
   | 'Configuration'
   | 'Mapping'
   | 'GranteeClaimForms'
+  | 'AuditLogs'
 
 interface Toast {
   id: string;

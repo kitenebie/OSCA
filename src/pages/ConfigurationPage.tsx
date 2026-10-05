@@ -2502,7 +2502,9 @@ export default function ConfigurationPage() {
 
   const [activePermGroup, setActivePermGroup] = useState("All");
 
-  const [viewMode, setViewMode] = useState<"roles" | "matrix">("roles");
+  // Keep the clearer role-by-role workflow. The matrix was difficult to read
+  // and offered the same controls in a much denser layout.
+  const viewMode = "roles" as const;
 
   const [selectedRoleTab, setSelectedRoleTab] = useState<string>("super-admin");
 
@@ -3650,55 +3652,9 @@ export default function ConfigurationPage() {
 
             <div className="flex items-center gap-2">
 
-              {/* View Mode Switcher */}
-
-              <div className="flex items-center bg-slate-200/60 dark:bg-slate-800 p-0.5 rounded-xl text-[11px] font-bold">
-
-                <button
-
-                  type="button"
-
-                  onClick={() => setViewMode("roles")}
-
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-
-                    viewMode === "roles"
-
-                      ? "bg-white dark:bg-slate-900 text-teal-600 shadow-xs"
-
-                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-
-                  }`}
-
-                >
-
-                  By Role Tabs
-
-                </button>
-
-                <button
-
-                  type="button"
-
-                  onClick={() => setViewMode("matrix")}
-
-                  className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
-
-                    viewMode === "matrix"
-
-                      ? "bg-white dark:bg-slate-900 text-teal-600 shadow-xs"
-
-                      : "text-slate-500 hover:text-slate-800 dark:text-slate-400"
-
-                  }`}
-
-                >
-
-                  Matrix Grid
-
-                </button>
-
-              </div>
+              <span className="px-3 py-1 rounded-lg bg-teal-50 text-teal-700 border border-teal-100 text-[11px] font-bold">
+                By Role Tabs
+              </span>
 
 
 
@@ -4482,13 +4438,8 @@ export default function ConfigurationPage() {
 
               <p className="text-[10px] text-blue-700 dark:text-blue-200 leading-relaxed">
 
-                Use <strong>By Role Tabs</strong> for a clearer and easier way
-
-                to configure permissions per role, or the{" "}
-
-                <strong>Matrix Grid</strong> for an overall table view. Click
-
-                "Save" after making changes.
+                Configure permissions per role, then click <strong>Save</strong>
+                after making changes.
 
               </p>
 

@@ -125,23 +125,23 @@ html.dark .bg-slate-800 {
   background-color: #1e293b !important;
 }
 
-/* Section Header Backgrounds with Theme Accent Gradients */
+/* Solid high-contrast surfaces keep labels and controls legible. */
 .bg-slate-50\/50,
 .bg-slate-50\/80,
 .bg-slate-50 {
-  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.05) 0%, rgba(248, 250, 252, 0.95) 100%) !important;
+  background: #f8fafc !important;
   border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.15) !important;
 }
 
 html.dark .bg-slate-50\/50,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-50 {
-  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.18) 0%, #090d16 100%) !important;
+  background: #0f172a !important;
   border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.3) !important;
 }
 
 html.dark .bg-slate-100 {
-  background: linear-gradient(90deg, rgba(var(--osca-primary-rgb, 2, 169, 82), 0.12) 0%, #0d1527 100%) !important;
+  background: #1e293b !important;
   border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.25) !important;
 }
 

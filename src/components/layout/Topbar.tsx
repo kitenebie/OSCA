@@ -90,7 +90,8 @@ export default function Topbar() {
     UserManagement: 'System User Administration',
     FindUser: 'Find User & ID Verification',
     Configuration: 'System Configuration & Parameters',
-    Mapping: 'Demographics & Barangay GIS Mapping'
+    Mapping: 'Demographics & Barangay GIS Mapping',
+    AuditLogs: 'Audit Logs'
   };
 
   useEffect(() => {
@@ -217,135 +218,6 @@ export default function Topbar() {
 
           {/* Action Widgets */}
           <div className="flex items-center gap-2">
-            {/* Realtime Notifications Dropdown */}
-            <div className="relative" ref={notifRef}>
-              <button
-                onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                className="p-2 text-slate-500 hover:text-emerald-700 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-all relative flex items-center justify-center cursor-pointer"
-                title="Notifications & Audit Logs"
-              >
-                <Bell size={18} className="text-emerald-700 dark:text-teal-400" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 min-w-[16px] h-4 px-1 bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                    {unreadCount > 9 ? '9+' : unreadCount}
-                  </span>
-                )}
-              </button>
-
-              {notifDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-80 md:w-96 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-50 animate-fadeIn">
-                  {/* Header */}
-                  <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Bell size={15} className="text-teal-600 dark:text-teal-400" />
-                      <h6 className="font-bold text-xs text-slate-800 dark:text-slate-200">Realtime Audit Logs & Abiso</h6>
-                      {unreadCount > 0 && (
-                        <span className="bg-teal-500/10 text-teal-600 dark:text-teal-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-teal-500/20">
-                          {unreadCount} bago
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => auditLogsService.markAllAsRead()}
-                        className="p-1 text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all cursor-pointer"
-                        title="Mark all as read"
-                      >
-                        <CheckCheck size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => auditLogsService.clearAll()}
-                        className="p-1 text-slate-400 hover:text-red-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-all cursor-pointer"
-                        title="Clear all notifications"
-                      >
-                        <Trash size={14} />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* List of Realtime Audit Notifications */}
-                  <div className="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
-                    {notifications.length === 0 ? (
-                      <div className="text-center py-10 px-4">
-                        <Bell size={24} className="mx-auto text-slate-300 dark:text-slate-600 mb-2" />
-                        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">No new notifications or audit logs.</p>
-                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Notifications will appear here when there are new records or system changes.</p>
-                      </div>
-                    ) : (
-                      notifications.map((n) => {
-                        const isUnread = !n.read;
-                        const date = new Date(n.timestamp);
-                        const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-                          return (
-                          <div
-                            key={n.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => openNotificationTarget(n)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter' || event.key === ' ') {
-                                event.preventDefault();
-                                openNotificationTarget(n);
-                              }
-                            }}
-                            className={`group p-3 text-xs transition-all duration-200 flex items-start gap-3 border-l-2 cursor-pointer ${
-                              isUnread
-                                ? 'bg-teal-50/60 hover:bg-teal-100/80 border-teal-500 dark:bg-teal-950/40 dark:hover:bg-teal-900/50 dark:border-teal-400 font-semibold'
-                                : 'bg-transparent hover:bg-slate-100/80 border-transparent hover:border-teal-500/40 dark:hover:bg-slate-800/90 dark:hover:border-teal-400/50 text-slate-600 dark:text-slate-300'
-                            }`}
-                          >
-                            {/* Action Icon Badge */}
-                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-0.5 shadow-xs group-hover:scale-105 transition-transform ${
-                              n.action === 'CREATE' ? 'bg-teal-500 text-white' :
-                              n.action === 'UPDATE' ? 'bg-blue-500 text-white' :
-                              n.action === 'DELETE' ? 'bg-amber-500 text-white' :
-                              n.action === 'APPROVE' ? 'bg-emerald-500 text-white' :
-                              n.action === 'REJECT' ? 'bg-red-500 text-white' : 'bg-slate-500 text-white'
-                            }`}>
-                              {n.action === 'CREATE' && <UserPlus size={14} />}
-                              {n.action === 'UPDATE' && <FileEdit size={14} />}
-                              {n.action === 'DELETE' && <Trash2 size={14} />}
-                              {n.action === 'APPROVE' && <CheckCircle2 size={14} />}
-                              {n.action === 'REJECT' && <ShieldAlert size={14} />}
-                              {n.action === 'SMS' && <MessageSquare size={14} />}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between gap-1">
-                                <span className={`text-[9.5px] font-bold font-mono px-1.5 py-0.5 rounded uppercase ${
-                                  n.action === 'CREATE' ? 'bg-teal-100 text-teal-700 dark:bg-teal-950 dark:text-teal-300 dark:border dark:border-teal-800/60' :
-                                  n.action === 'UPDATE' ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-300 dark:border dark:border-blue-800/60' :
-                                  n.action === 'DELETE' ? 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 dark:border dark:border-amber-800/60' :
-                                  n.action === 'APPROVE' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 dark:border dark:border-emerald-800/60' :
-                                  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:border dark:border-slate-700/60'
-                                }`}>
-                                  {n.action} • {n.entity}
-                                </span>
-                                <span className="text-[9.5px] text-slate-400 dark:text-slate-400 font-mono">{timeStr}</span>
-                              </div>
-
-                              <p className="text-[11px] text-slate-800 dark:text-slate-200 group-hover:text-teal-700 dark:group-hover:text-teal-300 transition-colors mt-1 leading-snug font-sans">
-                                {n.details}
-                              </p>
-
-                              <div className="flex items-center gap-2 mt-1 text-[9.5px] text-slate-400 dark:text-slate-400">
-                                <span>Actor: <strong className="text-slate-600 dark:text-slate-300">{n.actorName}</strong></span>
-                                {n.barangay && <span>• Brgy. {n.barangay}</span>}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
             {/* Theme Mode Selector Dropdown (Light / Dark / System) */}
             <div className="relative" ref={dropdownRef}>
               <button 

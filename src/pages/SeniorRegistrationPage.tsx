@@ -536,7 +536,28 @@ const PENSION_OPTIONS = [
 
 
 
+/**
+ * Keep the wizard unmounted until an edit target has arrived from Supabase.
+ * Previously, the wizard mounted with an empty store and its form state never
+ * received the selected senior's data once the asynchronous load completed.
+ */
 export default function SeniorRegistrationPage() {
+  const selectedSeniorId = useUIStore((state) => state.selectedSeniorId);
+  const seniors = useSeniorsStore((state) => state.seniors);
+  const selectedSeniorLoaded = !selectedSeniorId || seniors.some((senior) => senior.id === selectedSeniorId);
+
+  if (selectedSeniorId && !selectedSeniorLoaded) {
+    return (
+      <div className="min-h-[320px] flex items-center justify-center text-sm font-semibold text-slate-500">
+        Loading the senior record…
+      </div>
+    );
+  }
+
+  return <SeniorRegistrationWizard key={selectedSeniorId || 'new-registration'} />;
+}
+
+function SeniorRegistrationWizard() {
 
 
 

@@ -12,6 +12,8 @@ import { SeniorCitizen } from '../../types';
 const REPORT_TEMPLATES = [
   { id: 'master',  name: 'Master List of Senior Citizens',    desc: 'Comprehensive listing of senior citizens grouped alphabetically.' },
   { id: 'pension', name: 'Pension Beneficiary Roster',        desc: 'Listing of indigent seniors registered for the DSWD SocPen monthly grant.' },
+  { id: 'social-pension', name: 'Social Pension Masterlist', desc: 'Recipients of social pension: last name, first name, middle name, and barangay.' },
+  { id: 'deceased', name: 'Deceased Seniors Masterlist', desc: 'Deceased senior records: last name, first name, middle name, barangay, and date of death.' },
   { id: 'census',  name: 'Census & Demographics Sheet',       desc: 'Demographic audit detailing age brackets, gender and barangay statistics.' },
 ];
 
@@ -69,9 +71,24 @@ export default function ReportGenerator() {
 
   const filteredSeniors = seniors.filter((s) => {
     const matchBarangay = filterBarangay === 'All' || s.barangay === filterBarangay;
-    const matchStatus   = filterStatus   === 'All' || s.status   === filterStatus;
-    return matchBarangay && matchStatus;
+    const matchStatus = selectedTemplate === 'social-pension' || selectedTemplate === 'deceased'
+      ? true
+      : filterStatus === 'All' || s.status === filterStatus;
+    const isTemplateMatch = selectedTemplate === 'social-pension'
+      ? s.pensionBeneficiary
+      : selectedTemplate === 'deceased'
+        ? s.isDeceased || s.status === 'Deceased'
+        : true;
+    return matchBarangay && matchStatus && isTemplateMatch;
   });
+
+  const reportTitle = selectedTemplate === 'master'
+    ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS'
+    : selectedTemplate === 'pension'
+      ? 'INDIGENT PENSION PROGRAM DISBURSEMENT ROSTER'
+      : selectedTemplate === 'social-pension'
+        ? 'MASTERLIST OF SOCIAL PENSION RECIPIENTS'
+        : 'MASTERLIST OF DECEASED SENIOR CITIZENS';
 
   const generatePreview = useCallback(async () => {
     if (filteredSeniors.length === 0) { setPdfBlobUrl(null); return; }
@@ -236,7 +253,7 @@ export default function ReportGenerator() {
                     <p style={{ fontSize:'9px', fontWeight:600, color:'#0f766e', margin:'3px 0 0' }}>Municipality of Juban, Province of Sorsogon</p>
                     <div style={{ width:'48px', height:'1px', background:'#cbd5e1', margin:'8px auto' }} />
                     <h3 style={{ fontSize:'12px', fontWeight:900, color:'#0f172a', textTransform:'uppercase', letterSpacing:'0.03em', margin:0 }}>
-                      {selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS' : 'INDIGENT PENSION PROGRAM DISBURSEMENT ROSTER'}
+                      {reportTitle}
                     </h3>
                     <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
                       Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus}
@@ -245,7 +262,7 @@ export default function ReportGenerator() {
                 ) : (
                   <div style={{ borderBottom:'1px solid #e2e8f0', paddingBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'9px', fontWeight:800, color:'#0f172a', textTransform:'uppercase' }}>
-                      {selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
+                      {selectedTemplate === 'social-pension' ? 'SOCIAL PENSION MASTERLIST' : selectedTemplate === 'deceased' ? 'DECEASED SENIORS MASTERLIST' : selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
                     </span>
                     <span style={{ fontSize:'8px', fontFamily:'monospace', color:'#94a3b8' }}>
                       Page {pageIdx + 1} of {totalPages}
@@ -274,6 +291,27 @@ export default function ReportGenerator() {
                           </tr>
                         ))}
                       </tbody>
+                    </table>
+                  ) : selectedTemplate === 'social-pension' ? (
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
+                      <thead><tr>{['Last Name','First Name','Middle Name','Barangay'].map((h) => <th key={h} style={hcell}>{h}</th>)}</tr></thead>
+                      <tbody>{pageRows.map((s, i) => <tr key={s.id} style={stripe(i)}>
+                        <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
+                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                        <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
+                      </tr>)}</tbody>
+                    </table>
+                  ) : selectedTemplate === 'deceased' ? (
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
+                      <thead><tr>{['Last Name','First Name','Middle Name','Barangay','Date of Death'].map((h) => <th key={h} style={hcell}>{h}</th>)}</tr></thead>
+                      <tbody>{pageRows.map((s, i) => <tr key={s.id} style={stripe(i)}>
+                        <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
+                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                        <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
+                        <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.dateOfDeath || 'Not recorded'}</td>
+                      </tr>)}</tbody>
                     </table>
                   ) : (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>

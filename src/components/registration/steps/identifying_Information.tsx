@@ -98,7 +98,7 @@ const CITIES_TOWNS = [
 
 ];
 
-const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"];
+const sanitizeName = (value: string) => value.replace(/[^a-zA-Z\s]/g, '');
 
 const RELIGIONS = [
 
@@ -450,7 +450,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Last Name <span className="text-red-500">*</span></label>
 
-                    <input type="text" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: e.target.value })} onBlur={() => markTouched('lastName')} placeholder="Last Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('lastName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    <input type="text" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: sanitizeName(e.target.value) })} onBlur={() => markTouched('lastName')} placeholder="Last Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('lastName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
 
                   </div>
 
@@ -458,7 +458,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">First Name <span className="text-red-500">*</span></label>
 
-                    <input type="text" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: e.target.value })} onBlur={() => markTouched('firstName')} placeholder="First Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('firstName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    <input type="text" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: sanitizeName(e.target.value) })} onBlur={() => markTouched('firstName')} placeholder="First Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('firstName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
 
                   </div>
 
@@ -466,7 +466,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Middle Name</label>
 
-                    <input type="text" value={form.middleName} onChange={(e) => setForm({ ...form, middleName: e.target.value })} placeholder="Middle Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.middleName} onChange={(e) => setForm({ ...form, middleName: sanitizeName(e.target.value) })} placeholder="Middle Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
 
                   </div>
 
@@ -528,19 +528,6 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-
-                  <div className="space-y-1.5">
-
-                    <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Blood Type</label>
-
-                    <CustomSelect
-                      value={form.bloodType}
-                      onChange={(val) => setForm({ ...form, bloodType: val })}
-                      options={BLOOD_TYPES.map((v) => ({ value: v, label: v }))}
-                      placeholder="--Select--"
-                    />
-
-                  </div>
 
                   <div className="space-y-1.5">
 

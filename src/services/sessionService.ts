@@ -2,7 +2,7 @@ import { supabase } from '../../utils/supabase';
 
 // ============================================================
 // SESSION SERVICE
-// Manages user session tokens with 60-minute expiration
+// Manages user session tokens with a long-lived, sliding expiration.
 // ============================================================
 
 export interface UserSession {
@@ -21,7 +21,9 @@ export interface UserSession {
   terminatedBy: string | null;
 }
 
-const SESSION_DURATION_MINUTES = 60;
+// OSCA staff often work through a full office day. Sessions are still validated
+// and can be force-terminated, but they no longer expire after one hour.
+const SESSION_DURATION_MINUTES = 8 * 60;
 const REFRESH_TOKEN_DAYS = 30; // Remember Me lasts 30 days
 
 // Generate a cryptographically secure random token
@@ -125,7 +127,7 @@ export const sessionService = {
 
   /**
    * Refresh a session using a refresh token (Remember Me auto-relogin).
-   * Creates a brand new session token with fresh 60-min expiry.
+   * Creates a brand new session token with a fresh sliding expiry.
    * Carries over device info from the original session.
    */
   async refreshSession(refreshToken: string): Promise<UserSession | null> {
@@ -205,7 +207,7 @@ export const sessionService = {
   },
 
   /**
-   * Extend session expiration by another 60 minutes from now (sliding expiration).
+   * Extend session expiration from the latest activity (sliding expiration).
    */
   async extendSession(sessionToken: string): Promise<void> {
     const now = new Date();

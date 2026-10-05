@@ -16,6 +16,7 @@ import FindUserPage from './pages/FindUserPage';
 import ConfigurationPage from './pages/ConfigurationPage';
 import GranteeClaimFormsPage from './pages/GranteeClaimFormsPage';
 import MappingPage from './pages/MappingPage';
+import AuditLogsPage from './pages/AuditLogsPage';
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 
@@ -35,6 +36,7 @@ const PAGE_PERMISSIONS: Record<AppPages, keyof RolePermission['permissions']> = 
   Configuration: 'canAccessConfiguration',
   Mapping: 'canAccessMapping',
   GranteeClaimForms: 'canAccessReports',
+  AuditLogs: 'canAccessConfiguration',
 };
 
 const FALLBACK_PAGE_ORDER: AppPages[] = [
@@ -48,6 +50,7 @@ const FALLBACK_PAGE_ORDER: AppPages[] = [
   'SMSCenter',
   'UserManagement',
   'Configuration',
+  'AuditLogs',
 ];
 
 export default function App() {
@@ -126,6 +129,8 @@ export default function App() {
         return <MappingPage />;
       case 'GranteeClaimForms':
         return <GranteeClaimFormsPage />;
+      case 'AuditLogs':
+        return <AuditLogsPage />;
       default:
         return <DashboardPage />;
     }

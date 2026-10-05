@@ -1140,6 +1140,7 @@ import React, { useState, useEffect } from "react";
 
 import GranteeClaimFormPublic from "../components/GranteeClaimFormPublic";
 import GranteeHonoringStatusPublic from "../components/GranteeHonoringStatusPublic";
+import ForgotPasswordDialog from "../components/auth/ForgotPasswordDialog";
 
 
 
@@ -54720,6 +54721,9 @@ export default function LoginPage() {
 
 
   const [viewMode, setViewMode] = useState<"landing" | "login" | "granteeForm" | "honoringStatus">("landing");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(
+    () => new URLSearchParams(window.location.search).has("reset_token"),
+  );
 
 
 
@@ -369360,7 +369364,7 @@ export default function LoginPage() {
 
 
             {/* Centenarian Honoring - Register for Grantee Claim Form */}
-            {getSetting('grantee_form_registration_enabled', 'false') === 'true' && (
+            {false && getSetting('grantee_form_registration_enabled', 'false') === 'true' && (
 
 
 
@@ -386464,6 +386468,7 @@ export default function LoginPage() {
             )}
 
 
+                {false && (
                 <button
                   onClick={() => setViewMode("honoringStatus")}
                   className="w-full bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 border border-slate-600/30 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all group cursor-pointer active:scale-[0.98]"
@@ -386479,6 +386484,7 @@ export default function LoginPage() {
                     <ArrowRight size={18} className="text-white/70 group-hover:translate-x-0.5 transition-transform" />
                   </div>
                 </button>
+                )}
 
 
 
@@ -1097844,7 +1097850,16 @@ export default function LoginPage() {
 
 
 
-    </div>
+          {viewMode === "login" && (
+        <button
+          type="button"
+          onClick={() => setForgotPasswordOpen(true)}
+          className="fixed bottom-5 right-5 z-50 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-teal-700 shadow-lg border border-teal-100 hover:bg-teal-50"
+        >
+          Forgot password?
+        </button>
+      )}
+      <ForgotPasswordDialog isOpen={forgotPasswordOpen} onClose={() => setForgotPasswordOpen(false)} /></div>
 
 
 

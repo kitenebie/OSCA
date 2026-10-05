@@ -14,6 +14,7 @@ import {
   Scan,
   UserRoundCog,
   MonitorCog,
+  ClipboardList,
   AlertTriangle
 } from 'lucide-react';
 
@@ -81,6 +82,12 @@ export default function Sidebar() {
       label: 'Configuration', 
       icon: MonitorCog, 
       permission: 'canAccessConfiguration' as const 
+    },
+    {
+      id: 'AuditLogs' as AppPages,
+      label: 'Audit Logs',
+      icon: ClipboardList,
+      permission: 'canAccessConfiguration' as const
     },
   ];
 

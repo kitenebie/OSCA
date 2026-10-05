@@ -14,6 +14,7 @@ import { generatePhilHealthTransmittalDocx, downloadPhilHealthTransmittalDocx } 
 import { renderAsync } from 'docx-preview';
 import { generateMswdoTransmittalDocx, downloadMswdoTransmittalDocx } from '../utils/mswdoTransmittalDocxGenerator';
 import { generateCertificationDocx, downloadCertificationDocx } from '../utils/certificationDocxGenerator';
+import ReportGenerator from '../components/reports/ReportGenerator';
 
 type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-transfer' | 'certification' | 'masterlist' | 'philhealth-transmittal' | null;
 
@@ -1962,6 +1963,14 @@ export default function ReportsPage() {
 
         </div>
       )}
+
+      <section className="mt-10 pt-8 border-t border-slate-200">
+        <div className="mb-5">
+          <h3 className="text-base font-black text-slate-800 uppercase tracking-tight">Operational Masterlists</h3>
+          <p className="text-xs text-slate-500">Social pension recipients and deceased senior records, with printable previews.</p>
+        </div>
+        <ReportGenerator />
+      </section>
 
     </div>
   );

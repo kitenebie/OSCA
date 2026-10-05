@@ -5,6 +5,7 @@ import { useUIStore } from '../store/uiStore';
 import { useAuthStore } from '../store/authStore';
 import { auditLogsService } from '../services/supabaseService';
 import { renderBarcodeBits } from '../utils/idGenerator';
+import IDCardFlipInline from '../components/id-generation/IDCardFlipInline';
 // @ts-ignore
 const phLogo = '/ph_logo.png';
 // @ts-ignore
@@ -225,6 +226,16 @@ export default function FindUserPage() {
             <div className="space-y-6 animate-fadeIn">
               
               {/* Box 1: Flippable ID Card Card with 3D Rotate */}
+              <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm">
+                <div className="mb-4 pb-3 border-b border-slate-100">
+                  <span className="text-[9px] font-extrabold text-teal-600 uppercase font-mono tracking-wider bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Official OSCA ID</span>
+                  <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight mt-1">OSCA ID Card Preview — Variant 2</h3>
+                </div>
+                <IDCardFlipInline senior={selectedSenior} />
+              </div>
+
+              {/* Retained only as a reference for the former preview design. */}
+              {false && (
               <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm flex flex-col items-center gap-6">
                 
                 <div className="w-full flex items-center justify-between pb-3 border-b border-slate-100">
@@ -1132,6 +1143,7 @@ export default function FindUserPage() {
                   * Click the card or press the "Flip" button above to view the other side of the ID.
                 </p>
               </div>
+              )}
 
               {/* Box 2: Scanned User Complete Demographic Information */}
               <div className="bg-white border border-slate-200 rounded-3xl p-5 md:p-6 shadow-sm space-y-4">

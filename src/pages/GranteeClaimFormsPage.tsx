@@ -30,6 +30,27 @@ import { auditLogsService } from '../services/supabaseService';
 
 import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus } from 'lucide-react';
 
+// Defined outside the page component so controlled inputs retain focus while
+// a field is being edited. A component declared inside the page is recreated
+// on every keystroke and React remounts its input.
+const EditableInfoRow = ({ label, value, field, record, onUpdate }: {
+  label: string;
+  value: string | null | undefined;
+  field: string;
+  record: Record<string, any> | null;
+  onUpdate: (field: string, value: string) => void;
+}) => (
+  <div className="flex flex-col">
+    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
+    <input
+      type={field === 'birthdate' || field === 'date_of_death' ? 'date' : field === 'age' ? 'number' : 'text'}
+      value={record?.[field] ?? value ?? ''}
+      onChange={(event) => onUpdate(field, event.target.value)}
+      className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+    />
+  </div>
+);
+
 
 
 
@@ -1615,58 +1636,9 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const InfoRow = ({ label, value, field }: { label: string; value: string | null | undefined; field: string }) => (
-
-
-
-
-
-
-
-    <div className="flex flex-col">
-
-
-
-
-
-
-
-      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-
-
-
-
-
-
-
-      <input
-        type={field === 'birthdate' || field === 'date_of_death' ? 'date' : field === 'age' ? 'number' : 'text'}
-        value={selectedRecord?.[field] ?? value ?? ''}
-        onChange={(event) => setSelectedRecord((record: any) => ({ ...record, [field]: event.target.value }))}
-        className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
-      />
-
-
-
-
-
-
-
-    </div>
-
-
-
-
-
-
-
-  );
-
-
-
-
-
-
+  const updateSelectedRecord = (field: string, value: string) => {
+    setSelectedRecord((record: any) => record ? { ...record, [field]: value } : record);
+  };
 
   return (
 
@@ -2906,7 +2878,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="NCSC Ref Code" value={selectedRecord.ncsc_reference_code} field="ncsc_reference_code" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="NCSC Ref Code" value={selectedRecord.ncsc_reference_code} field="ncsc_reference_code" />
 
 
 
@@ -2914,7 +2886,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="OSCA Number" value={selectedRecord.osca_number} field="osca_number" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="OSCA Number" value={selectedRecord.osca_number} field="osca_number" />
 
 
 
@@ -2922,7 +2894,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="First Name" value={selectedRecord.first_name} field="first_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="First Name" value={selectedRecord.first_name} field="first_name" />
 
 
 
@@ -2930,7 +2902,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Middle Name" value={selectedRecord.middle_name} field="middle_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Middle Name" value={selectedRecord.middle_name} field="middle_name" />
 
 
 
@@ -2938,7 +2910,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Last Name" value={selectedRecord.last_name} field="last_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Last Name" value={selectedRecord.last_name} field="last_name" />
 
 
 
@@ -2946,7 +2918,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Suffix" value={selectedRecord.suffix} field="suffix" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Suffix" value={selectedRecord.suffix} field="suffix" />
 
 
 
@@ -2954,7 +2926,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Birthdate" value={selectedRecord.birthdate} field="birthdate" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Birthdate" value={selectedRecord.birthdate} field="birthdate" />
 
 
 
@@ -2962,7 +2934,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Age" value={selectedRecord.age?.toString()} field="age" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Age" value={selectedRecord.age?.toString()} field="age" />
 
 
 
@@ -2970,7 +2942,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Sex" value={selectedRecord.sex} field="sex" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Sex" value={selectedRecord.sex} field="sex" />
 
 
 
@@ -2978,7 +2950,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Civil Status" value={selectedRecord.civil_status} field="civil_status" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Civil Status" value={selectedRecord.civil_status} field="civil_status" />
 
 
 
@@ -2986,7 +2958,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Citizenship" value={selectedRecord.citizenship} field="citizenship" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Citizenship" value={selectedRecord.citizenship} field="citizenship" />
 
 
 
@@ -2994,7 +2966,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Contact No." value={selectedRecord.contact_number} field="contact_number" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Contact No." value={selectedRecord.contact_number} field="contact_number" />
 
 
 
@@ -3002,7 +2974,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Address" value={selectedRecord.address} field="address" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Address" value={selectedRecord.address} field="address" />
 
 
 
@@ -3010,7 +2982,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Barangay" value={selectedRecord.barangay} field="barangay" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Barangay" value={selectedRecord.barangay} field="barangay" />
 
 
 
@@ -3018,7 +2990,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="City/Town" value={selectedRecord.city_town} field="city_town" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="City/Town" value={selectedRecord.city_town} field="city_town" />
 
 
 
@@ -3026,7 +2998,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Province" value={selectedRecord.province} field="province" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Province" value={selectedRecord.province} field="province" />
 
 
 
@@ -3034,7 +3006,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Region" value={selectedRecord.region} field="region" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Region" value={selectedRecord.region} field="region" />
 
 
 
@@ -3042,7 +3014,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Zip Code" value={selectedRecord.zip_code} field="zip_code" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Zip Code" value={selectedRecord.zip_code} field="zip_code" />
 
 
 
@@ -3050,7 +3022,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Ethnicity / IP" value={selectedRecord.ethnic_origin} field="ethnic_origin" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Ethnicity / IP" value={selectedRecord.ethnic_origin} field="ethnic_origin" />
 
 
 
@@ -3058,7 +3030,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Disability Details" value={selectedRecord.physical_disability_text} field="physical_disability_text" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Disability Details" value={selectedRecord.physical_disability_text} field="physical_disability_text" />
 
 
 
@@ -3090,7 +3062,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad House No." value={selectedRecord.abroad_house_no} field="abroad_house_no" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad House No." value={selectedRecord.abroad_house_no} field="abroad_house_no" />
 
 
 
@@ -3098,7 +3070,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Street" value={selectedRecord.abroad_street} field="abroad_street" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad Street" value={selectedRecord.abroad_street} field="abroad_street" />
 
 
 
@@ -3106,7 +3078,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad City" value={selectedRecord.abroad_city} field="abroad_city" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad City" value={selectedRecord.abroad_city} field="abroad_city" />
 
 
 
@@ -3114,7 +3086,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad State" value={selectedRecord.abroad_state} field="abroad_state" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad State" value={selectedRecord.abroad_state} field="abroad_state" />
 
 
 
@@ -3122,7 +3094,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Country" value={selectedRecord.abroad_country} field="abroad_country" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad Country" value={selectedRecord.abroad_country} field="abroad_country" />
 
 
 
@@ -3130,7 +3102,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Abroad Zip" value={selectedRecord.abroad_zip_code} field="abroad_zip_code" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Abroad Zip" value={selectedRecord.abroad_zip_code} field="abroad_zip_code" />
 
 
 
@@ -3210,7 +3182,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Last Name" value={selectedRecord.spouse_last_name} field="spouse_last_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Spouse Last Name" value={selectedRecord.spouse_last_name} field="spouse_last_name" />
 
 
 
@@ -3218,7 +3190,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse First Name" value={selectedRecord.spouse_first_name} field="spouse_first_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Spouse First Name" value={selectedRecord.spouse_first_name} field="spouse_first_name" />
 
 
 
@@ -3226,7 +3198,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Middle Name" value={selectedRecord.spouse_middle_name} field="spouse_middle_name" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Spouse Middle Name" value={selectedRecord.spouse_middle_name} field="spouse_middle_name" />
 
 
 
@@ -3234,7 +3206,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <InfoRow label="Spouse Contact" value={selectedRecord.spouse_contact_number} field="spouse_contact_number" />
+                  <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Spouse Contact" value={selectedRecord.spouse_contact_number} field="spouse_contact_number" />
 
 
 
@@ -3418,7 +3390,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Date of Death" value={selectedRecord.date_of_death} field="date_of_death" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Date of Death" value={selectedRecord.date_of_death} field="date_of_death" />
 
 
 
@@ -3426,9 +3398,9 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant First Name" value={selectedRecord.claimant_first_name} field="claimant_first_name" />
-                    <InfoRow label="Claimant Middle Name" value={selectedRecord.claimant_middle_name} field="claimant_middle_name" />
-                    <InfoRow label="Claimant Last Name" value={selectedRecord.claimant_last_name} field="claimant_last_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant First Name" value={selectedRecord.claimant_first_name} field="claimant_first_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Middle Name" value={selectedRecord.claimant_middle_name} field="claimant_middle_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Last Name" value={selectedRecord.claimant_last_name} field="claimant_last_name" />
 
 
 
@@ -3436,7 +3408,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Relationship" value={selectedRecord.claimant_relationship} field="claimant_relationship" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Relationship" value={selectedRecord.claimant_relationship} field="claimant_relationship" />
 
 
 
@@ -3444,7 +3416,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Contact" value={selectedRecord.claimant_contact_number} field="claimant_contact_number" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Contact" value={selectedRecord.claimant_contact_number} field="claimant_contact_number" />
 
 
 
@@ -3452,7 +3424,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Email" value={selectedRecord.claimant_email} field="claimant_email" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Email" value={selectedRecord.claimant_email} field="claimant_email" />
 
 
 
@@ -3460,7 +3432,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Payment Mode" value={selectedRecord.claimant_payment_mode} field="claimant_payment_mode" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Payment Mode" value={selectedRecord.claimant_payment_mode} field="claimant_payment_mode" />
 
 
 
@@ -3468,7 +3440,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Account No." value={selectedRecord.claimant_account_number} field="claimant_account_number" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Account No." value={selectedRecord.claimant_account_number} field="claimant_account_number" />
 
 
 
@@ -3476,7 +3448,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Bank" value={selectedRecord.claimant_bank_name} field="claimant_bank_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Bank" value={selectedRecord.claimant_bank_name} field="claimant_bank_name" />
 
 
 
@@ -3484,7 +3456,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Claimant Branch" value={selectedRecord.claimant_branch_name} field="claimant_branch_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Claimant Branch" value={selectedRecord.claimant_branch_name} field="claimant_branch_name" />
 
 
 
@@ -3556,7 +3528,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Payment Mode" value={selectedRecord.preferred_payment_mode} field="preferred_payment_mode" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Payment Mode" value={selectedRecord.preferred_payment_mode} field="preferred_payment_mode" />
 
 
 
@@ -3564,7 +3536,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Account No." value={selectedRecord.account_number} field="account_number" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Account No." value={selectedRecord.account_number} field="account_number" />
 
 
 
@@ -3572,7 +3544,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Bank Name" value={selectedRecord.bank_name} field="bank_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Bank Name" value={selectedRecord.bank_name} field="bank_name" />
 
 
 
@@ -3580,7 +3552,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Branch" value={selectedRecord.branch_name} field="branch_name" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Branch" value={selectedRecord.branch_name} field="branch_name" />
 
 
 
@@ -3588,7 +3560,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Bank Address" value={selectedRecord.bank_address} field="bank_address" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Bank Address" value={selectedRecord.bank_address} field="bank_address" />
 
 
 
@@ -3596,7 +3568,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <InfoRow label="Joint Account?" value={selectedRecord.is_joint_account} field="is_joint_account" />
+                    <EditableInfoRow record={selectedRecord} onUpdate={updateSelectedRecord} label="Joint Account?" value={selectedRecord.is_joint_account} field="is_joint_account" />
 
 
 

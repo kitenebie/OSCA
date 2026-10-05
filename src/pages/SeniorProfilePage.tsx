@@ -1106,6 +1106,13 @@ export default function SeniorProfilePage() {
 
             </span>
 
+            {senior.status === "Rejected" && senior.remarks && (
+              <div className="mt-10 w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left">
+                <p className="text-[9px] font-extrabold uppercase tracking-wide text-red-700">Reason for rejection</p>
+                <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-red-800">{senior.remarks}</p>
+              </div>
+            )}
+
 
 
             {senior.profilePhoto ? (
