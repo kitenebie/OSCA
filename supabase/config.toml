@@ -1,0 +1,5 @@
+[functions.request-password-reset]
+verify_jwt = false
+
+[functions.complete-password-reset]
+verify_jwt = false

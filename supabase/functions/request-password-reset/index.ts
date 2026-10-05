@@ -3,8 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-api-version",
+  "Access-Control-Max-Age": "86400",
 };
 const sha256 = async (value: string) =>
   Array.from(
@@ -17,7 +19,9 @@ const sha256 = async (value: string) =>
 
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS")
-    return new Response("ok", { headers: cors });
+    return new Response(null, { status: 204, headers: cors });
+  if (request.method !== "POST")
+    return Response.json({ error: "Method not allowed." }, { status: 405, headers: cors });
   const { email } = await request.json();
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,

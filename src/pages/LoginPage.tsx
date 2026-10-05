@@ -966745,6 +966745,13 @@ export default function LoginPage() {
 
 
                   <div className="flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setForgotPasswordOpen(true)}
+                      className="order-2 text-sm font-semibold text-teal-700 hover:text-teal-800 hover:underline"
+                    >
+                      Forgot password?
+                    </button>
 
 
 
@@ -1097854,7 +1097861,7 @@ export default function LoginPage() {
         <button
           type="button"
           onClick={() => setForgotPasswordOpen(true)}
-          className="fixed bottom-5 right-5 z-50 rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-teal-700 shadow-lg border border-teal-100 hover:bg-teal-50"
+          className="hidden"
         >
           Forgot password?
         </button>
