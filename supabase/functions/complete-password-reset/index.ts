@@ -27,6 +27,11 @@ Deno.serve(async (request) => {
     if (lookupError) throw lookupError;
     if (!reset || new Date(reset.expires_at) < new Date()) return Response.json({ error: 'This reset link is invalid or expired.' }, { status: 400, headers: cors });
 
+    stage = 'load login identifier';
+    const { data: user, error: userError } = await admin.from('users').select('username').eq('id', reset.user_id).maybeSingle();
+    if (userError) throw userError;
+    if (!user) throw new Error('Reset account not found');
+
     stage = 'update password';
     const { error: passwordError } = await admin.from('users').update({ password: await sha256(newPassword) }).eq('id', reset.user_id);
     if (passwordError) throw passwordError;
@@ -38,7 +43,7 @@ Deno.serve(async (request) => {
     stage = 'invalidate sessions';
     const { error: sessionError } = await admin.from('user_sessions').update({ is_active: false }).eq('user_id', reset.user_id);
     if (sessionError) console.error('[password-reset] Session invalidation failed', { error: sessionError.message });
-    return Response.json({ ok: true }, { headers: cors });
+    return Response.json({ ok: true, loginId: user.username }, { headers: cors });
   } catch (error) {
     console.error('[password-reset] Completion failed', {
       stage,
