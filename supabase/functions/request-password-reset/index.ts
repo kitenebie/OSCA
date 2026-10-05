@@ -1,11 +1,21 @@
 import { Resend } from 'https://esm.sh/resend@4.0.0';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type' };
+const cors = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-api-version',
+  'Access-Control-Max-Age': '86400',
+};
 const sha256 = async (value: string) => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)))).map((b) => b.toString(16).padStart(2, '0')).join('');
+const maskEmail = (email: string) => {
+  const [local, domain] = email.split('@');
+  return `${(local || '').slice(0, 2)}***@${domain || 'unknown'}`;
+};
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return new Response('ok', { headers: cors });
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+  if (request.method !== 'POST') return Response.json({ error: 'Method not allowed.' }, { status: 405, headers: cors });
   const { email } = await request.json();
   const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
   const normalizedEmail = String(email || '').trim().toLowerCase();
@@ -18,7 +28,8 @@ Deno.serve(async (request) => {
     await admin.from('password_reset_tokens').insert({ user_id: user.id, token_hash: await sha256(token), expires_at: new Date(Date.now() + 30 * 60 * 1000).toISOString() });
     const appUrl = (Deno.env.get('APP_URL')).replace(/\/$/, '');
     const link = `${appUrl}/?reset_token=${encodeURIComponent(token)}`;
-    await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
+    try {
+      const { data: emailData, error: emailError } = await new Resend(Deno.env.get('RESEND_API_KEY')).emails.send({ from: Deno.env.get('RESET_FROM_EMAIL') || 'OSCA Portal <onboarding@resend.dev>', to: user.email, subject: 'Reset your OSCA Portal password', html: `
     <!DOCTYPE html>
     <html lang="en">
       <head>
@@ -314,6 +325,28 @@ Deno.serve(async (request) => {
       </body>
     </html>
   ` });
+
+      if (emailError) {
+        console.error('[password-reset] Email send failed', {
+          recipient: maskEmail(user.email),
+          error: emailError.message || String(emailError),
+        });
+      } else {
+        console.log('[password-reset] Email sent successfully', {
+          recipient: maskEmail(user.email),
+          messageId: emailData?.id || 'unknown',
+        });
+      }
+    } catch (error) {
+      console.error('[password-reset] Email send threw an exception', {
+        recipient: maskEmail(user.email),
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  } else {
+    console.log('[password-reset] No active account found; no email sent', {
+      recipient: maskEmail(normalizedEmail),
+    });
   }
   return Response.json({ ok: true }, { headers: cors });
 });

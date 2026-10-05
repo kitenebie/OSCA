@@ -27,15 +27,22 @@ export default function ForgotPasswordDialog({ isOpen, onClose }: Props) {
     }
     setBusy(true);
     setMessage('');
+    const functionName = isResetFlow ? 'complete-password-reset' : 'request-password-reset';
+    console.info('[password-reset] Sending request', { functionName });
     const { error } = await supabase.functions.invoke(
-      isResetFlow ? 'complete-password-reset' : 'request-password-reset',
+      functionName,
       { body: isResetFlow ? { token, password } : { email } },
     );
     setBusy(false);
     if (error) {
+      console.error('[password-reset] Request failed', {
+        functionName,
+        error: error.message || error,
+      });
       setMessage('Unable to process the request. Please try again or contact the system administrator.');
       return;
     }
+    console.info('[password-reset] Request completed successfully', { functionName });
     if (isResetFlow) {
       setMessage('Password reset successful. You may now sign in.');
       window.history.replaceState({}, '', window.location.pathname);
