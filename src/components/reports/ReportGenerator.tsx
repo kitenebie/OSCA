@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { useSettingsStore } from '../../store/settingsStore';
 import { exportElementToPDF, generatePDFBlobUrl } from '../../utils/pdfExport';
 import { auditLogsService } from '../../services/supabaseService';
-import { FileDown, Printer, RefreshCw, AlertCircle, ExternalLink } from 'lucide-react';
+import { FileDown, Printer, RefreshCw, ExternalLink } from 'lucide-react';
 import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
 
@@ -110,7 +110,7 @@ export default function ReportGenerator() {
         : 'MASTERLIST OF DECEASED SENIOR CITIZENS';
 
   const generatePreview = useCallback(async () => {
-    if (isLoading || !isInitialized || filteredSeniors.length === 0) { setPdfBlobUrl(null); return; }
+    if (isLoading || !isInitialized) { setPdfBlobUrl(null); return; }
     setIsGenerating(true);
     try {
       await new Promise((r) => setTimeout(r, 500));
@@ -306,7 +306,7 @@ export default function ReportGenerator() {
                   {selectedTemplate === 'master' ? (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Senior Citizen Name','Barangay','Age','Sex','Contact No.','Registered'].map((h) => (
+                        {['OSCA ID','Last Name','First Name','Middle Name','Barangay','Age','Sex','Contact No.','Registered'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -314,7 +314,9 @@ export default function ReportGenerator() {
                         {pageRows.map((s, i) => (
                           <tr key={s.id} style={stripe(i)}>
                             <td style={{ ...cell, fontFamily:'monospace', fontWeight:700, color:'#475569' }}>{s.oscaNumber}</td>
-                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.firstName} {s.lastName}</td>
+                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
+                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
                             <td style={{ ...cell, textAlign:'center', color:'#475569' }}>{s.sex}</td>
@@ -348,7 +350,7 @@ export default function ReportGenerator() {
                   ) : (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Beneficiary Name','Barangay','Age','Registered','Enrollment','Status'].map((h) => (
+                        {['OSCA ID','Last Name','First Name','Middle Name','Barangay','Age','Registered','Enrollment','Status'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -356,7 +358,9 @@ export default function ReportGenerator() {
                         {pageRows.map((s, i) => (
                           <tr key={s.id} style={stripe(i)}>
                             <td style={{ ...cell, fontFamily:'monospace', fontWeight:700, color:'#475569' }}>{s.oscaNumber}</td>
-                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.firstName} {s.lastName}</td>
+                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
+                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
                             <td style={{ ...cell, textAlign:'right', fontFamily:'monospace', color:'#94a3b8' }}>{s.registeredDate}</td>
@@ -448,7 +452,7 @@ export default function ReportGenerator() {
           </div>
 
           <div className="pt-3 mt-auto border-t border-slate-100">
-            <button type="button" disabled={isRendering || isGenerating || filteredSeniors.length === 0} onClick={handleExportPDF}
+            <button type="button" disabled={isRendering || isGenerating} onClick={handleExportPDF}
               className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
               <FileDown size={13} /><span>{isRendering ? 'Saving...' : 'Save as PDF'}</span>
             </button>
@@ -489,12 +493,6 @@ export default function ReportGenerator() {
               <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">
                 <RefreshCw size={28} className="animate-spin text-teal-500" />
                 <p className="text-xs font-semibold">Loading latest masterlist records...</p>
-              </div>
-            ) : filteredSeniors.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[750px] gap-3 text-slate-400">
-                <AlertCircle size={36} className="text-slate-300 stroke-[1.5]" />
-                <p className="text-xs font-semibold">No records found for this filter.</p>
-                <p className="text-[10px] text-slate-400">Adjust the Barangay or Status filters in the control panel.</p>
               </div>
             ) : pdfBlobUrl ? (
               <iframe
