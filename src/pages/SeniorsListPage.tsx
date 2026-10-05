@@ -324,6 +324,11 @@ export default function SeniorsListPage() {
     startIndex + itemsPerPage,
   );
 
+  const getActionMenuPosition = (rowIndex: number) =>
+    rowIndex >= paginatedSeniors.length - 3
+      ? "bottom-full mb-1 origin-bottom-right"
+      : "top-full mt-1 origin-top-right";
+
   const handleRowClick = (id: string) => {
     setCurrentPage("SeniorProfile", id);
   };
@@ -716,7 +721,7 @@ export default function SeniorsListPage() {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {paginatedSeniors.map((senior) => (
+                {paginatedSeniors.map((senior, rowIndex) => (
                   <tr
                     key={senior.id}
                     className="hover:bg-slate-50/50 group transition-all duration-150"
@@ -900,7 +905,7 @@ export default function SeniorsListPage() {
                             {/* Click popup menu */}
 
                             {openActionMenu === senior.id && (
-                              <div className="absolute right-0 top-full mt-1 transition-all duration-150 z-50">
+                              <div className={`absolute right-0 z-50 transition-all duration-150 ${getActionMenuPosition(rowIndex)}`}>
                                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-1.5 min-w-[160px] space-y-0.5">
                                   
 

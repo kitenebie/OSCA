@@ -93,36 +93,41 @@ html {
    ============================================================ */
 html.dark {
   color-scheme: dark;
+  --osca-dark-canvas: #08111f;
+  --osca-dark-base: #0c1728;
+  --osca-dark-surface: #132238;
+  --osca-dark-elevated: #1a2d46;
+  --osca-dark-border: #2b405c;
 }
 
 html.dark body {
-  background-color: var(--osca-bg-tint, #0b1329);
+  background-color: var(--osca-bg-tint, var(--osca-dark-canvas));
   color: #f1f5f9;
 }
 
 /* Card & Surface Visibility */
 html.dark .bg-white {
-  background-color: #1e293b !important;
+  background-color: var(--osca-dark-surface) !important;
   color: #f1f5f9;
 }
 
 html.dark [class*="bg-white/"] {
-  background-color: rgba(30, 41, 59, 0.85) !important;
+  background-color: rgba(19, 34, 56, 0.88) !important;
 }
 
 /* Preserve deep dark backgrounds for terminal boxes, camera viewports, modals, and backdrops */
 html.dark .bg-slate-950,
 html.dark [class*="bg-slate-950"] {
-  background-color: #020617 !important;
+  background-color: #040a13 !important;
 }
 
 html.dark .bg-slate-900,
 html.dark [class*="bg-slate-900"] {
-  background-color: #0f172a !important;
+  background-color: var(--osca-dark-base) !important;
 }
 
 html.dark .bg-slate-800 {
-  background-color: #1e293b !important;
+  background-color: var(--osca-dark-surface) !important;
 }
 
 /* Solid high-contrast surfaces keep labels and controls legible. */
@@ -136,22 +141,22 @@ html.dark .bg-slate-800 {
 html.dark .bg-slate-50\/50,
 html.dark .bg-slate-50\/80,
 html.dark .bg-slate-50 {
-  background: #0f172a !important;
-  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.3) !important;
+  background: var(--osca-dark-base) !important;
+  border-bottom: 1px solid var(--osca-dark-border) !important;
 }
 
 html.dark .bg-slate-100 {
-  background: #1e293b !important;
-  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.25) !important;
+  background: var(--osca-dark-elevated) !important;
+  border-bottom: 1px solid var(--osca-dark-border) !important;
 }
 
 html.dark .bg-slate-200 {
-  background-color: #1e293b !important;
+  background-color: var(--osca-dark-elevated) !important;
 }
 
 html.dark header {
-  background-color: #0f172a !important;
-  border-bottom: 1px solid rgba(var(--osca-primary-rgb, 2, 169, 82), 0.25) !important;
+  background-color: var(--osca-dark-base) !important;
+  border-bottom: 1px solid var(--osca-dark-border) !important;
 }
 
 /* Text Visibility & High Contrast in Dark Mode */
@@ -164,19 +169,19 @@ html.dark .text-gray-800 {
 
 html.dark .text-slate-700,
 html.dark .text-gray-700 {
-  color: #e2e8f0 !important;
+  color: #d7e1ee !important;
 }
 
 html.dark .text-slate-600,
 html.dark .text-slate-500,
 html.dark .text-gray-600,
 html.dark .text-gray-500 {
-  color: #94a3b8 !important;
+  color: #9fb1c7 !important;
 }
 
 html.dark .text-slate-400,
 html.dark .text-gray-400 {
-  color: #cbd5e1 !important;
+  color: #c5d2e2 !important;
 }
 
 /* Vibrant Accent Text Colors in Dark Mode */
@@ -213,14 +218,14 @@ html.dark input[type="url"],
 html.dark input[type="date"],
 html.dark select,
 html.dark textarea {
-  background-color: #0f172a !important;
+  background-color: #0d192a !important;
   color: #f8fafc !important;
-  border-color: #334155 !important;
+  border-color: var(--osca-dark-border) !important;
 }
 
 html.dark input::placeholder,
 html.dark textarea::placeholder {
-  color: #64748b !important;
+  color: #71849d !important;
 }
 
 /* Crisp Section Borders and Dividers */
@@ -228,32 +233,32 @@ html.dark .border-slate-100,
 html.dark .border-slate-200,
 html.dark .border-gray-100,
 html.dark .border-gray-200 {
-  border-color: #334155 !important;
+  border-color: var(--osca-dark-border) !important;
 }
 
 html.dark .border-slate-300,
 html.dark .border-gray-300 {
-  border-color: #475569 !important;
+  border-color: #3c5574 !important;
 }
 
 html.dark .divide-slate-200 > :not([hidden]) ~ :not([hidden]),
 html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
-  border-color: #334155 !important;
+  border-color: var(--osca-dark-border) !important;
 }
 
 /* Table Visibility in Dark Mode */
 html.dark table th {
-  background-color: #0f172a !important;
-  color: #cbd5e1 !important;
-  border-color: #334155 !important;
+  background-color: var(--osca-dark-base) !important;
+  color: #c5d2e2 !important;
+  border-color: var(--osca-dark-border) !important;
 }
 
 html.dark table td {
-  border-color: #334155 !important;
+  border-color: var(--osca-dark-border) !important;
 }
 
 html.dark table tr:hover td {
-  background-color: rgba(51, 65, 85, 0.4) !important;
+  background-color: rgba(28, 56, 86, 0.55) !important;
 }
 
 /* Modal Backdrops & Overlays in Dark Mode */
@@ -262,16 +267,16 @@ html.dark .bg-slate-950\/60,
 html.dark .bg-slate-950\/40,
 html.dark .bg-black\/50,
 html.dark .bg-slate-900\/50 {
-  background-color: rgba(2, 6, 23, 0.75) !important;
+  background-color: rgba(4, 10, 19, 0.78) !important;
 }
 
 /* Leaflet Map Popups in Dark Mode */
 html.dark .leaflet-container {
-  background: #0f172a;
+  background: var(--osca-dark-base);
 }
 html.dark .leaflet-popup-content-wrapper,
 html.dark .leaflet-popup-tip {
-  background-color: #1e293b !important;
+  background-color: var(--osca-dark-surface) !important;
   color: #f1f5f9 !important;
   box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5) !important;
 }

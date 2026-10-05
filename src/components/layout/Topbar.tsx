@@ -140,7 +140,7 @@ export default function Topbar() {
     const updatedTheme = {
       ...current,
       mode: targetMode,
-      bgTint: targetMode === 'dark' ? '#0b1329' : '#f8fafc'
+      bgTint: targetMode === 'dark' ? '#08111f' : '#f8fafc'
     };
 
     applySystemTheme(updatedTheme);

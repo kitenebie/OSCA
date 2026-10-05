@@ -63,8 +63,8 @@ export const applySystemTheme = (t: Partial<UserThemeSettings>) => {
   root.style.setProperty('--osca-warning-color', fullTheme.warningColor || '#D97706');
 
   const isDark = fullTheme.mode === 'dark';
-  const effectiveBgTint = isDark && (!fullTheme.bgTint || fullTheme.bgTint === '#f8fafc') 
-    ? '#0b1329' 
+  const effectiveBgTint = isDark && (!fullTheme.bgTint || ['#f8fafc', '#0b1329'].includes(fullTheme.bgTint.toLowerCase()))
+    ? '#08111f'
     : (fullTheme.bgTint || '#f8fafc');
 
   root.style.setProperty('--osca-bg-tint', effectiveBgTint);
