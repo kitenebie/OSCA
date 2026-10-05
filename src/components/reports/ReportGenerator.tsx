@@ -151,8 +151,8 @@ export default function ReportGenerator() {
   };
 
   const cell  = { padding: '5px 4px' } as React.CSSProperties;
-  const hcell = { padding: '6px 4px', color: '#64748b', textTransform: 'uppercase' as const, fontSize: '7.5px', fontWeight: 600 };
-  const stripe = (i: number): React.CSSProperties => ({ background: i % 2 === 0 ? '#f8fafc' : '#ffffff', borderBottom: '1px solid #f1f5f9' });
+  const hcell = { padding: '6px 4px', background: '#0f766e', color: '#ffffff', textTransform: 'uppercase' as const, fontSize: '7.5px', fontWeight: 700 };
+  const stripe = (i: number): React.CSSProperties => ({ background: i % 2 === 0 ? '#f0fdfa' : '#ffffff', borderBottom: '1px solid #ccfbf1' });
 
   const pageStyle = {
     width: '794px',
