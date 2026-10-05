@@ -1,14 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import { CheckCheck, ClipboardList, History, Search, Trash2 } from 'lucide-react';
+import { CheckCheck, ClipboardList, Eye, History, Search, Trash2, X } from 'lucide-react';
 import { auditLogsService, seniorRecordHistoryService } from '../services/supabaseService';
 import { AuditLogNotification, SeniorRecordHistory } from '../types';
 import { useUIStore } from '../store/uiStore';
 
-const formatHistoryValue = (value: unknown) => value == null || value === '' ? '—' : typeof value === 'string' ? value : JSON.stringify(value);
+const formatHistoryValue = (value: unknown) => {
+  const text = value == null || value === '' ? '—' : typeof value === 'string' ? value : JSON.stringify(value);
+  return text.length > 160 ? `${text.slice(0, 157)}…` : text;
+};
 
 export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLogNotification[]>([]);
   const [seniorHistory, setSeniorHistory] = useState<SeniorRecordHistory[]>([]);
+  const [selectedLog, setSelectedLog] = useState<AuditLogNotification | null>(null);
+  const [selectedHistory, setSelectedHistory] = useState<SeniorRecordHistory | null>(null);
   const [activeTab, setActiveTab] = useState<'audit' | 'senior'>('audit');
   const [query, setQuery] = useState('');
   const [actionFilter, setActionFilter] = useState('All');
@@ -94,7 +99,7 @@ export default function AuditLogsPage() {
         <div className="overflow-x-auto">
           {activeTab === 'audit' ? <table className="w-full min-w-[720px] text-left text-xs">
             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide text-[10px]">
-              <tr><th className="px-4 py-3">Time</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Details</th><th className="px-4 py-3">Actor</th><th className="px-4 py-3">Barangay</th></tr>
+              <tr><th className="px-4 py-3">Time</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Details</th><th className="px-4 py-3">Actor</th><th className="px-4 py-3">Barangay</th><th className="px-4 py-3"></th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {visibleLogs.map((log) => (
@@ -104,13 +109,14 @@ export default function AuditLogsPage() {
                   <td className="px-4 py-3 text-slate-700 max-w-xl">{log.details}</td>
                   <td className="px-4 py-3 text-slate-600">{log.actorName}<span className="block text-[10px] text-slate-400">{log.actorRole}</span></td>
                   <td className="px-4 py-3 text-slate-600">{log.barangay || '—'}</td>
+                  <td className="px-4 py-3 text-right"><button onClick={() => { setSelectedHistory(null); setSelectedLog(log); }} className="p-2 text-teal-700 hover:bg-teal-50 rounded-lg" title="Preview log"><Eye size={15} /></button></td>
                 </tr>
               ))}
-              {visibleLogs.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-slate-400">No audit logs found.</td></tr>}
+              {visibleLogs.length === 0 && <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-400">No audit logs found.</td></tr>}
             </tbody>
           </table> : <table className="w-full min-w-[820px] text-left text-xs">
             <thead className="bg-slate-50 text-slate-500 uppercase tracking-wide text-[10px]">
-              <tr><th className="px-4 py-3">Time</th><th className="px-4 py-3">Senior</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Current & Changes</th><th className="px-4 py-3">Barangay</th></tr>
+              <tr><th className="px-4 py-3">Time</th><th className="px-4 py-3">Senior</th><th className="px-4 py-3">Action</th><th className="px-4 py-3">Current & Changes</th><th className="px-4 py-3">Barangay</th><th className="px-4 py-3"></th></tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {visibleSeniorHistory.map((entry) => {
@@ -121,13 +127,49 @@ export default function AuditLogsPage() {
                   <td className="px-4 py-3"><span className="inline-flex px-2 py-1 rounded-md bg-teal-50 text-teal-700 font-bold text-[10px]">{entry.action}</span></td>
                   <td className="px-4 py-3 text-slate-600 max-w-md">{entry.action === 'CREATE' ? 'Initial Step 11 snapshot saved.' : <details><summary className="cursor-pointer font-semibold text-teal-700">{changes.length} changed field{changes.length === 1 ? '' : 's'}</summary><div className="mt-2 space-y-1">{changes.map(([field, change]) => <div key={field}><strong>{field.replace(/_/g, ' ')}:</strong> {formatHistoryValue(change.previous)} → {formatHistoryValue(change.current)}</div>)}</div></details>}</td>
                   <td className="px-4 py-3 text-slate-600">{entry.barangay || '—'}</td>
+                  <td className="px-4 py-3 text-right"><button onClick={() => { setSelectedLog(null); setSelectedHistory(entry); }} className="p-2 text-teal-700 hover:bg-teal-50 rounded-lg" title="Preview record history"><Eye size={15} /></button></td>
                 </tr>;
               })}
-              {visibleSeniorHistory.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-slate-400">No senior record history found.</td></tr>}
+              {visibleSeniorHistory.length === 0 && <tr><td colSpan={6} className="px-4 py-12 text-center text-slate-400">No senior record history found.</td></tr>}
             </tbody>
           </table>}
         </div>
       </section>
+
+      {(selectedLog || selectedHistory) && <div className="fixed inset-0 z-[100]">
+        <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm" onClick={() => { setSelectedLog(null); setSelectedHistory(null); }} />
+        <aside className="absolute inset-y-0 right-0 w-full max-w-xl bg-white shadow-2xl flex flex-col">
+          <div className="p-5 border-b border-slate-100 flex items-start justify-between">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-teal-600">Preview</p>
+              <h3 className="text-base font-black text-slate-800">{selectedLog ? 'Audit Log Details' : 'Senior Record History'}</h3>
+            </div>
+            <button onClick={() => { setSelectedLog(null); setSelectedHistory(null); }} className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg" aria-label="Close preview"><X size={18} /></button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 text-sm">
+            {selectedLog && <>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div><span className="block text-slate-400 uppercase">Action</span><strong>{selectedLog.action} · {selectedLog.entity}</strong></div>
+                <div><span className="block text-slate-400 uppercase">Time</span><strong>{new Date(selectedLog.timestamp).toLocaleString()}</strong></div>
+                <div><span className="block text-slate-400 uppercase">Actor</span><strong>{selectedLog.actorName}</strong><span className="block text-slate-500">{selectedLog.actorRole}</span></div>
+                <div><span className="block text-slate-400 uppercase">Barangay</span><strong>{selectedLog.barangay || '—'}</strong></div>
+              </div>
+              <div className="rounded-xl bg-slate-50 border border-slate-100 p-4"><span className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Details</span>{selectedLog.details}</div>
+              {(selectedLog.targetPage || selectedLog.targetId) && <div className="text-xs text-slate-500"><strong>Target:</strong> {[selectedLog.targetPage, selectedLog.targetId].filter(Boolean).join(' · ')}</div>}
+            </>}
+            {selectedHistory && <>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div><span className="block text-slate-400 uppercase">Senior</span><strong>{selectedHistory.seniorName}</strong><span className="block text-slate-500 font-mono">{selectedHistory.oscaNumber || selectedHistory.seniorId}</span></div>
+                <div><span className="block text-slate-400 uppercase">Action</span><strong>{selectedHistory.action}</strong><span className="block text-slate-500">{new Date(selectedHistory.changedAt).toLocaleString()}</span></div>
+                <div><span className="block text-slate-400 uppercase">Barangay</span><strong>{selectedHistory.barangay || '—'}</strong></div>
+                <div><span className="block text-slate-400 uppercase">Changed by</span><strong>{selectedHistory.changedBy || 'System'}</strong></div>
+              </div>
+              <div><h4 className="text-xs font-black uppercase tracking-wide text-slate-600 mb-2">{selectedHistory.action === 'CREATE' ? 'Initial Snapshot' : 'Changes'}</h4><div className="space-y-2">{Object.entries(selectedHistory.changes).filter(([field]) => field !== 'record').map(([field, change]) => { const values = change as { previous: unknown; current: unknown }; return <div key={field} className="rounded-xl border border-slate-100 p-3"><strong className="block text-xs capitalize text-slate-700">{field.replace(/_/g, ' ')}</strong><div className="grid grid-cols-2 gap-3 mt-2 text-xs"><span><span className="block text-slate-400 uppercase">Previous</span>{formatHistoryValue(values.previous)}</span><span><span className="block text-teal-600 uppercase">Current</span>{formatHistoryValue(values.current)}</span></div></div>; })}{selectedHistory.action === 'CREATE' && <p className="text-xs text-slate-500">Initial record saved with the snapshot below.</p>}</div></div>
+              <details className="rounded-xl border border-slate-100 p-3"><summary className="cursor-pointer text-xs font-bold text-teal-700">Current record snapshot</summary><div className="mt-3 space-y-2 text-xs">{Object.entries(selectedHistory.currentData).filter(([field]) => !field.endsWith('_at')).map(([field, value]) => <div key={field} className="grid grid-cols-[9rem_1fr] gap-2"><span className="text-slate-400 capitalize">{field.replace(/_/g, ' ')}</span><span className="break-words text-slate-700">{formatHistoryValue(value)}</span></div>)}</div></details>
+            </>}
+          </div>
+        </aside>
+      </div>}
     </div>
   );
 }
