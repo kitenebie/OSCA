@@ -314,9 +314,9 @@ export default function ReportGenerator() {
                         {pageRows.map((s, i) => (
                           <tr key={s.id} style={stripe(i)}>
                             <td style={{ ...cell, fontFamily:'monospace', fontWeight:700, color:'#475569' }}>{s.oscaNumber}</td>
-                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
-                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
-                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                            <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                            <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.firstName}</td>
+                            <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.middleName || 'Not recorded'}</td>
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
                             <td style={{ ...cell, textAlign:'center', color:'#475569' }}>{s.sex}</td>
@@ -330,9 +330,9 @@ export default function ReportGenerator() {
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>{['Last Name','First Name','Middle Name','Barangay'].map((h) => <th key={h} style={hcell}>{h}</th>)}</tr></thead>
                       <tbody>{pageRows.map((s, i) => <tr key={s.id} style={stripe(i)}>
-                        <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
-                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
-                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                        <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                        <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.firstName}</td>
+                        <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.middleName || 'Not recorded'}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                       </tr>)}</tbody>
                     </table>
@@ -340,9 +340,9 @@ export default function ReportGenerator() {
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>{['Last Name','First Name','Middle Name','Barangay','Date of Death'].map((h) => <th key={h} style={hcell}>{h}</th>)}</tr></thead>
                       <tbody>{pageRows.map((s, i) => <tr key={s.id} style={stripe(i)}>
-                        <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
-                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
-                        <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                        <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                        <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.firstName}</td>
+                        <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.middleName || 'Not recorded'}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                         <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.dateOfDeath}</td>
                       </tr>)}</tbody>
@@ -358,13 +358,13 @@ export default function ReportGenerator() {
                         {pageRows.map((s, i) => (
                           <tr key={s.id} style={stripe(i)}>
                             <td style={{ ...cell, fontFamily:'monospace', fontWeight:700, color:'#475569' }}>{s.oscaNumber}</td>
-                            <td style={{ ...cell, fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
-                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.firstName}</td>
-                            <td style={{ ...cell, textTransform:'uppercase' }}>{s.middleName || '—'}</td>
+                            <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{s.lastName}</td>
+                            <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.firstName}</td>
+                            <td style={{ ...cell, color:'#0f172a', textTransform:'uppercase' }}>{s.middleName || 'Not recorded'}</td>
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
                             <td style={{ ...cell, textAlign:'right', fontFamily:'monospace', color:'#94a3b8' }}>{s.registeredDate}</td>
-                            <td style={{ ...cell, textAlign:'center', fontWeight:700, color:'#0f766e' }}>{s.pensionBeneficiary ? 'Enrolled' : '—'}</td>
+                            <td style={{ ...cell, textAlign:'center', fontWeight:700, color:'#0f766e' }}>{s.pensionBeneficiary ? 'Enrolled' : 'Not enrolled'}</td>
                             <td style={{ ...cell, textAlign:'center' }}>
                               <span style={{ fontSize:'7px', fontWeight:700, padding:'1px 4px', borderRadius:'3px', textTransform:'uppercase', fontFamily:'monospace', background: s.pensionBeneficiary ? '#f0fdf4' : '#f1f5f9', color: s.pensionBeneficiary ? '#15803d' : '#94a3b8', border: '1px solid ' + (s.pensionBeneficiary ? '#bbf7d0' : '#e2e8f0') }}>
                                 {s.status}
