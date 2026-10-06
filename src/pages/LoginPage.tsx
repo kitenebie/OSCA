@@ -241683,7 +241683,7 @@ export default function LoginPage() {
 
 
 
-              className="px-4 py-2 bg-teal-600 hover:bg-[#018c43] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2 bg-teal-600 hover:bg-[#027e3e] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
 
 
 
@@ -243963,7 +243963,7 @@ export default function LoginPage() {
 
 
 
-              <Lock size={18} className="text-teal-400" />
+              <Lock size={18} className="text-white/80" />
 
 
 
