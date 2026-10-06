@@ -92,6 +92,8 @@ export function mapHonoringToSenior(r: any): any {
     verificationDate: r.verification_date,
     NCSCRegNo: r.ncsc_reg_no,
     verifierContactInfo: r.verifier_contact_info,
+    IsEligible: Boolean(r.is_eligible),
+    IsNotEligible: Boolean(r.is_not_eligible && !r.is_eligible),
   };
 }
 

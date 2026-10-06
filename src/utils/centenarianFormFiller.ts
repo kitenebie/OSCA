@@ -503,6 +503,8 @@ export async function fillCentenarianForm(
 
   ) => {
 
+    if (!s[fieldKey]) return;
+
     const coord = fieldMap[fieldKey];
 
     if (!coord) return;
@@ -987,27 +989,28 @@ export async function fillCentenarianForm(
 
 
   
-    drawCheck("Doc1", PAGE4_FIELDS);
+    // Document X marks are hidden until the verifier records in-person review.
+    // drawCheck("Doc1", PAGE4_FIELDS);
   
-    drawCheck("Doc2", PAGE4_FIELDS);
+    // drawCheck("Doc2", PAGE4_FIELDS);
   
-    drawCheck("Doc3", PAGE4_FIELDS);
+    // drawCheck("Doc3", PAGE4_FIELDS);
   
-    drawCheck("Doc4", PAGE4_FIELDS);
+    // drawCheck("Doc4", PAGE4_FIELDS);
   
-    drawCheck("Doc5", PAGE4_FIELDS);
+    // drawCheck("Doc5", PAGE4_FIELDS);
   
-    drawCheck("Doc6", PAGE4_FIELDS);
+    // drawCheck("Doc6", PAGE4_FIELDS);
   
-    drawCheck("Doc7", PAGE4_FIELDS);
+    // drawCheck("Doc7", PAGE4_FIELDS);
   
-    drawCheck("Doc8", PAGE4_FIELDS);
+    // drawCheck("Doc8", PAGE4_FIELDS);
   
-    drawCheck("Doc9", PAGE4_FIELDS);
+    // drawCheck("Doc9", PAGE4_FIELDS);
   
-    drawCheck("Doc10", PAGE4_FIELDS);
+    // drawCheck("Doc10", PAGE4_FIELDS);
   
-    drawCheck("Doc11", PAGE4_FIELDS);
+    // drawCheck("Doc11", PAGE4_FIELDS);
 
     drawField("RemarksNoteLackingDocs", s.RemarksNoteLackingDocs || "", PAGE4_FIELDS);
 
