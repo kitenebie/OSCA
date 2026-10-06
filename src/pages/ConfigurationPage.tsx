@@ -2471,6 +2471,23 @@ export default function ConfigurationPage() {
 
   };
 
+  const paletteSettingsForMode = (mode: "light" | "dark") => {
+    const currentPalettes = theme.mode === "dark" ? COLOR_PALETTES_DARK : COLOR_PALETTES;
+    const targetPalettes = mode === "dark" ? COLOR_PALETTES_DARK : COLOR_PALETTES;
+    const selected = currentPalettes.find((palette) => palette.primary === theme.primaryColor);
+    const target = targetPalettes.find((palette) => palette.name === selected?.name);
+
+    return target
+      ? {
+          primaryColor: target.primary,
+          secondaryColor: target.secondary,
+          infoColor: target.info,
+          dangerColor: target.danger,
+          warningColor: target.warning,
+        }
+      : {};
+  };
+
 
 
   const handleResetTheme = () => {
@@ -5528,6 +5545,7 @@ export default function ConfigurationPage() {
 
                     updateTheme({
 
+                      ...paletteSettingsForMode("light"),
                       mode: "light" as "light" | "dark",
 
                       bgTint: "#f8fafc",
@@ -5558,6 +5576,7 @@ export default function ConfigurationPage() {
 
                     updateTheme({
 
+                      ...paletteSettingsForMode("dark"),
                       mode: "dark" as "light" | "dark",
 
                       bgTint: "#0f172a",

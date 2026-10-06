@@ -35,6 +35,45 @@ const COLOR_PALETTES = [
   { primary: '#EAB308', sidebar: '#713F12', highlight: '#FEF08A' },
   { primary: '#6B7280', sidebar: '#374151', highlight: '#E5E7EB' },
   { primary: '#64748B', sidebar: '#0F172A', highlight: '#E2E8F0' },
+  { primary: '#F97316', sidebar: '#7C2D12', highlight: '#FDBA74' },
+  { primary: '#C1121F', sidebar: '#540B0E', highlight: '#F8B4B4' },
+  { primary: '#0F52BA', sidebar: '#0A2540', highlight: '#81D4FA' },
+  { primary: '#0F766E', sidebar: '#134E4A', highlight: '#99F6E4' },
+  { primary: '#4D7C0F', sidebar: '#365314', highlight: '#BEF264' },
+  { primary: '#6F4E37', sidebar: '#3E2723', highlight: '#D7CCC8' },
+  { primary: '#374151', sidebar: '#111827', highlight: '#D1D5DB' },
+];
+
+const COLOR_PALETTES_DARK = [
+  { primary: '#34D399', sidebar: '#0F1D1A', highlight: '#FDFE00' },
+  { primary: '#0EA5E9', sidebar: '#071A2D', highlight: '#7DD3FC' },
+  { primary: '#F97316', sidebar: '#241108', highlight: '#FDBA74' },
+  { primary: '#7C3AED', sidebar: '#160B2D', highlight: '#DDD6FE' },
+  { primary: '#22C55E', sidebar: '#08170D', highlight: '#BBF7D0' },
+  { primary: '#E11D48', sidebar: '#230814', highlight: '#FDA4AF' },
+  { primary: '#64748B', sidebar: '#020617', highlight: '#CBD5E1' },
+  { primary: '#B45309', sidebar: '#1A1207', highlight: '#FDE68A' },
+  { primary: '#4338CA', sidebar: '#050514', highlight: '#A5B4FC' },
+  { primary: '#9333EA', sidebar: '#140A25', highlight: '#E9D5FF' },
+  { primary: '#14B8A6', sidebar: '#07171A', highlight: '#99F6E4' },
+  { primary: '#0284C7', sidebar: '#06111E', highlight: '#BAE6FD' },
+  { primary: '#10B981', sidebar: '#031712', highlight: '#A7F3D0' },
+  { primary: '#6EE7B7', sidebar: '#0A1812', highlight: '#D1FAE5' },
+  { primary: '#38BDF8', sidebar: '#081A29', highlight: '#E0F2FE' },
+  { primary: '#E0F2FE', sidebar: '#08202B', highlight: '#F0F9FF' },
+  { primary: '#DDD6FE', sidebar: '#170C2B', highlight: '#F5F3FF' },
+  { primary: '#C026D3', sidebar: '#220A22', highlight: '#F5D0FE' },
+  { primary: '#EAB308', sidebar: '#211605', highlight: '#FEF08A' },
+  { primary: '#FACC15', sidebar: '#201B04', highlight: '#FEF9C3' },
+  { primary: '#475569', sidebar: '#111827', highlight: '#CBD5E1' },
+  { primary: '#94A3B8', sidebar: '#1E293B', highlight: '#F1F5F9' },
+  { primary: '#FB7185', sidebar: '#210D0B', highlight: '#FED7AA' },
+  { primary: '#DC2626', sidebar: '#210606', highlight: '#FECACA' },
+  { primary: '#2563EB', sidebar: '#07162A', highlight: '#DBEAFE' },
+  { primary: '#0D9488', sidebar: '#071715', highlight: '#99F6E4' },
+  { primary: '#65A30D', sidebar: '#161D08', highlight: '#D9F99D' },
+  { primary: '#8D6E63', sidebar: '#120D0A', highlight: '#EFEBE9' },
+  { primary: '#4B5563', sidebar: '#030712', highlight: '#E5E7EB' },
 ];
 
 export const getStoredTheme = (): UserThemeSettings => {
@@ -129,7 +168,8 @@ export const applySystemTheme = (t: Partial<UserThemeSettings>) => {
   const primaryShades = generateShades(primaryHex);
   Object.entries(primaryShades).forEach(([s, c]) => root.style.setProperty(`--osca-primary-${s}`, c));
 
-  const palette = COLOR_PALETTES.find(p => p.primary === primaryHex) || COLOR_PALETTES[0];
+  const colorPalettes = isDark ? COLOR_PALETTES_DARK : COLOR_PALETTES;
+  const palette = colorPalettes.find(p => p.primary === primaryHex) || colorPalettes[0];
   root.style.setProperty('--osca-sidebar-bg', palette.sidebar);
   root.style.setProperty('--osca-sidebar-active', palette.highlight);
 
