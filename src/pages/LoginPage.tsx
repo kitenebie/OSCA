@@ -241683,7 +241683,7 @@ export default function LoginPage() {
 
 
 
-              className="px-4 py-2 bg-teal-600 hover:bg-[#027e3e] text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs rounded-xl shadow-sm hover:shadow transition-all flex items-center gap-2 cursor-pointer active:scale-95"
 
 
 
@@ -279303,7 +279303,7 @@ export default function LoginPage() {
 
 
 
-          <div id="landing-view" className="w-full space-y-6 md:space-y-10 animate-fadeIn">
+          <div id="landing-view" className="w-full space-y-6 md:space-y-10">
 
 
 
@@ -281583,7 +281583,7 @@ export default function LoginPage() {
 
 
 
-              <div className="lg:col-span-7 space-y-6">
+              <div className="lg:col-span-7 space-y-6 landing-enter">
 
 
 
@@ -340863,7 +340863,7 @@ export default function LoginPage() {
 
 
 
-              <div className="lg:col-span-5 space-y-4">
+              <div className="lg:col-span-5 space-y-4 landing-enter landing-enter-delay-1">
 
 
 
@@ -467424,7 +467424,7 @@ export default function LoginPage() {
 
 
 
-            <div className="w-full max-w-7xl mx-auto bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm">
+            <div className="w-full max-w-7xl mx-auto bg-white/80 backdrop-blur-sm border border-slate-200/60 rounded-2xl md:rounded-3xl p-4 sm:p-6 md:p-8 shadow-sm landing-enter landing-enter-delay-2">
 
 
 
@@ -987271,7 +987271,7 @@ export default function LoginPage() {
 
 
 
-                    className="w-full py-3 bg-teal-600 hover:bg-[#018c43] disabled:bg-slate-300 text-white font-extrabold text-md rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
+                    className="w-full py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white font-extrabold text-md rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-[0.98]"
 
 
 

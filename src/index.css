@@ -322,6 +322,22 @@ html.dark #landing-view [class~="text-amber-900"] {
   color: #fbbf24 !important;
 }
 
+@keyframes landingRiseIn {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#landing-view .landing-enter {
+  animation: landingRiseIn 520ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+#landing-view .landing-enter-delay-1 { animation-delay: 120ms; }
+#landing-view .landing-enter-delay-2 { animation-delay: 240ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  #landing-view .landing-enter { animation: none; }
+}
+
 /* Global input field height increase */
 input[type="text"],
 input[type="password"],
