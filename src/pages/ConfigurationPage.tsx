@@ -1009,6 +1009,36 @@ export default function ConfigurationPage() {
 
     "Nunito",
 
+    "Lato",
+
+    "Montserrat",
+
+    "Source Sans 3",
+
+    "Work Sans",
+
+    "DM Sans",
+
+    "Manrope",
+
+    "Plus Jakarta Sans",
+
+    "Figtree",
+
+    "Rubik",
+
+    "Noto Sans",
+
+    "Nunito Sans",
+
+    "Roboto Slab",
+
+    "Merriweather",
+
+    "Playfair Display",
+
+    "Source Serif 4",
+
     "System Default",
 
   ];
