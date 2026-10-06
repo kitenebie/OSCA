@@ -79,8 +79,8 @@ export default function DashboardPage() {
         
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-widest text-teal-400 font-mono">Municipality of Juban Portal</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 animate-pulse"></div>
+            <span className="text-xs font-bold uppercase tracking-widest text-teal-400 dark:text-white/80 font-mono">Municipality of Juban Portal</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-300 dark:bg-white/60 animate-pulse"></div>
           </div>
           <h2 className="text-xl md:text-2xl font-black tracking-tight uppercase">
             {getGreeting()}, {currentUser?.fullName || 'LGU User'}!
@@ -91,7 +91,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5 bg-slate-950/20 p-3 rounded-2xl border border-slate-950/10 shrink-0 font-bold text-white text-xs font-mono self-start sm:self-auto">
-          <Calendar size={13} className="text-teal-400" />
+          <Calendar size={13} className="text-teal-400 dark:text-white/80" />
           <span>{formattedDate}</span>
         </div>
       </div>

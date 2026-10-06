@@ -104,7 +104,7 @@ export const applySystemTheme = (t: Partial<UserThemeSettings>) => {
         '400': hex,
         '500': lighten(0.2),
         '600': darken(0.2),
-        '700': lighten(0.7),
+        '700': darken(0.3),
         '800': lighten(0.85),
         '900': lighten(0.92),
         '950': lighten(0.97)
