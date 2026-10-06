@@ -3156,7 +3156,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>D. Family Information
+                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>B. Family Information
 
 
 

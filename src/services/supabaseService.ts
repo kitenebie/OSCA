@@ -266,7 +266,7 @@ function mapSeniorToDB(senior: Partial<SeniorCitizen>): Record<string, any> {
   if (senior.ncscReferenceCode !== undefined) mapped.ncsc_reference_code = senior.ncscReferenceCode;
 
   if (senior.isDeceased !== undefined) mapped.is_deceased = senior.isDeceased;
-  if (senior.dateOfDeath !== undefined) mapped.date_of_death = senior.dateOfDeath;
+  if (senior.dateOfDeath !== undefined) mapped.date_of_death = senior.dateOfDeath || null;
   if (senior.causeOfDeath !== undefined) mapped.cause_of_death = senior.causeOfDeath;
   return mapped;
 }

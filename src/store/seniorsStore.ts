@@ -162,6 +162,10 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
       if (!target) throw new Error('This senior record is outside your assigned barangay.');
 
       let processedFields = { ...updatedFields };
+      if (processedFields.status !== undefined && processedFields.status !== 'Deceased') {
+        processedFields.isDeceased = false;
+        processedFields.dateOfDeath = '';
+      }
       const previousFingerprintUrl = target.thumbprintData;
 
       // Upload new profile photo if it's base64
