@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SMSComposer from '../components/sms/SMSComposer';
 import { useSeniorsStore } from '../store/seniorsStore';
+import { useAuthStore } from '../store/authStore';
 import { Mail, Send, CheckCircle2, ShieldCheck, HelpCircle, Terminal, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Status sort priority: Failed → Pending → Sent
@@ -35,6 +36,7 @@ function formatTimestamp(timestamp: string): string {
 
 export default function SMSCenterPage() {
   const { smsLogs, resendSMS } = useSeniorsStore();
+  const { hasPermission } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
 
   const totalLogs = smsLogs.length;
@@ -71,10 +73,10 @@ export default function SMSCenterPage() {
       </div>
 
       {/* SMS Dispatcher composer */}
-      <SMSComposer />
+      {hasPermission('canSendSMS') && <SMSComposer />}
 
       {/* Outbound SMS logs table */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {hasPermission('canViewSMSHistory') && <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
         
         {/* Logs header */}
         <div className="px-5 py-4 border-b border-slate-100 bg-slate-50/50 flex items-center justify-between">
@@ -125,7 +127,7 @@ export default function SMSCenterPage() {
                       </span>
                     </td>
                     <td className="py-3 px-5 text-center">
-                      {log.status === 'Failed' ? (
+                      {log.status === 'Failed' && hasPermission('canResendSMS') ? (
                         <button
                           onClick={() => handleResend(log.id)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-[10px] font-bold uppercase tracking-wide transition-colors"
@@ -185,7 +187,7 @@ export default function SMSCenterPage() {
           </div>
         )}
 
-      </div>
+      </div>}
 
     </div>
   );

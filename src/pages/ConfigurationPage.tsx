@@ -5,6 +5,7 @@ import { useUIStore } from "../store/uiStore";
 import { useAuthStore } from "../store/authStore";
 
 import { RolePermission } from "../types";
+import { ACTION_PERMISSIONS, withActionPermissionDefaults } from "../config/actionPermissions";
 
 import {
 
@@ -921,6 +922,8 @@ const PERMISSION_LABELS: {
     icon: MonitorCog,
 
   },
+
+  ...ACTION_PERMISSIONS.map(({ key, label, group }) => ({ key, label, group, icon: Shield })),
 
 ];
 
@@ -2599,6 +2602,7 @@ export default function ConfigurationPage() {
   }, [activeConfigTab, userIsSuperAdmin]);
 
   const handleAddBarangay = async () => {
+    if (!hasPermission('canManageBarangays')) return;
     const trimmed = newBarangayName.trim();
     if (!trimmed) return;
     if (constBarangays.some(b => b.name.toLowerCase() === trimmed.toLowerCase())) {
@@ -2617,6 +2621,7 @@ export default function ConfigurationPage() {
   };
 
   const handleUpdateBarangay = async (id: string) => {
+    if (!hasPermission('canManageBarangays')) return;
     const trimmed = editingBarangayName.trim();
     if (!trimmed) return;
     try {
@@ -2632,6 +2637,7 @@ export default function ConfigurationPage() {
   };
 
   const handleDeleteBarangay = async (id: string, name: string) => {
+    if (!hasPermission('canManageBarangays')) return;
     if (!confirm(`Delete barangay "${name}"? This cannot be undone.`)) return;
     try {
       await barangaysService.remove(id);
@@ -2653,6 +2659,7 @@ export default function ConfigurationPage() {
 
   ) => {
 
+    if (!hasPermission('canManageRoles')) return;
     if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") return;
 
     setRoles((prev) =>
@@ -2688,6 +2695,7 @@ export default function ConfigurationPage() {
 
 
   const setAllPermissionsForRole = (roleName: string, value: boolean) => {
+    if (!hasPermission('canManageRoles')) return;
 
     if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") return;
 
@@ -2788,6 +2796,7 @@ export default function ConfigurationPage() {
 
 
   const handleSaveIdCardConfig = async () => {
+    if (!hasPermission('canManageIdCardDesign')) return;
 
     setIdConfigSaving(true);
 
@@ -2970,6 +2979,7 @@ export default function ConfigurationPage() {
 
 
   const handleSaveSignatories = async () => {
+    if (!hasPermission('canManageSignatories')) return;
 
     setSignatorySaving(true);
 
@@ -3023,11 +3033,11 @@ export default function ConfigurationPage() {
 
       const data = await rolesService.getAll();
 
-      setRoles(data.length > 0 ? data : DEFAULT_ROLES);
+      setRoles(data.length > 0 ? data : DEFAULT_ROLES.map((role) => ({ ...role, permissions: withActionPermissionDefaults(role.permissions) })));
 
     } catch {
 
-      setRoles(DEFAULT_ROLES);
+      setRoles(DEFAULT_ROLES.map((role) => ({ ...role, permissions: withActionPermissionDefaults(role.permissions) })));
 
     }
 
@@ -3055,13 +3065,13 @@ export default function ConfigurationPage() {
 
         ...updated[roleIndex],
 
-        permissions: {
+        permissions: withActionPermissionDefaults({
 
           ...updated[roleIndex].permissions,
 
           [permKey]: !updated[roleIndex].permissions[permKey],
 
-        },
+        }),
 
       };
 
@@ -3076,6 +3086,7 @@ export default function ConfigurationPage() {
   // Add new role
 
   const handleAddRole = () => {
+    if (!hasPermission('canManageRoles')) return;
 
     const name = newRoleName.trim().toLowerCase().replace(/\s+/g, "-");
 
@@ -3105,7 +3116,7 @@ export default function ConfigurationPage() {
 
         role: name,
 
-        permissions: {
+        permissions: withActionPermissionDefaults({
 
           canViewSeniors: true,
 
@@ -3163,7 +3174,7 @@ export default function ConfigurationPage() {
 
           canAccessMapping: true,
 
-        },
+        }),
 
       },
 
@@ -3180,6 +3191,7 @@ export default function ConfigurationPage() {
   // Delete role
 
   const handleDeleteRole = (roleName: string) => {
+    if (!hasPermission('canManageRoles')) return;
 
     if (roleName.replace(/[^a-z0-9]/gi, "").toLowerCase() === "superadmin") {
 
@@ -3238,6 +3250,7 @@ export default function ConfigurationPage() {
   // Save roles configuration to Supabase & localStorage
 
   const handleSaveRoles = async () => {
+    if (!hasPermission('canManageRoles')) return;
 
     setIsSaving(true);
 
@@ -3304,6 +3317,7 @@ export default function ConfigurationPage() {
         can_access_configuration: r.permissions.canAccessConfiguration,
 
         can_access_mapping: r.permissions.canAccessMapping,
+        action_permissions: Object.fromEntries(ACTION_PERMISSIONS.map(({ key }) => [key, r.permissions[key] ?? false])),
 
       }));
 
@@ -3341,8 +3355,9 @@ export default function ConfigurationPage() {
   // Reset to defaults
 
   const handleResetDefaults = () => {
+    if (!hasPermission('canManageRoles')) return;
 
-    setRoles([...DEFAULT_ROLES]);
+    setRoles(DEFAULT_ROLES.map((role) => ({ ...role, permissions: withActionPermissionDefaults(role.permissions) })));
 
     showToast("Reset to default roles. Save to apply.", "info");
 

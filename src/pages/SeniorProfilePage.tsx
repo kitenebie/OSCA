@@ -308,6 +308,8 @@ export default function SeniorProfilePage() {
 
 
   const canApprove = hasPermission("canApproveReject");
+  const canViewNcscPdf = hasPermission('canViewPDFPreviewNCSC');
+  const canViewHonoringPdf = hasPermission('canViewPDFPreviewHonoring');
 
 
 
@@ -559,7 +561,7 @@ export default function SeniorProfilePage() {
 
   const generateInlinePdfPreview = async () => {
 
-    if (!senior) return;
+    if (!senior || !canViewNcscPdf) return;
 
     if (pdfPreviewUrl || pdfLoading) return; // already generated or in progress
 
@@ -697,6 +699,8 @@ export default function SeniorProfilePage() {
 
   const handleOpenPdfPreview = async () => {
 
+    if (!canViewNcscPdf) return;
+
     setShowPdfDrawer(true);
 
     await generateInlinePdfPreview();
@@ -706,6 +710,8 @@ export default function SeniorProfilePage() {
 
 
   const handleDownloadPdf = async (flatten: boolean) => {
+
+    if (!canViewNcscPdf || !hasPermission('canDownloadReports')) return;
 
     if (!senior) return;
 
@@ -859,7 +865,7 @@ export default function SeniorProfilePage() {
 
   const generateCentenarianPdfPreview = async () => {
 
-    if (!senior) return;
+    if (!senior || !canViewHonoringPdf) return;
     const honoringRecord = centenarianData?.[0];
     if (!honoringRecord) return;
 
@@ -888,6 +894,8 @@ export default function SeniorProfilePage() {
 
   const handleOpenCentenarianPreview = async () => {
 
+    if (!canViewHonoringPdf) return;
+
     setShowCentenarianDrawer(true);
 
     await generateCentenarianPdfPreview();
@@ -898,7 +906,7 @@ export default function SeniorProfilePage() {
 
   const handleDownloadCentenarianPdf = async (flatten: boolean) => {
 
-    if (!senior) return;
+    if (!senior || !canViewHonoringPdf || !hasPermission('canDownloadReports')) return;
     const honoringRecord = centenarianData?.[0];
     if (!honoringRecord) return;
 
@@ -1725,7 +1733,7 @@ export default function SeniorProfilePage() {
 
 
 
-          <IDCardFlipInline senior={senior} />
+          {hasPermission('canViewIDCard') && <IDCardFlipInline senior={senior} />}
 
         </div>
 
@@ -1741,12 +1749,12 @@ export default function SeniorProfilePage() {
 
 
 
-          <IDCardPreview
+          {hasPermission('canViewIDCard') && <IDCardPreview
 
             senior={senior}
 
 
-          />
+          />}
 
 
 
@@ -1972,7 +1980,7 @@ export default function SeniorProfilePage() {
 
 
 
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full overflow-y-auto flex flex-col">
+          {canViewNcscPdf && <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full overflow-y-auto flex flex-col">
 
             <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
 
@@ -2028,12 +2036,12 @@ export default function SeniorProfilePage() {
               </p>
             )}
 
-          </div>
+          </div>}
 
 
 
           {/* Centenarian Honoring Section */}
-          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full overflow-y-auto flex flex-col">
+          {canViewHonoringPdf && <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm w-full overflow-y-auto flex flex-col">
             <div className="border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">
               <Award size={16} className="text-amber-600" />
               <h4 className="font-bold text-slate-800 text-xs md:text-sm uppercase tracking-wide">
@@ -2063,7 +2071,7 @@ export default function SeniorProfilePage() {
                 </p>
               </div>
             )}
-          </div>
+          </div>}
 
         </div>
 

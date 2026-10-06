@@ -201,6 +201,45 @@ export interface RolePermission {
     canAccessFindUser: boolean;
     canAccessConfiguration: boolean;
     canAccessMapping: boolean;
+
+    canSearch?: boolean;
+    canFilterBrgy?: boolean;
+    canFilterStatus?: boolean;
+    canFilterPension?: boolean;
+    canViewTableList?: boolean;
+    canViewOnlyAssignedBrgy?: boolean;
+    canEditRecord?: boolean;
+    canViewProfile?: boolean;
+    canViewPDFPreviewNCSC?: boolean;
+    canViewPDFPreviewHonoring?: boolean;
+    canArchive?: boolean;
+    canUpdateStatus?: boolean;
+    canViewIDCard?: boolean;
+    canViewPendingApprovals?: boolean;
+    canUseDashboardShortcuts?: boolean;
+    canPreviewReports?: boolean;
+    canDownloadReports?: boolean;
+    canEditReportSignatories?: boolean;
+    canViewSMSHistory?: boolean;
+    canResendSMS?: boolean;
+    canManageSessions?: boolean;
+    canSearchFindUser?: boolean;
+    canViewFindUserIDCard?: boolean;
+    canSearchMappingBarangay?: boolean;
+    canOpenSeniorFromMap?: boolean;
+    canCreateClaimForm?: boolean;
+    canEditClaimForm?: boolean;
+    canApproveClaimForm?: boolean;
+    canRejectClaimForm?: boolean;
+    canRestoreClaimForm?: boolean;
+    canToggleClaimRegistration?: boolean;
+    canViewAuditLogs?: boolean;
+    canMarkAuditLogsRead?: boolean;
+    canClearAuditLogs?: boolean;
+    canManageRoles?: boolean;
+    canManageBarangays?: boolean;
+    canManageIdCardDesign?: boolean;
+    canManageSignatories?: boolean;
   };
 }
 

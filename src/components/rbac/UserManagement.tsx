@@ -452,7 +452,7 @@ export default function UserManagement() {
 
       {/* Main Grid: User Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {users.map((user) => {
+        {hasPermission('canViewUsers') ? users.map((user) => {
           const isActive = user.status === 'Active';
           const isMe = currentUser?.id === user.id;
 
@@ -550,7 +550,7 @@ export default function UserManagement() {
               </div>
             </div>
           );
-        })}
+        }) : <p className="col-span-full py-8 text-center text-sm text-slate-500">User list access is disabled for your role.</p>}
       </div>
 
       {/* ====== Add User Modal ====== */}

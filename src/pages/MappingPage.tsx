@@ -3,6 +3,7 @@ import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 import { MapPin, Users, Heart, Building2, Search, Map as MapIcon, ChevronRight, AlertTriangle, User } from 'lucide-react';
 import { SeniorCitizen } from '../types';
 import MapViewUpdater from '../components/mapping/MapViewUpdater';
@@ -53,6 +54,7 @@ const getCoordinatesForBarangay = (brgy: string): { lat: number; lng: number } =
 export default function MappingPage() {
   const { seniors } = useSeniorsStore();
   const { setCurrentPage } = useUIStore();
+  const { hasPermission } = useAuthStore();
   const [selectedBrgyName, setSelectedBrgyName] = useState<string | null>(null);
   const [mapCenter, setMapCenter] = useState<[number, number]>(JUBAN_CENTER);
   const [mapZoom, setMapZoom] = useState<number>(13);
@@ -232,7 +234,7 @@ export default function MappingPage() {
               {/* Individual Marker Clustering Group */}
               <MarkerClusterGroup 
                 seniors={seniors} 
-                onSelectSenior={(id) => setCurrentPage('SeniorProfile', id)} 
+                onSelectSenior={(id) => hasPermission('canOpenSeniorFromMap') && setCurrentPage('SeniorProfile', id)}
                 getCoordinatesForBarangay={getCoordinatesForBarangay} 
               />
 
@@ -269,6 +271,7 @@ export default function MappingPage() {
                  type="text"
                  value={brgySearch}
                  onChange={(e) => setBrgySearch(e.target.value)}
+                 disabled={!hasPermission('canSearchMappingBarangay')}
                  placeholder="Search Barangay..."
                  className="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-xl text-xs font-semibold focus:outline-none transition-all min-w-0"
                />
@@ -424,12 +427,12 @@ export default function MappingPage() {
                         </p>
                         <p className="text-[9px] text-slate-400 dark:text-slate-500 font-mono">{senior.oscaNumber}</p>
                       </div>
-                      <button
+                      {hasPermission('canOpenSeniorFromMap') && hasPermission('canViewProfile') && <button
                         onClick={() => setCurrentPage('SeniorProfile', senior.id)}
                         className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-teal-600 hover:text-white dark:hover:bg-teal-600 dark:hover:text-white text-[9px] font-bold rounded-lg transition-colors cursor-pointer shrink-0"
                       >
                         Profile
-                      </button>
+                      </button>}
                     </div>
                   ))}
                 </div>

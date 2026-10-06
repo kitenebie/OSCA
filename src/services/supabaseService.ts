@@ -1,5 +1,6 @@
 import { supabase } from '../../utils/supabase';
 import { SeniorCitizen, User, Benefit, SMSLog, Barangay, RolePermission, ReportTemplate, AuditLogNotification, SeniorRecordHistory, NCSCDataForm, CentenarianApplication } from '../types';
+import { withActionPermissionDefaults } from '../config/actionPermissions';
 
 // ============================================================
 // TYPE MAPPERS (DB snake_case → App camelCase)
@@ -747,15 +748,16 @@ export const rolesService = {
     } catch { /* ignore */ }
 
     const { data, error } = await supabase.from('roles').select('*');
-    if (error || !data) return localRoles;
+    if (error || !data) return localRoles.map((role) => ({
+      ...role,
+      permissions: withActionPermissionDefaults(role.permissions),
+    }));
 
     return data.map((row: any) => {
       const match = localRoles.find((r) => roleNamesMatch(r.role, row.role));
       const isSuperAdmin = isSuperAdminRole(row.role);
 
-      return {
-        role: row.role,
-        permissions: {
+      const permissions: RolePermission['permissions'] = {
           // Records CRUD (Seniors)
           canViewSeniors: isSuperAdmin || resolvePermission(match?.permissions.canViewSeniors, row.can_view_seniors, true),
           canCreateSenior: isSuperAdmin || resolvePermission(match?.permissions.canCreateSenior, row.can_create_senior),
@@ -789,7 +791,13 @@ export const rolesService = {
           canAccessFindUser: isSuperAdmin || resolvePermission(match?.permissions.canAccessFindUser, row.can_access_find_user, true),
           canAccessConfiguration: isSuperAdmin || resolvePermission(match?.permissions.canAccessConfiguration, row.can_access_configuration, !!row.can_manage_users),
           canAccessMapping: isSuperAdmin || resolvePermission(match?.permissions.canAccessMapping, row.can_access_mapping, true),
-        },
+      };
+      return {
+        role: row.role,
+        permissions: withActionPermissionDefaults(
+          permissions,
+          row.action_permissions ?? match?.permissions,
+        ),
       };
     });
   },

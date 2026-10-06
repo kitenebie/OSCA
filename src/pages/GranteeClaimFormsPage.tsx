@@ -244,7 +244,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const { showToast, selectedFormId, setCurrentPage } = useUIStore();
-  const { currentUser, login } = useAuthStore();
+  const { currentUser, login, hasPermission } = useAuthStore();
   const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
 
   // Password confirmation modal state
@@ -548,6 +548,7 @@ export default function GranteeClaimFormsPage() {
     : [];
 
   const handleCreateClaimForm = async (senior: any) => {
+    if (!hasPermission('canCreateClaimForm')) return;
     setCreatingForSeniorId(senior.id);
     try {
       // Re-check eligibility and duplicate forms against the database before creating.
@@ -636,6 +637,7 @@ export default function GranteeClaimFormsPage() {
 
   // Toggle registration ON/OFF
   const handleToggleRegistration = async () => {
+    if (!hasPermission('canToggleClaimRegistration')) return;
     if (!registrationEnabled) {
       // Turning ON — show password modal first
       setConfirmPassword('');
@@ -1137,6 +1139,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const handleSave = async (): Promise<boolean> => {
+    if (!hasPermission('canEditClaimForm')) return false;
 
 
 
@@ -1353,6 +1356,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const handleApprove = async () => {
+    if (!hasPermission('canApproveClaimForm')) return;
     if (!selectedRecord || selectedRecord.status === 'Rejected') return;
     setUpdatingStatus(true);
     if (!(await handleSave())) return;
@@ -1369,6 +1373,7 @@ export default function GranteeClaimFormsPage() {
   };
 
   const handleRestore = async () => {
+    if (!hasPermission('canRestoreClaimForm')) return;
     if (!selectedRecord || selectedRecord.status !== 'Rejected') return;
     setUpdatingStatus(true);
     const restoredIsEligible = Boolean(selectedRecord.is_eligible);
@@ -1400,6 +1405,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const handleReject = async () => {
+    if (!hasPermission('canRejectClaimForm')) return;
 
 
 
@@ -1758,7 +1764,7 @@ export default function GranteeClaimFormsPage() {
 
           <div className="flex items-center gap-2">
             {/* Registration Toggle */}
-            <div className="flex items-center gap-2 mr-3 pr-3 border-r border-slate-200">
+            {hasPermission('canToggleClaimRegistration') && <div className="flex items-center gap-2 mr-3 pr-3 border-r border-slate-200">
               <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">Registration</span>
               <button
                 onClick={handleToggleRegistration}
@@ -1768,7 +1774,7 @@ export default function GranteeClaimFormsPage() {
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform duration-200 ${registrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
               <span className={`text-[11px] font-bold ${registrationEnabled ? 'text-emerald-600' : 'text-slate-400'}`}>{registrationEnabled ? 'ON' : 'OFF'}</span>
-            </div>
+            </div>}
 
 
 
@@ -1776,12 +1782,12 @@ export default function GranteeClaimFormsPage() {
 
 
 
-            <button
+            {hasPermission('canCreateClaimForm') && <button
               onClick={() => { setCreateFormSearch(''); setShowCreateFormModal(true); }}
               className="inline-flex items-center gap-2 px-3 py-2 bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold rounded-xl shadow-sm transition-colors"
             >
               <Plus size={15} /> Create New Form
-            </button>
+            </button>}
 
             <span className="text-xs font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">{filtered.length} Record{filtered.length !== 1 ? 's' : ''}</span>
 
@@ -3960,12 +3966,12 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                <button onClick={handleSave} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
+                {hasPermission('canEditClaimForm') && <button onClick={handleSave} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
                   <CheckCircle size={16} /> {updatingStatus ? 'Saving...' : 'Save Changes'}
-                </button>
+                </button>}
 
-                <button onClick={handleApprove} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
+                {hasPermission('canApproveClaimForm') && <button onClick={handleApprove} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
 
 
 
@@ -3977,21 +3983,21 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                </button>
+                </button>}
 
 
 
-                {selectedRecord.status === 'Rejected' ? (
+                {selectedRecord.status === 'Rejected' && hasPermission('canRestoreClaimForm') ? (
                   <button onClick={handleRestore} disabled={updatingStatus}
                     className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-amber-500/10 transition-all active:scale-[0.98]">
                     <RefreshCw size={16} /> Restore
                   </button>
-                ) : (
+                ) : selectedRecord.status !== 'Rejected' && hasPermission('canRejectClaimForm') ? (
                   <button onClick={() => setShowRejectInput(true)} disabled={updatingStatus}
                     className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-red-500/10 transition-all active:scale-[0.98]">
                     <XCircle size={16} /> Reject
                   </button>
-                )}
+                ) : null}
 
 
 
@@ -4128,14 +4134,14 @@ export default function GranteeClaimFormsPage() {
                         {senior.oscaNumber} <span className="mx-1 text-slate-300">•</span> {senior.barangay || 'Barangay not set'}
                       </p>
                     </div>
-                    <button
+                    {hasPermission('canCreateClaimForm') && <button
                       onClick={() => handleCreateClaimForm(senior)}
                       disabled={creatingForSeniorId !== null}
                       className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 bg-teal-50 hover:bg-teal-100 disabled:opacity-50 text-teal-700 text-xs font-bold rounded-lg transition-colors"
                     >
                       {creatingForSeniorId === senior.id ? <RefreshCw size={13} className="animate-spin" /> : <Plus size={13} />}
                       {creatingForSeniorId === senior.id ? 'Creating...' : 'Create Form'}
-                    </button>
+                    </button>}
                   </div>
                 ))}
               </div>

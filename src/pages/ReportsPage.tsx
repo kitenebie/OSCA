@@ -21,7 +21,7 @@ type DocumentType = 'osca-transmittal' | 'mswdo-transmittal' | 'certificate-tran
 export default function ReportsPage() {
   const [activeDoc, setActiveDoc] = useState<DocumentType>(null);
   const { seniors } = useSeniorsStore();
-  const { currentUser } = useAuthStore();
+  const { currentUser, hasPermission } = useAuthStore();
   const { barangays: barangaysData } = useBarangays();
   const showToast = useUIStore((s) => s.showToast);
 
@@ -135,6 +135,7 @@ export default function ReportsPage() {
 
   // Save signatories to Supabase
   const handleSaveSignatories = async () => {
+    if (!hasPermission('canEditReportSignatories')) return;
     if (!activeDoc) return;
     try {
       // Save signatories common to most doc types
@@ -205,6 +206,7 @@ export default function ReportsPage() {
   }, [seniors]);
 
   const handlePrint = () => {
+    if (!hasPermission('canDownloadReports')) return;
     const el = previewRef.current;
     if (!el) return;
 
@@ -249,6 +251,7 @@ export default function ReportsPage() {
 
   // Generate filled OSCA Transmittal DOCX from template
   const handleGenerateTransmittal = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     setDocxLoading(true);
     try {
       const blob = await generateTransmittalDocx({
@@ -269,6 +272,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadDocx = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (docxBlob) {
       downloadTransmittalDocx(docxBlob);
       showToast('Downloading OSCA Transmittal...', 'success');
@@ -302,6 +306,7 @@ export default function ReportsPage() {
 
   // ---- Certificate of Transfer DOCX handlers ----
   const handleGenerateCertTransfer = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     const senior = getSelectedSenior(formData.transferSeniorId);
     if (!senior) return;
     setCertTransferLoading(true);
@@ -338,6 +343,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadCertTransfer = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (certTransferBlob) {
       const senior = getSelectedSenior(formData.transferSeniorId);
       const name = senior ? `${senior.lastName}-${senior.firstName}` : 'Certificate';
@@ -371,6 +377,7 @@ export default function ReportsPage() {
 
   // ---- Masterlist DOCX handlers ----
   const handleGenerateMasterlist = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     setMasterlistLoading(true);
     try {
       const selected = seniors
@@ -402,6 +409,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadMasterlist = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (masterlistBlob) {
       downloadMasterlistDocx(masterlistBlob);
       showToast('Downloading Masterlist...', 'success');
@@ -447,6 +455,7 @@ export default function ReportsPage() {
 
   // ---- PhilHealth Transmittal handlers ----
   const handleGeneratePhilHealth = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     setPhLoading(true);
     try {
       const selected = seniors
@@ -475,6 +484,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadPhilHealth = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (phBlob) {
       downloadPhilHealthTransmittalDocx(phBlob, `PhilHealth-Transmittal-${phBarangay || 'All'}.docx`);
       showToast('Downloading PhilHealth Transmittal...', 'success');
@@ -507,6 +517,7 @@ export default function ReportsPage() {
 
   // ---- MSWDO Transmittal DOCX handlers ----
   const handleGenerateMswdoTransmittal = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     setMswdoLoading(true);
     try {
       const dateStr = new Date(formData.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -532,6 +543,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadMswdoTransmittal = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (mswdoBlob) {
       downloadMswdoTransmittalDocx(mswdoBlob);
       showToast('Downloading MSWDO Transmittal...', 'success');
@@ -563,6 +575,7 @@ export default function ReportsPage() {
 
   // ---- Certification DOCX handlers ----
   const handleGenerateCertification = async () => {
+    if (!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports')) return;
     const senior = getSelectedSenior(formData.certSeniorId);
     if (!senior) return;
     setCertLoading(true);
@@ -597,6 +610,7 @@ export default function ReportsPage() {
   };
 
   const handleDownloadCertification = () => {
+    if (!hasPermission('canDownloadReports')) return;
     if (certBlob) {
       const senior = getSelectedSenior(formData.certSeniorId);
       const name = senior ? `${senior.lastName}-${senior.firstName}` : 'Certification';
@@ -760,6 +774,7 @@ export default function ReportsPage() {
               <button
                 type="button"
                 onClick={handleSaveSignatories}
+                disabled={!hasPermission('canEditReportSignatories')}
                 className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
               >
                 <Save size={13} />
@@ -770,7 +785,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGenerateTransmittal}
-                    disabled={docxLoading}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || docxLoading}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -780,6 +795,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadDocx}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -792,7 +808,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGenerateCertTransfer}
-                    disabled={certTransferLoading || !formData.transferSeniorId}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || certTransferLoading || !formData.transferSeniorId}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -802,6 +818,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadCertTransfer}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -814,7 +831,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGenerateMasterlist}
-                    disabled={masterlistLoading}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || masterlistLoading}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -824,6 +841,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadMasterlist}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -836,7 +854,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGeneratePhilHealth}
-                    disabled={phLoading || phSelectedIds.size === 0}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || phLoading || phSelectedIds.size === 0}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -846,6 +864,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadPhilHealth}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -858,7 +877,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGenerateMswdoTransmittal}
-                    disabled={mswdoLoading}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || mswdoLoading}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -868,6 +887,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadMswdoTransmittal}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -880,7 +900,7 @@ export default function ReportsPage() {
                   <button
                     type="button"
                     onClick={handleGenerateCertification}
-                    disabled={certLoading || !formData.certSeniorId}
+                    disabled={!hasPermission('canGenerateReports') || !hasPermission('canPreviewReports') || certLoading || !formData.certSeniorId}
                     className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer disabled:opacity-50"
                   >
                     <FileText size={13} />
@@ -890,6 +910,7 @@ export default function ReportsPage() {
                     <button
                       type="button"
                       onClick={handleDownloadCertification}
+                      disabled={!hasPermission('canDownloadReports')}
                       className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                     >
                       <Download size={13} />
@@ -901,6 +922,7 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={handlePrint}
+                  disabled={!hasPermission('canDownloadReports')}
                   className="flex items-center gap-1.5 px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   <Printer size={13} />

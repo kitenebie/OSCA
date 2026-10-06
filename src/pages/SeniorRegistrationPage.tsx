@@ -589,8 +589,8 @@ function SeniorRegistrationWizard() {
 
 
 
-  const { currentUser } = useAuthStore();
-  const barangayScope = getBarangayScope(currentUser);
+  const { currentUser, hasPermission } = useAuthStore();
+  const barangayScope = hasPermission('canViewOnlyAssignedBrgy') ? getBarangayScope(currentUser) : undefined;
   const availableBarangays = barangayScope
     ? barangaysData.filter((barangay) => barangay.name === barangayScope)
     : barangaysData;
@@ -1650,6 +1650,7 @@ function SeniorRegistrationWizard() {
 
 
   const handleSubmit = async (e: React.FormEvent) => {
+    if (isEditMode ? !hasPermission('canEditRecord') : !hasPermission('canCreateSenior')) return;
 
 
 

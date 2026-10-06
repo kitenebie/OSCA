@@ -32,6 +32,7 @@ CREATE TABLE roles (
   can_access_find_user BOOLEAN DEFAULT false,
   can_access_configuration BOOLEAN DEFAULT false,
   can_access_mapping BOOLEAN DEFAULT false,
+  action_permissions JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 

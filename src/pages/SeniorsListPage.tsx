@@ -118,9 +118,21 @@ export default function SeniorsListPage() {
   // RBAC permissions checks
 
   const canRegister = hasPermission("canCreateSenior");
+  const canSearch = hasPermission("canSearch");
+  const canFilterBrgy = hasPermission("canFilterBrgy");
+  const canFilterStatus = hasPermission("canFilterStatus");
+  const canFilterPension = hasPermission("canFilterPension");
+  const canEditRecord = hasPermission("canEditRecord");
+  const canUpdateStatus = hasPermission("canUpdateStatus");
+  const canArchive = hasPermission("canArchive");
+  const canViewProfile = hasPermission("canViewProfile");
+  const canViewNcscPdf = hasPermission("canViewPDFPreviewNCSC");
+  const canViewHonoringPdf = hasPermission("canViewPDFPreviewHonoring");
+  const canViewIDCard = hasPermission("canViewIDCard");
+  const canViewTableList = hasPermission("canViewTableList");
 
   const barangayScope = getBarangayScope(currentUser);
-  const isBarangayScoped = barangayScope !== undefined;
+  const isBarangayScoped = hasPermission("canViewOnlyAssignedBrgy") && barangayScope !== undefined;
   const defaultBarangay = barangayScope || "";
 
   // Every non-super-admin account is restricted to its assigned barangay.
@@ -128,6 +140,7 @@ export default function SeniorsListPage() {
 
   const handleOpenNcscPdf = async (e: React.MouseEvent, seniorId: string) => {
     e.stopPropagation();
+    if (!canViewNcscPdf) return;
 
     const senior = seniors.find((s) => s.id === seniorId);
 
@@ -211,6 +224,7 @@ export default function SeniorsListPage() {
     seniorId: string,
   ) => {
     e.stopPropagation();
+    if (!canViewHonoringPdf) return;
 
     const senior = seniors.find((s) => s.id === seniorId);
 
@@ -337,6 +351,7 @@ export default function SeniorsListPage() {
 
   const handleEdit = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    if (!canEditRecord) return;
 
     setCurrentPage("Register", id);
   };
@@ -391,11 +406,13 @@ export default function SeniorsListPage() {
     name: string,
   ) => {
     e.stopPropagation();
+    if (!canArchive) return;
 
     setArchiveModal({ open: true, id, name });
   };
 
   const handleArchiveConfirm = async () => {
+    if (!canArchive) return;
     try {
       await updateSenior(archiveModal.id, { status: "Deactivated" });
 
@@ -411,6 +428,7 @@ export default function SeniorsListPage() {
 
   const handleViewID = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    if (!canViewProfile) return;
 
     setCurrentPage("SeniorProfile", id);
   };
@@ -476,6 +494,7 @@ export default function SeniorsListPage() {
   };
 
   const handleStatusConfirm = async () => {
+    if (!canUpdateStatus) return;
     if (!statusModal.id || !newStatus) return;
 
     try {
@@ -563,10 +582,10 @@ export default function SeniorsListPage() {
 
       {/* Filter Row Panel */}
 
-      <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+      {(canSearch || canFilterBrgy || canFilterStatus || canFilterPension) && <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         {/* Search Input */}
 
-        <div className="space-y-1.5">
+        {canSearch && <div className="space-y-1.5">
           <label
             htmlFor="search"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
@@ -588,11 +607,11 @@ export default function SeniorsListPage() {
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none"
             />
           </div>
-        </div>
+        </div>}
 
         {/* Barangay Filter Dropdown */}
 
-        <div className="space-y-1.5">
+        {canFilterBrgy && <div className="space-y-1.5">
           <label
             htmlFor="barangay"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
@@ -615,11 +634,11 @@ export default function SeniorsListPage() {
               </option>
             ))}
           </select>
-        </div>
+        </div>}
 
         {/* Status Filter Dropdown */}
 
-        <div className="space-y-1.5">
+        {canFilterStatus && <div className="space-y-1.5">
           <label
             htmlFor="status"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
@@ -657,11 +676,11 @@ export default function SeniorsListPage() {
 
             <option value="Deceased">Deceased</option>
           </select>
-        </div>
+        </div>}
 
         {/* Pension Status Filter */}
 
-        <div className="space-y-1.5">
+        {canFilterPension && <div className="space-y-1.5">
           <label
             htmlFor="pension"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
@@ -681,13 +700,13 @@ export default function SeniorsListPage() {
 
             <option value="Non-Pensioner">Non-Beneficiary</option>
           </select>
-        </div>
-      </div>
+        </div>}
+      </div>}
 
       {/* Grid Results / Table Stage */}
 
       <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-        {filteredSeniors.length === 0 ? (
+        {!canViewTableList ? <div className="p-8 text-center text-sm text-slate-500">Table list access is disabled for your role.</div> : filteredSeniors.length === 0 ? (
           <div className="flex flex-col items-center justify-center p-20 text-slate-400 text-center">
             <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 mb-3">
               <UserCheck size={24} />
@@ -849,9 +868,9 @@ export default function SeniorsListPage() {
 
                         {/* Edit with Hover Popup */}
 
-                        {hasPermission("canEditSenior") && (
+                        {(canEditRecord || canUpdateStatus || canViewNcscPdf || canViewHonoringPdf) && (
                           <div className="relative">
-                            <button
+                            {canEditRecord && <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -865,50 +884,24 @@ export default function SeniorsListPage() {
                               className="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
                             >
                               <Pencil size={18} />
-                            </button>
+                            </button>}
 
-                            {/* NCSC PDF - visible when Approved ID or later */}
-
-                            {[
-                              "Qualified for NSCS",
-                              "NSCS Form Submitted",
-                              "Approved Data Form",
-                              "Qualified for Honoring",
-                              "Annex A Form Submitted",
-                              "Approved Honoring",
-                            ].includes(senior.status) &&
-                              senior.status !== "Disapproved Data Form" && (
-                                <button
-                                  type="button"
-                                  onClick={(e) =>
-                                    handleOpenNcscPdf(e, senior.id)
-                                  }
-                                  title="View NCSC Data Form (PDF)"
-                                  className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
-                                >
-                                  <FileText size={18} />
-                                </button>
-                              )}
-
-                            {/* Honoring Certificate - visible when Approved Honoring */}
-
-                            {[
-                              "Qualified for Honoring",
-                              "Annex A Form Submitted",
-                              "Approved Honoring",
-                              "Disapproved Data Form"
-                            ].includes(senior.status) &&  senior.status !== "Disapproved Honoring" && (
-                                <button
-                                  type="button"
-                                  onClick={(e) =>
-                                    handleOpenCentenarianPdf(e, senior.id)
-                                  }
-                                  title="View Honoring Certificate"
-                                  className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
-                                >
-                                  <FileBadge size={18} />
-                                </button>
-                              )}
+                            {/* PDF previews */}
+                            {canViewNcscPdf && [
+                              "Qualified for NSCS", "NSCS Form Submitted", "Approved Data Form",
+                              "Qualified for Honoring", "Annex A Form Submitted", "Approved Honoring",
+                            ].includes(senior.status) && senior.status !== "Disapproved Data Form" && (
+                              <button type="button" onClick={(e) => handleOpenNcscPdf(e, senior.id)} title="View NCSC Data Form (PDF)" className="p-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95">
+                                <FileText size={18} />
+                              </button>
+                            )}
+                            {canViewHonoringPdf && [
+                              "Qualified for Honoring", "Annex A Form Submitted", "Approved Honoring", "Disapproved Data Form",
+                            ].includes(senior.status) && senior.status !== "Disapproved Honoring" && (
+                              <button type="button" onClick={(e) => handleOpenCentenarianPdf(e, senior.id)} title="View Honoring Certificate" className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95">
+                                <FileBadge size={18} />
+                              </button>
+                            )}
 
                             {/* Click popup menu */}
 
@@ -917,7 +910,7 @@ export default function SeniorsListPage() {
                                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-1.5 min-w-[160px] space-y-0.5">
                                   
 
-                                  <button
+                                  {canUpdateStatus && <button
                                     type="button"
                                     onClick={(e) => {
                                       handleUpdateStatus(
@@ -933,9 +926,9 @@ export default function SeniorsListPage() {
                                     <RefreshCw size={13} />
 
                                     <span>Update Status</span>
-                                  </button>
+                                  </button>}
 
-                                  <button
+                                  {canEditRecord && <button
                                     type="button"
                                     onClick={(e) => {
                                       handleEdit(e, senior.id);
@@ -946,9 +939,9 @@ export default function SeniorsListPage() {
                                     <Pencil size={13} />
 
                                     <span>Edit Record</span>
-                                  </button>
+                                  </button>}
 
-                                  <button
+                                  {canEditRecord && <button
                                     type="button"
                                     onClick={(e) => {
                                       handleChangePhoto(
@@ -963,7 +956,7 @@ export default function SeniorsListPage() {
                                     <Camera size={13} />
 
                                     <span>Change Photo</span>
-                                  </button>
+                                  </button>}
 
                                   <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
                                 </div>
@@ -974,7 +967,7 @@ export default function SeniorsListPage() {
 
                         {/* ID Card */}
 
-                        {(senior.status != "Pending" ||
+                        {canViewProfile && (senior.status != "Pending" ||
                           senior.status != "Rejected" ||
                           senior.status != "Deactivated") && (
                           <button
@@ -989,8 +982,7 @@ export default function SeniorsListPage() {
 
                         {/* Archive */}
 
-                        {(hasPermission("canDeleteSenior") ||
-                          hasPermission("canEditSenior")) && (
+                        {canArchive && (
                           <button
                             type="button"
                             onClick={(e) =>
@@ -1017,7 +1009,7 @@ export default function SeniorsListPage() {
 
         {/* Pagination Controls */}
 
-        {filteredSeniors.length > 0 && (
+        {canViewTableList && filteredSeniors.length > 0 && (
           <div
             className="flex flex-col sm:flex-row items-center justify-between gap-4 p-5 border-t border-slate-100 bg-slate-50/40"
             id="pagination-controls-container"

@@ -3,6 +3,7 @@ import { CheckCheck, ClipboardList, Eye, History, Search, Trash2, X } from 'luci
 import { auditLogsService, seniorRecordHistoryService } from '../services/supabaseService';
 import { AuditLogNotification, SeniorRecordHistory } from '../types';
 import { useUIStore } from '../store/uiStore';
+import { useAuthStore } from '../store/authStore';
 
 const formatHistoryValue = (value: unknown) => {
   const text = value == null || value === '' ? '—' : typeof value === 'string' ? value : JSON.stringify(value);
@@ -19,12 +20,14 @@ export default function AuditLogsPage() {
   const [actionFilter, setActionFilter] = useState('All');
   const [barangayFilter, setBarangayFilter] = useState('All');
   const showToast = useUIStore((state) => state.showToast);
+  const { hasPermission } = useAuthStore();
 
   useEffect(() => {
+    if (!hasPermission('canViewAuditLogs')) return;
     void auditLogsService.getAll().then(setLogs);
     void seniorRecordHistoryService.getAll().then(setSeniorHistory).catch((error) => console.error('Failed to load senior record history:', error));
     return auditLogsService.subscribe(setLogs);
-  }, []);
+  }, [hasPermission]);
 
   const visibleLogs = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -65,6 +68,8 @@ export default function AuditLogsPage() {
     showToast('Audit logs cleared.', 'info');
   };
 
+  if (!hasPermission('canViewAuditLogs')) return <div className="p-8 text-center text-sm text-slate-500">Audit log access is disabled for your role.</div>;
+
   return (
     <div className="space-y-6">
       <section className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -76,8 +81,8 @@ export default function AuditLogsPage() {
           </div>
         </div>
         {activeTab === 'audit' && <div className="flex gap-2">
-          <button onClick={handleMarkAllRead} className="px-3 py-2 text-xs font-bold rounded-xl border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 flex items-center gap-1.5"><CheckCheck size={14} />Mark all read</button>
-          <button onClick={handleClear} className="px-3 py-2 text-xs font-bold rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 flex items-center gap-1.5"><Trash2 size={14} />Clear</button>
+          {hasPermission('canMarkAuditLogsRead') && <button onClick={handleMarkAllRead} className="px-3 py-2 text-xs font-bold rounded-xl border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 flex items-center gap-1.5"><CheckCheck size={14} />Mark all read</button>}
+          {hasPermission('canClearAuditLogs') && <button onClick={handleClear} className="px-3 py-2 text-xs font-bold rounded-xl border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 flex items-center gap-1.5"><Trash2 size={14} />Clear</button>}
         </div>}
       </section>
 

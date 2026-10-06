@@ -24,7 +24,7 @@ import {
 export default function FindUserPage() {
   const { seniors } = useSeniorsStore();
   const { showToast } = useUIStore();
-  const { currentUser } = useAuthStore();
+  const { currentUser, hasPermission } = useAuthStore();
   
   const [searchId, setSearchId] = useState('OSCA-JUB-');
   
@@ -157,6 +157,7 @@ export default function FindUserPage() {
                   type="text"
                   value={searchId}
                   onChange={(e) => setSearchId(e.target.value)}
+                  disabled={!hasPermission('canSearchFindUser')}
                   placeholder="OSCA ID (e.g. OSCA-JUB-2024-0006) or Name"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-teal-500 focus:bg-white rounded-2xl text-xs font-semibold focus:outline-none transition-all font-mono"
                   id="search-id-input"
@@ -164,6 +165,7 @@ export default function FindUserPage() {
               </div>
               <button
                 type="submit"
+                disabled={!hasPermission('canSearchFindUser')}
                 className="px-4.5 bg-teal-600 hover:bg-teal-500 text-white rounded-2xl font-bold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                 id="search-id-submit-btn"
               >
@@ -205,7 +207,7 @@ export default function FindUserPage() {
               <div className="pt-4 border-t border-slate-100 w-full max-w-sm">
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2.5">Or, choose a quick sample:</p>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {seniors.slice(0, 3).map((s) => (
+                  {hasPermission('canSearchFindUser') && seniors.slice(0, 3).map((s) => (
                     <button
                       key={s.id}
                       onClick={() => {
@@ -231,7 +233,7 @@ export default function FindUserPage() {
                   <span className="text-[9px] font-extrabold text-teal-600 uppercase font-mono tracking-wider bg-teal-50 px-2 py-0.5 rounded-md border border-teal-100">Official OSCA ID</span>
                   <h3 className="font-extrabold text-sm text-slate-800 uppercase tracking-tight mt-1">OSCA ID Card Preview — Variant 2</h3>
                 </div>
-                <IDCardFlipInline senior={selectedSenior} />
+                {hasPermission('canViewFindUserIDCard') && <IDCardFlipInline senior={selectedSenior} />}
               </div>
 
               {/* Retained only as a reference for the former preview design. */}

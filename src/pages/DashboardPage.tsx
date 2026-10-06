@@ -10,9 +10,10 @@ import { getBarangayScope } from '../utils/dataAccess';
 
 export default function DashboardPage() {
   const { seniors, setSelectedStatus, setSelectedPension } = useSeniorsStore();
-  const { currentUser } = useAuthStore();
+  const { currentUser, hasPermission } = useAuthStore();
   const { setCurrentPage } = useUIStore();
-  const barangayScope = getBarangayScope(currentUser);
+  const barangayScope = hasPermission('canViewOnlyAssignedBrgy') ? getBarangayScope(currentUser) : undefined;
+  const canUseShortcuts = hasPermission('canUseDashboardShortcuts');
   // Treat the store as a source, not the access boundary. This prevents a
   // previously loaded municipality-wide dataset from appearing during a role
   // or barangay assignment change.
@@ -106,7 +107,7 @@ export default function DashboardPage() {
           icon={Users}
           bgColor="bg-emerald-50"
           iconColor="text-teal-600"
-          onClick={handleTotalClick}
+          onClick={canUseShortcuts ? handleTotalClick : undefined}
         />
         <StatCard
           title="Social Pensioners (SocPen)"
@@ -117,7 +118,7 @@ export default function DashboardPage() {
           icon={CreditCard}
           bgColor="bg-blue-50"
           iconColor="text-teal-700"
-          onClick={handlePensionClick}
+          onClick={canUseShortcuts ? handlePensionClick : undefined}
         />
         <StatCard
           title="Pending Approvals"
@@ -128,7 +129,7 @@ export default function DashboardPage() {
           icon={Clock}
           bgColor="bg-red-50"
           iconColor="text-[#FD0000]"
-          onClick={handlePendingClick}
+          onClick={canUseShortcuts ? handlePendingClick : undefined}
         />
         <StatCard
           title="Active Approved"
@@ -139,7 +140,7 @@ export default function DashboardPage() {
           icon={Landmark}
           bgColor="bg-emerald-50"
           iconColor="text-teal-600"
-          onClick={handleApprovedClick}
+          onClick={canUseShortcuts ? handleApprovedClick : undefined}
         />
       </div>
 
@@ -149,7 +150,7 @@ export default function DashboardPage() {
           <BarangayChart seniors={dashboardSeniors} barangayScope={barangayScope} />
         </div>
         <div className="lg:col-span-2">
-          <PendingApprovalsWidget seniors={dashboardSeniors} />
+          {hasPermission('canViewPendingApprovals') && <PendingApprovalsWidget seniors={dashboardSeniors} />}
         </div>
       </div>
 

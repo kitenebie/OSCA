@@ -2,15 +2,21 @@ import React, { useState } from 'react';
 import UserManagement from '../components/rbac/UserManagement';
 import SessionManagement from '../components/rbac/SessionManagement';
 import RoleGuard from '../components/rbac/RoleGuard';
+import { useAuthStore } from '../store/authStore';
 import { ShieldCheck, ShieldAlert, Users, MonitorSmartphone } from 'lucide-react';
 
 export default function UserManagementPage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'sessions'>('users');
+  const { hasPermission } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<'users' | 'sessions'>(() =>
+    hasPermission('canViewUsers') || hasPermission('canCreateUser') || hasPermission('canEditUser') || hasPermission('canDeleteUser') ? 'users' : 'sessions',
+  );
 
   const tabs = [
     { id: 'users' as const, label: 'User Accounts', icon: Users },
     { id: 'sessions' as const, label: 'Active Sessions', icon: MonitorSmartphone },
-  ];
+  ].filter((tab) => tab.id === 'users'
+    ? hasPermission('canViewUsers') || hasPermission('canCreateUser') || hasPermission('canEditUser') || hasPermission('canDeleteUser')
+    : hasPermission('canManageSessions'));
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
@@ -23,7 +29,7 @@ export default function UserManagementPage() {
 
       {/* Role Guard wrapping the actual content */}
       <RoleGuard
-        permission="canManageUsers"
+        permission="canAccessUserManagement"
         fallback={
           <div className="flex flex-col items-center justify-center p-16 text-center bg-white border border-slate-200 rounded-3xl max-w-xl mx-auto shadow-sm">
             <div className="w-14 h-14 bg-red-50 text-red-500 rounded-full flex items-center justify-center border border-red-100 shadow-sm mb-4 shrink-0">
@@ -64,8 +70,9 @@ export default function UserManagementPage() {
 
           {/* Tab Content */}
           <div className="p-5">
-            {activeTab === 'users' && <UserManagement />}
-            {activeTab === 'sessions' && <SessionManagement />}
+            {tabs.length === 0 && <p className="text-center text-sm text-slate-500">No user management actions are enabled for your role.</p>}
+            {activeTab === 'users' && tabs.some((tab) => tab.id === 'users') && <UserManagement />}
+            {activeTab === 'sessions' && tabs.some((tab) => tab.id === 'sessions') && <SessionManagement />}
           </div>
         </div>
       </RoleGuard>
