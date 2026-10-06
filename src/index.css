@@ -189,12 +189,12 @@ html.dark .text-emerald-700,
 html.dark .text-emerald-800,
 html.dark .text-teal-700,
 html.dark .text-teal-800 {
-  color: #34d399 !important;
+  color: var(--osca-primary-400) !important;
 }
 
 html.dark .text-emerald-600,
 html.dark .text-teal-600 {
-  color: #2dd4bf !important;
+  color: var(--osca-primary-400) !important;
 }
 
 html.dark .text-blue-700,

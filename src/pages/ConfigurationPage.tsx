@@ -3708,7 +3708,7 @@ export default function ConfigurationPage() {
 
                 disabled={isSaving}
 
-                className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                className="px-3 py-1.5 text-[10px] font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
 
               >
 
@@ -4519,7 +4519,7 @@ export default function ConfigurationPage() {
 
               disabled={idConfigSaving}
 
-              className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 text-[10px] font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
 
             >
 
@@ -5033,7 +5033,7 @@ export default function ConfigurationPage() {
 
                   disabled={signatorySaving}
 
-                  className="ml-auto px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  className="ml-auto px-3 py-1.5 text-[10px] font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
 
                 >
 
@@ -6475,7 +6475,7 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
               disabled={sysSettingsSaving}
 
-              className="px-3 py-1.5 text-[10px] font-bold text-white bg-[#02A952] hover:bg-[#018c43] rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+              className="px-3 py-1.5 text-[10px] font-bold text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
 
             >
 
