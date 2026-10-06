@@ -477,7 +477,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      .select('*')
+      .select('*, senior:seniors(status,is_deceased)')
 
 
 
@@ -528,6 +528,9 @@ export default function GranteeClaimFormsPage() {
   useEffect(() => { fetchRecords(); }, []);
 
   const latestRecordForSenior = (senior: any) => records.find(record => record.osca_number === senior.oscaNumber);
+  const isSeniorDeceased = (record: any) => record.senior
+    ? Boolean(record.senior.is_deceased || record.senior.status === 'Deceased')
+    : Boolean(record.is_deceased);
   const eligibleSeniors = seniors
     .filter(senior => senior.status === 'Qualified for Honoring')
     .filter(senior => {
@@ -550,7 +553,7 @@ export default function GranteeClaimFormsPage() {
       // Re-check eligibility and duplicate forms against the database before creating.
       const { data: currentSenior, error: seniorError } = await supabase
         .from('seniors')
-        .select('id, status')
+        .select('id, status, is_deceased')
         .eq('id', senior.id)
         .maybeSingle();
       if (seniorError) throw seniorError;
@@ -578,6 +581,8 @@ export default function GranteeClaimFormsPage() {
         id: claimFormId,
         senior_id: senior.id,
         status: 'Pending',
+        is_deceased: currentSenior.is_deceased || currentSenior.status === 'Deceased',
+        ...Object.fromEntries(Array.from({ length: 11 }, (_, i) => [`is_doc${i + 1}_valid`, null])),
         osca_number: senior.oscaNumber,
         first_name: senior.firstName,
         middle_name: senior.middleName || null,
@@ -827,7 +832,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    setIsEligible(record.is_eligible || false);
+    setIsEligible(Boolean(record.is_eligible));
 
 
 
@@ -835,7 +840,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    setIsNotEligible(record.is_not_eligible || false);
+    setIsNotEligible(Boolean(record.is_not_eligible && !record.is_eligible));
 
 
 
@@ -915,7 +920,9 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      validation[`doc${i}`] = record[`is_doc${i}_valid`] ?? null;
+      const key = `doc${i}`;
+      const wasDefaultInvalid = record[`is_doc${i}_valid`] === false && !(record[key] || []).length && !String(record.invalid_documents || '').includes(DOC_LABELS[key]);
+      validation[key] = wasDefaultInvalid ? null : record[`is_doc${i}_valid`] ?? null;
 
 
 
@@ -2299,7 +2306,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${record.is_deceased ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                      <span className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${isSeniorDeceased(record) ? 'bg-rose-50 text-rose-600 border border-rose-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
 
 
 
@@ -2307,7 +2314,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                        {record.is_deceased ? 'Deceased' : 'Living'}
+                        {isSeniorDeceased(record) ? 'Deceased' : 'Living'}
 
 
 
@@ -3342,7 +3349,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-              {selectedRecord.is_deceased ? (
+              {isSeniorDeceased(selectedRecord) ? (
 
 
 
@@ -3624,7 +3631,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>H. Uploaded Documents
+                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>H. Documents to Verify in Person
 
 
 
@@ -3751,7 +3758,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                          <span className="text-xs text-slate-400 italic">No files uploaded</span>
+                          <span className="text-xs text-slate-400 italic">To be checked in person</span>
 
 
 
@@ -3935,7 +3942,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                        {files.length > 0 && (
 
 
 
@@ -4023,7 +4029,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                        )}
 
 
 
@@ -4183,7 +4188,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isEligible} onChange={(e) => setIsEligible(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isEligible} onChange={(e) => { setIsEligible(e.target.checked); if (e.target.checked) setIsNotEligible(false); }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
 
 
 
@@ -4215,7 +4220,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isNotEligible} onChange={(e) => setIsNotEligible(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isNotEligible} onChange={(e) => { setIsNotEligible(e.target.checked); if (e.target.checked) setIsEligible(false); }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
 
 
 

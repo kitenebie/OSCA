@@ -15894,7 +15894,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
-        { id: 4, label: 'Attestation & Docs', icon: ClipboardCheck },
+        { id: 4, label: 'Attestation', icon: ClipboardCheck },
 
 
 
@@ -16350,7 +16350,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
-        { id: 4, label: 'Attestation & Docs', icon: ClipboardCheck },
+        { id: 4, label: 'Attestation', icon: ClipboardCheck },
 
 
 
@@ -39104,6 +39104,11 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
+      <SectionHeader title="H. Document Submission" />
+      <p className="rounded-xl border border-teal-100 bg-teal-50 p-4 text-sm text-slate-600">
+        Please submit the required documents in person. The verifier will review and mark them on the claim form.
+      </p>
+      {false && (
       <SectionHeader title="H. Verification Document Checklist" />
 
 
@@ -39793,6 +39798,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
       </div>
+      )}
 
 
 
