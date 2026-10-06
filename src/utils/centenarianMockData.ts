@@ -192,7 +192,7 @@ export const mockSenior: Partial<SeniorCitizen> & Record<string, any> = {
 
   // ========================
 
-  // PAGE 2 — E. GRANTEE'S TRANSACTION ACCOUNT
+  // PAGE 2 — C. Grantee's Transaction Account
 
   // ========================
 

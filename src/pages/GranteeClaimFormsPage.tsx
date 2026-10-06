@@ -3502,7 +3502,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>E. Grantee's Transaction Account
+                    <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>C. Grantee's Transaction Account
 
 
 

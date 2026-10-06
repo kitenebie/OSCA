@@ -36824,7 +36824,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
-        <SectionHeader title="E. Grantee's Transaction Account" />
+        <SectionHeader title="C. Grantee's Transaction Account" />
 
 
 

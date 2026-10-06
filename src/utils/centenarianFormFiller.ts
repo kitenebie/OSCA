@@ -280,7 +280,7 @@ const PAGE2_FIELDS: Record<string, FieldCoord> = {
 
 
 
-  // E. Grantee's Transaction Account
+  // C. Grantee's Transaction Account
 
   // E.1 Preferred Payment Mode checkmarks
 

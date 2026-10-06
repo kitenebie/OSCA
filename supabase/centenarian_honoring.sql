@@ -3400,7 +3400,7 @@ CREATE TABLE IF NOT EXISTS centenarian_honoring (
 
 
 
-  -- E. GRANTEE'S TRANSACTION ACCOUNT
+  -- C. Grantee's Transaction Account
 
 
 
