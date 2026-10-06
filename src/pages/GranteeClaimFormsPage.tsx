@@ -1144,7 +1144,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    if (!selectedRecord) return false;
+    if (!selectedRecord || selectedRecord.status === 'Rejected') return false;
 
 
 
@@ -1349,7 +1349,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const handleApprove = async () => {
-    if (!selectedRecord) return;
+    if (!selectedRecord || selectedRecord.status === 'Rejected') return;
     setUpdatingStatus(true);
     if (!(await handleSave())) return;
 
@@ -1359,6 +1359,27 @@ export default function GranteeClaimFormsPage() {
       const logCreated = await logClaimStatusSMS(selectedRecord, 'Approved');
       showToast(logCreated ? 'Claim form APPROVED' : 'Claim form approved, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
       setSelectedRecord({ ...selectedRecord, status: 'Approved' });
+      fetchRecords();
+    }
+    setUpdatingStatus(false);
+  };
+
+  const handleRestore = async () => {
+    if (!selectedRecord || selectedRecord.status !== 'Rejected') return;
+    setUpdatingStatus(true);
+    const { error } = await supabase.from('centenarian_honoring').update({
+      status: 'Pending',
+      is_eligible: false,
+      is_not_eligible: false,
+    }).eq('id', selectedRecord.id);
+    if (error) showToast('Failed to restore claim form', 'error');
+    else {
+      const logCreated = await logClaimStatusSMS(selectedRecord, 'Pending');
+      showToast(logCreated ? 'Claim form restored to Pending' : 'Claim form restored, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
+      setIsEligible(false);
+      setIsNotEligible(false);
+      setSelectedRecord({ ...selectedRecord, status: 'Pending', is_eligible: false, is_not_eligible: false });
+      setShowRejectInput(false);
       fetchRecords();
     }
     setUpdatingStatus(false);
@@ -3933,12 +3954,12 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                <button onClick={handleSave} disabled={updatingStatus}
+                <button onClick={handleSave} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
                   <CheckCircle size={16} /> {updatingStatus ? 'Saving...' : 'Save Changes'}
                 </button>
 
-                <button onClick={handleApprove} disabled={updatingStatus}
+                <button onClick={handleApprove} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
 
 
 
@@ -3946,7 +3967,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <CheckCircle size={16} /> {updatingStatus ? 'Processing...' : (getInvalidDocNames() ? 'Save Document' : 'Approve')}
+                  <CheckCircle size={16} /> {updatingStatus ? 'Processing...' : 'Approve'}
 
 
 
@@ -3954,19 +3975,17 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                <button onClick={() => setShowRejectInput(true)} disabled={updatingStatus}
-
-
-
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-red-500/10 transition-all active:scale-[0.98]">
-
-
-
-                  <XCircle size={16} /> Reject
-
-
-
-                </button>
+                {selectedRecord.status === 'Rejected' ? (
+                  <button onClick={handleRestore} disabled={updatingStatus}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-amber-500/10 transition-all active:scale-[0.98]">
+                    <RefreshCw size={16} /> Restore
+                  </button>
+                ) : (
+                  <button onClick={() => setShowRejectInput(true)} disabled={updatingStatus}
+                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-red-500/10 transition-all active:scale-[0.98]">
+                    <XCircle size={16} /> Reject
+                  </button>
+                )}
 
 
 
