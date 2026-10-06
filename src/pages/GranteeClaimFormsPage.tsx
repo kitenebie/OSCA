@@ -403,7 +403,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const [isNotEligible, setIsNotEligible] = useState(false);
+  const [isNotEligible, setIsNotEligible] = useState(true);
 
 
 
