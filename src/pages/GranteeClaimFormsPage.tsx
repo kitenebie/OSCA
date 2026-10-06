@@ -1145,6 +1145,10 @@ export default function GranteeClaimFormsPage() {
 
 
     if (!selectedRecord || selectedRecord.status === 'Rejected') return false;
+    if (!isEligible && !isNotEligible) {
+      showToast('Select Eligible or Not Eligible before saving.', 'error');
+      return false;
+    }
 
 
 
@@ -1367,18 +1371,20 @@ export default function GranteeClaimFormsPage() {
   const handleRestore = async () => {
     if (!selectedRecord || selectedRecord.status !== 'Rejected') return;
     setUpdatingStatus(true);
+    const restoredIsEligible = Boolean(selectedRecord.is_eligible);
+    const restoredIsNotEligible = !restoredIsEligible;
     const { error } = await supabase.from('centenarian_honoring').update({
       status: 'Pending',
-      is_eligible: false,
-      is_not_eligible: false,
+      is_eligible: restoredIsEligible,
+      is_not_eligible: restoredIsNotEligible,
     }).eq('id', selectedRecord.id);
     if (error) showToast('Failed to restore claim form', 'error');
     else {
       const logCreated = await logClaimStatusSMS(selectedRecord, 'Pending');
       showToast(logCreated ? 'Claim form restored to Pending' : 'Claim form restored, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-      setIsEligible(false);
-      setIsNotEligible(false);
-      setSelectedRecord({ ...selectedRecord, status: 'Pending', is_eligible: false, is_not_eligible: false });
+      setIsEligible(restoredIsEligible);
+      setIsNotEligible(restoredIsNotEligible);
+      setSelectedRecord({ ...selectedRecord, status: 'Pending', is_eligible: restoredIsEligible, is_not_eligible: restoredIsNotEligible });
       setShowRejectInput(false);
       fetchRecords();
     }
@@ -3662,7 +3668,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isEligible} onChange={(e) => { setIsEligible(e.target.checked); if (e.target.checked) setIsNotEligible(false); }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isEligible} onChange={(e) => { if (e.target.checked) { setIsEligible(true); setIsNotEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
 
 
 
@@ -3694,7 +3700,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isNotEligible} onChange={(e) => { setIsNotEligible(e.target.checked); if (e.target.checked) setIsEligible(false); }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isNotEligible} onChange={(e) => { if (e.target.checked) { setIsNotEligible(true); setIsEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
 
 
 
