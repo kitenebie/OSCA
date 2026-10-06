@@ -298,6 +298,24 @@ html.dark .shadow-2xl {
   --tw-shadow-color: rgba(0,0,0,0.5);
 }
 
+/* Keep the welcome page's pastel feature cards in the dark palette. */
+html.dark #landing-view [class*="bg-"][class*="-50"],
+html.dark #landing-view [class*="bg-"][class*="-100"] {
+  background-color: var(--osca-dark-elevated) !important;
+  border-color: var(--osca-dark-border) !important;
+}
+
+html.dark #landing-view [class*="from-amber-50"] {
+  background-image: none !important;
+  background-color: var(--osca-dark-elevated) !important;
+}
+
+html.dark #landing-view [class~="text-indigo-700"],
+html.dark #landing-view [class~="text-indigo-800"],
+html.dark #landing-view [class~="text-amber-900"] {
+  color: #fbbf24 !important;
+}
+
 /* Global input field height increase */
 input[type="text"],
 input[type="password"],

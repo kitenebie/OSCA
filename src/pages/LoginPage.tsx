@@ -189243,7 +189243,7 @@ export default function LoginPage() {
 
 
 
-      <div className="absolute inset-0 bg-slate-50/93 backdrop-blur-[14px] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-slate-50/93 dark:bg-[#08111f]/90 backdrop-blur-[14px] pointer-events-none z-0"></div>
 
 
 
@@ -279303,7 +279303,7 @@ export default function LoginPage() {
 
 
 
-          <div className="w-full space-y-6 md:space-y-10 animate-fadeIn">
+          <div id="landing-view" className="w-full space-y-6 md:space-y-10 animate-fadeIn">
 
 
 
