@@ -94,6 +94,7 @@ export const applySystemTheme = (t: Partial<UserThemeSettings>) => {
     : `'${fullTheme.fontFamily}', sans-serif`;
 
   root.style.setProperty('--osca-font-family', fontValue);
+  root.style.setProperty('--font-sans', fontValue);
   root.style.setProperty('--osca-font-size', fullTheme.fontSize || '14px');
   root.style.setProperty('--osca-primary-color', fullTheme.primaryColor || '#02A952');
   root.style.setProperty('--osca-secondary-color', fullTheme.secondaryColor || '#0F766E');
