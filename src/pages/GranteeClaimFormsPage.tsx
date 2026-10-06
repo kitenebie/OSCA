@@ -2852,7 +2852,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>C. Personal Information
+                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>A. Personal Information
 
 
 
@@ -3364,7 +3364,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>F. Deceased Grantee — Claimant Info
+                    <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>C. Deceased Grantee — Claimant Info
 
 
 
@@ -3630,7 +3630,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>I. Verification Result
+                  <span className="w-1.5 h-3 bg-teal-500 rounded-full"></span>D. Verification Result
 
 
 

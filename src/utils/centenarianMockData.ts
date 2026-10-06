@@ -23,7 +23,7 @@ export const mockSenior: Partial<SeniorCitizen> & Record<string, any> = {
 
   // ========================
 
-  // PAGE 1 — C. PERSONAL INFORMATION
+  // PAGE 1 — A. PERSONAL INFORMATION
 
   // ========================
 
@@ -123,7 +123,7 @@ export const mockSenior: Partial<SeniorCitizen> & Record<string, any> = {
 
   // ========================
 
-  // PAGE 2 — D. FAMILY INFORMATION
+  // PAGE 2 — B. FAMILY INFORMATION
 
   // ========================
 

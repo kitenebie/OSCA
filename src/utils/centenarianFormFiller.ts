@@ -88,7 +88,7 @@ interface FieldCoord {
 
 // ═══════════════════════════════════════════════════════════════
 
-// PAGE 1 FIELDS — C. PERSONAL INFORMATION
+// PAGE 1 FIELDS — A. PERSONAL INFORMATION
 
 // ═══════════════════════════════════════════════════════════════
 

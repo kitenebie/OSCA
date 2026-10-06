@@ -25499,7 +25499,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
-      <SectionHeader title="C. Personal Information" />
+      <SectionHeader title="A. Personal Information" />
 
 
 
@@ -29908,7 +29908,7 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
 
 
 
-      <SectionHeader title="D. Family Information" />
+      <SectionHeader title="B. Family Information" />
 
 
 
