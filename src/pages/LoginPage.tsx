@@ -189243,7 +189243,7 @@ export default function LoginPage() {
 
 
 
-      <div className="absolute inset-0 bg-slate-50/93 dark:bg-[#08111f]/90 backdrop-blur-[14px] pointer-events-none z-0"></div>
+      <div id="login-backdrop" className="absolute inset-0 bg-slate-50/93 dark:bg-[#08111f]/90 backdrop-blur-[14px] pointer-events-none z-0"></div>
 
 
 

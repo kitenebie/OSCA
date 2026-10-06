@@ -305,6 +305,10 @@ html.dark #landing-view [class*="bg-"][class*="-100"] {
   border-color: var(--osca-dark-border) !important;
 }
 
+html.dark #login-root-container > #login-backdrop {
+  background-color: rgba(8, 17, 31, 0.96) !important;
+}
+
 html.dark #landing-view [class*="from-amber-50"] {
   background-image: none !important;
   background-color: var(--osca-dark-elevated) !important;
