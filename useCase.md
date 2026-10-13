@@ -18,7 +18,6 @@
 | **Super Admin** | Primary | Full system access — manages users, configuration, all modules |
 | **MSWDO Officer** | Primary | Reviews/approves registrations, manages benefits, generates reports |
 | **Barangay Encoder** | Primary | Registers senior citizens, data entry, limited module access |
-| **Senior Citizen** | Primary (External) | Accesses public pages — submits claim forms, checks honoring status |
 | **System (Automated)** | Secondary | Background processes — SMS triggers, session management, real-time sync |
 | **HID Fingerprint Scanner** | Secondary (Hardware) | U.are.U 4500 accessed in-browser through HID JavaScript Web SDK and HID Authentication Device Client |
 
@@ -67,9 +66,6 @@
 |-------|----------|--------|-------------|
 | UC-4.1 | Enable Centenarian Honoring Registration | Super Admin | Toggle registration open/close; triggers password generation for qualified seniors |
 | UC-4.2 | Generate Passwords for Qualified Seniors | System | Auto-generate 10-character alphanumeric passwords and send via SMS |
-| UC-4.3 | Authenticate via OSCA ID + Password | Senior Citizen | Public page login using OSCA number + system-generated password |
-| UC-4.4 | Submit Grantee Claim Form (Annex A) | Senior Citizen | Fill out and submit the digital claim form with personal/family/payment info |
-| UC-4.5 | Check Honoring Status | Senior Citizen | View current claim status (Pending → Under Review → Verified → Approved → Claimed) |
 | UC-4.6 | Review/Approve Claim Submissions | MSWDO Officer, Super Admin | Review submitted claims; advance status through lifecycle |
 | UC-4.7 | Process Cash Gift Distribution | Super Admin, MSWDO Officer | Mark claims as distributed; record payment details |
 
@@ -131,15 +127,6 @@ Pending → Under Review → Verified → Approved → Claimed
 
 ---
 
-### UC-10: Public Access
-
-| UC ID | Use Case | Actors | Description |
-|-------|----------|--------|-------------|
-| UC-10.1 | View Landing Page | Senior Citizen | Access public system information and registration links |
-| UC-10.2 | Authenticate via OSCA ID + Password | Senior Citizen | Stateless credential verification for public-facing grantee pages |
-
----
-
 ## Relationships
 
 ### «include» Relationships
@@ -172,32 +159,29 @@ Pending → Under Review → Verified → Approved → Claimed
 
 ## Actor–Use Case Access Matrix
 
-| Use Case | Super Admin | MSWDO Officer | Barangay Encoder | Senior Citizen | System |
-|----------|:-----------:|:-------------:|:----------------:|:--------------:|:------:|
-| Login | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Manage Users | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Register Senior | ✅ | ❌ | ✅ | ❌ | ❌ |
-| Capture Biometrics | ✅ | ❌ | ✅ | ❌ | ❌ |
-| View/Search Seniors | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Update Profile | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Approve/Reject | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Generate PDF Forms | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Enable Honoring | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Submit Claim Form | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Check Honoring Status | ❌ | ❌ | ❌ | ✅ | ❌ |
-| Review Claims | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Send SMS | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Broadcast SMS | ✅ | ✅ | ❌ | ❌ | ❌ |
-| View Dashboard | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Generate Reports | ✅ | ✅ | ❌ | ❌ | ❌ |
-| View GIS Map | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Manage Benefits | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Configure System | ✅ | ❌ | ❌ | ❌ | ❌ |
-| View Audit Logs | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Auto-Expire Sessions | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Auto-Send SMS | ❌ | ❌ | ❌ | ❌ | ✅ |
-| Real-time Sync | ❌ | ❌ | ❌ | ❌ | ✅ |
-| View Landing Page | ❌ | ❌ | ❌ | ✅ | ❌ |
+| Use Case | Super Admin | MSWDO Officer | Barangay Encoder | System |
+|----------|:-----------:|:-------------:|:----------------:|:------:|
+| Login | ✅ | ✅ | ✅ | ❌ |
+| Manage Users | ✅ | ❌ | ❌ | ❌ |
+| Register Senior | ✅ | ❌ | ✅ | ❌ |
+| Capture Biometrics | ✅ | ❌ | ✅ | ❌ |
+| View/Search Seniors | ✅ | ✅ | ✅ | ❌ |
+| Update Profile | ✅ | ✅ | ❌ | ❌ |
+| Approve/Reject | ✅ | ✅ | ❌ | ❌ |
+| Generate PDF Forms | ✅ | ✅ | ❌ | ❌ |
+| Enable Honoring | ✅ | ❌ | ❌ | ❌ |
+| Review Claims | ✅ | ✅ | ❌ | ❌ |
+| Send SMS | ✅ | ✅ | ✅ | ❌ |
+| Broadcast SMS | ✅ | ✅ | ❌ | ❌ |
+| View Dashboard | ✅ | ✅ | ✅ | ❌ |
+| Generate Reports | ✅ | ✅ | ❌ | ❌ |
+| View GIS Map | ✅ | ✅ | ✅ | ❌ |
+| Manage Benefits | ✅ | ✅ | ❌ | ❌ |
+| Configure System | ✅ | ❌ | ❌ | ❌ |
+| View Audit Logs | ✅ | ❌ | ❌ | ❌ |
+| Auto-Expire Sessions | ❌ | ❌ | ❌ | ✅ |
+| Auto-Send SMS | ❌ | ❌ | ❌ | ✅ |
+| Real-time Sync | ❌ | ❌ | ❌ | ✅ |
 
 ---
 
@@ -207,7 +191,7 @@ Pending → Under Review → Verified → Approved → Claimed
 |-----------|-------------------|
 | **NCSC-SCDF v4.0b3** | UC-2.1 (11-Step Registration), UC-3.1 (PDF Form) |
 | **R.A. 10173 (Data Privacy Act)** | UC-1.4 (Audit Logs), UC-1.5 (Session Expiry), UC-9.1 (Configuration) |
-| **R.A. 11982 (Centenarian Honoring)** | UC-4.1 through UC-4.7 (Full Honoring Program) |
+| **R.A. 11982 (Centenarian Honoring)** | UC-4.1, UC-4.2, UC-4.6, UC-4.7 (Staff and system workflow) |
 | **R.A. 9994 (Expanded Senior Citizens Act)** | UC-8.1, UC-8.2 (Benefits Management) |
 
 ---
