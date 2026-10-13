@@ -52,7 +52,7 @@
   <path d="M 650.0 370 L 680.0 370 L 680.0 390 L 650.0 390" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
   <text x="685.0" y="383" font-size="9" fill="#334155">Check localStorage for token</text>
   <line x1="650.0" y1="420" x2="1042.0" y2="420" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>
-  <text x="850.0" y="413" text-anchor="middle" font-size="9" fill="#334155">Validate session (SELECT user_sessions)</text>
+  <text x="850.0" y="413" text-anchor="middle" font-size="9" fill="#334155">Restore saved login state</text>
   <line x1="1050.0" y1="470" x2="658.0" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-24_cold_start)"/>
   <text x="850.0" y="463" text-anchor="middle" font-size="9" fill="#64748b">Session valid + user data</text>
   <path d="M 650.0 520 L 680.0 520 L 680.0 540 L 650.0 540" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-24_cold_start)"/>

@@ -64,9 +64,9 @@
   <line x1="850.0" y1="570" x2="458.0" y2="570" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-01_authentication)"/>
   <text x="650.0" y="563" text-anchor="middle" font-size="9" fill="#64748b">{deviceName, ip, location}</text>
   <line x1="450.0" y1="620" x2="1042.0" y2="620" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-01_authentication)"/>
-  <text x="750.0" y="613" text-anchor="middle" font-size="9" fill="#334155">INSERT INTO user_sessions</text>
+  <text x="750.0" y="613" text-anchor="middle" font-size="9" fill="#334155">Save login state</text>
   <line x1="1050.0" y1="670" x2="458.0" y2="670" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-01_authentication)"/>
-  <text x="750.0" y="663" text-anchor="middle" font-size="9" fill="#64748b">Session created</text>
+  <text x="750.0" y="663" text-anchor="middle" font-size="9" fill="#64748b">Login state ready</text>
   <line x1="450.0" y1="720" x2="1042.0" y2="720" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-01_authentication)"/>
   <text x="750.0" y="713" text-anchor="middle" font-size="9" fill="#334155">INSERT INTO audit_logs (USER_LOGIN)</text>
   <path d="M 450.0 770 L 480.0 770 L 480.0 790 L 450.0 790" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-01_authentication)"/>

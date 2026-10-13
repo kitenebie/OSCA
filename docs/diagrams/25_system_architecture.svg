@@ -83,7 +83,7 @@
   <rect x="80" y="465" width="160" height="80" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
   <text x="160" y="485" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">PostgreSQL</text>
   <text x="95" y="502" font-size="8" fill="#334155">seniors (100+ cols)</text>
-  <text x="95" y="514" font-size="8" fill="#334155">users, user_sessions</text>
+  <text x="95" y="514" font-size="8" fill="#334155">users</text>
   <text x="95" y="526" font-size="8" fill="#334155">audit_logs, sms_logs</text>
   <text x="95" y="538" font-size="8" fill="#334155">role_permissions</text>
 
@@ -95,7 +95,7 @@
 
   <rect x="440" y="465" width="160" height="80" rx="8" fill="#ffffff" stroke="#86efac" stroke-width="1.5"/>
   <text x="520" y="485" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">Realtime</text>
-  <text x="455" y="502" font-size="8" fill="#334155">Session termination</text>
+  <text x="455" y="502" font-size="8" fill="#334155">Realtime updates</text>
   <text x="455" y="514" font-size="8" fill="#334155">Live data sync</text>
   <text x="455" y="526" font-size="8" fill="#334155">Channel subscriptions</text>
 
@@ -160,7 +160,7 @@
   <rect x="740" y="790" width="280" height="70" rx="8" fill="#ffffff" stroke="#c4b5fd"/>
   <text x="880" y="810" text-anchor="middle" font-size="10" font-weight="bold" fill="#7c3aed">Super Admin</text>
   <text x="755" y="828" font-size="8" fill="#475569">✓ Full system control</text>
-  <text x="755" y="842" font-size="8" fill="#475569">✓ User management, Force-logout</text>
+  <text x="755" y="842" font-size="8" fill="#475569">✓ User management, account security</text>
   <text x="755" y="856" font-size="8" fill="#475569">✓ Configuration, Signatories</text>
 
 </svg>

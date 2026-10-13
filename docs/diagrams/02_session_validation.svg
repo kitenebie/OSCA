@@ -40,15 +40,15 @@
   <line x1="283.33333333333337" y1="270" x2="508.66666666666674" y2="270" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-02_session_validation)"/>
   <text x="400.00000000000006" y="263" text-anchor="middle" font-size="9" fill="#334155">validateSession(token)</text>
   <line x1="516.6666666666667" y1="320" x2="742.0" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-02_session_validation)"/>
-  <text x="633.3333333333334" y="313" text-anchor="middle" font-size="9" fill="#334155">SELECT FROM user_sessions WHERE token = ?</text>
+  <text x="633.3333333333334" y="313" text-anchor="middle" font-size="9" fill="#334155">Validate saved login state</text>
   <line x1="750.0" y1="370" x2="524.6666666666667" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-02_session_validation)"/>
-  <text x="633.3333333333334" y="363" text-anchor="middle" font-size="9" fill="#64748b">Session row</text>
+  <text x="633.3333333333334" y="363" text-anchor="middle" font-size="9" fill="#64748b">Login state</text>
   <path d="M 516.6666666666667 420 L 546.6666666666667 420 L 546.6666666666667 440 L 516.6666666666667 440" fill="none" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-02_session_validation)"/>
   <text x="551.6666666666667" y="433" font-size="9" fill="#334155">Check expires_at > now()</text>
   <line x1="516.6666666666667" y1="470" x2="291.33333333333337" y2="470" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-02_session_validation)"/>
   <text x="400.00000000000006" y="463" text-anchor="middle" font-size="9" fill="#64748b">Session valid</text>
   <line x1="283.33333333333337" y1="520" x2="742.0" y2="520" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-02_session_validation)"/>
-  <text x="516.6666666666667" y="513" text-anchor="middle" font-size="9" fill="#334155">UPDATE last_activity = now()</text>
+  <text x="516.6666666666667" y="513" text-anchor="middle" font-size="9" fill="#334155">Refresh session activity</text>
   <rect x="320.0" y="558" width="160" height="24" rx="4" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
   <text x="400.0" y="573" text-anchor="middle" font-size="9" fill="#92400e">Polling: Check every 30s for expiry</text>
   <line x1="283.33333333333337" y1="605" x2="58.0" y2="605" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-02_session_validation)"/>

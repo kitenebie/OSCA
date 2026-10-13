@@ -85,7 +85,7 @@
   <rect x="590" y="135" width="180" height="100" rx="8" fill="#fff" stroke="#86efac"/>
   <text x="680" y="155" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">PostgreSQL Tables</text>
   <text x="605" y="173" font-size="8" fill="#475569">• seniors (100+ cols)</text>
-  <text x="605" y="186" font-size="8" fill="#475569">• users, user_sessions</text>
+  <text x="605" y="186" font-size="8" fill="#475569">• users</text>
   <text x="605" y="199" font-size="8" fill="#475569">• audit_logs, sms_logs</text>
   <text x="605" y="212" font-size="8" fill="#475569">• role_permissions</text>
   <text x="605" y="225" font-size="8" fill="#475569">• system_settings, signatories</text>
@@ -97,7 +97,7 @@
 
   <rect x="590" y="340" width="180" height="50" rx="8" fill="#fff" stroke="#86efac"/>
   <text x="680" y="360" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">Realtime Channels</text>
-  <text x="605" y="378" font-size="8" fill="#475569">• user_sessions (force-logout)</text>
+  <text x="605" y="378" font-size="8" fill="#475569">• live data updates</text>
 
   <rect x="590" y="410" width="180" height="50" rx="8" fill="#fff" stroke="#86efac"/>
   <text x="680" y="430" text-anchor="middle" font-size="10" font-weight="bold" fill="#166534">localStorage</text>

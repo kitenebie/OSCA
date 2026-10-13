@@ -136,7 +136,6 @@ The PostgreSQL database (hosted on Supabase) consists of the following core tabl
 ```
 barangays (1) ──────── (N) seniors
 seniors   (1) ──────── (N) centenarian_honoring
-users     (1) ──────── (N) user_sessions
 users     (1) ──────── (N) audit_logs
 roles     (1) ──────── (N) users
 seniors   (1) ──────── (N) sms_logs

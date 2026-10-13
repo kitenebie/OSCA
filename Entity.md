@@ -239,20 +239,6 @@ erDiagram
     %% SESSION & CONFIGURATION
     %% ═══════════════════════════════════════════
 
-    USER_SESSIONS {
-        UUID id PK
-        TEXT user_id FK
-        TEXT session_token UK
-        TEXT refresh_token UK
-        TIMESTAMPTZ created_at
-        TIMESTAMPTZ expires_at
-        TIMESTAMPTZ last_activity
-        BOOLEAN is_active
-        BOOLEAN remember_me
-        TEXT ip_address
-        TEXT user_agent
-    }
-
     USER_SETTINGS {
         UUID id PK
         TEXT user_id FK_UK
@@ -322,7 +308,6 @@ erDiagram
 
     USERS ||--o{ SENIORS : "registers"
     USERS ||--o{ SMS_LOGS : "sends"
-    USERS ||--o{ USER_SESSIONS : "has sessions"
     USERS ||--|{ USER_SETTINGS : "has settings"
     USERS }o--|| ROLES : "has role"
 
@@ -464,19 +449,7 @@ The main entity with **80+ fields** covering:
 
 ---
 
-### 11. `user_sessions` — Login Session Management
-| Column | Type | Description |
-|--------|------|-------------|
-| `user_id` | TEXT (FK → users) | Session owner |
-| `session_token` | TEXT (UNIQUE) | Active session token |
-| `refresh_token` | TEXT (UNIQUE) | "Remember Me" long-lived token |
-| `expires_at` | TIMESTAMPTZ | 60-minute expiration |
-| `is_active` | BOOLEAN | Whether session is still valid |
-| `ip_address` / `user_agent` | TEXT | Device fingerprint |
-
----
-
-### 12. `user_settings` — Per-User Theme & UI Configuration
+### 11. `user_settings` — Per-User Theme & UI Configuration
 | Column | Type | Description |
 |--------|------|-------------|
 | `user_id` | TEXT (FK → users, UNIQUE) | One setting per user |
@@ -486,7 +459,7 @@ The main entity with **80+ fields** covering:
 
 ---
 
-### 13. `id_card_config` — ID Card Template Fields
+### 12. `id_card_config` — ID Card Template Fields
 | Column | Type | Description |
 |--------|------|-------------|
 | `variant` | TEXT | `variant1` or `variant2` |
@@ -496,7 +469,7 @@ The main entity with **80+ fields** covering:
 
 ---
 
-### 14. `system_settings` — Global System Configuration
+### 13. `system_settings` — Global System Configuration
 | Column | Type | Description |
 |--------|------|-------------|
 | `key` | TEXT (PK) | Setting identifier (e.g., `municipality_name`, `fingerprint_enabled`) |
@@ -534,7 +507,6 @@ These tables retain the selected senior records and configurable office address 
 | ROLES | defines permissions | USERS | 1 : N | users.role |
 | USERS | registers | SENIORS | 1 : N | seniors.registered_by |
 | USERS | sends | SMS_LOGS | 1 : N | sms_logs.sent_by |
-| USERS | authenticates | USER_SESSIONS | 1 : N | user_sessions.user_id |
 | USERS | configures | USER_SETTINGS | 1 : 1 | user_settings.user_id |
 | SENIORS | applies for | CENTENARIAN_HONORING | 1 : N | centenarian_honoring.senior_id |
 | SENIORS | receives | BENEFITS | 1 : N | (implicit via pension_beneficiary) |
@@ -567,10 +539,10 @@ These tables retain the selected senior records and configurable office address 
      └──────────────┘ └─────────┘ └──────────────┘
               ▲                           ▲
               │                           │
-     ┌────────┴─────────┐       ┌────────┴───────┐
-     │      USERS       │       │  USER_SESSIONS │
-     │ (operators/admin)│───────│  (auth tokens) │
-     └────────┬─────────┘       └────────────────┘
+     ┌───────────────┐
+     │     USERS     │
+     │(operators/admin)│
+     └───────┬───────┘
               │
      ┌────────┴─────────┐
      │  USER_SETTINGS   │

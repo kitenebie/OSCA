@@ -15,19 +15,13 @@
 
 ---
 
-## 3. Session Force-Termination (Admin)
-
-![Force Termination](diagrams/03_force_termination.svg)
-
----
-
-## 4. Senior Registration (11-Step NCSC-SCDF Form)
+## 3. Senior Registration (11-Step NCSC-SCDF Form)
 
 ![Registration Flow](diagrams/04_registration.svg)
 
 ---
 
-## 5. Fingerprint Capture
+## 4. Fingerprint Capture
 
 ![Fingerprint Capture](diagrams/05_fingerprint_capture.svg)
 
@@ -35,7 +29,7 @@
 
 ---
 
-## 6. Fingerprint Verification (Legacy Diagram)
+## 5. Fingerprint Verification (Legacy Diagram)
 
 ![Fingerprint Verification](diagrams/06_fingerprint_verify.svg)
 
@@ -43,121 +37,121 @@
 
 ---
 
-## 7. Profile Photo Capture (WebRTC)
+## 6. Profile Photo Capture (WebRTC)
 
 ![Photo Capture](diagrams/07_photo_capture.svg)
 
 ---
 
-## 8. Digital Signature Capture
+## 7. Digital Signature Capture
 
 ![Signature Capture](diagrams/08_signature_capture.svg)
 
 ---
 
-## 9. Senior Profile View & Edit
+## 8. Senior Profile View & Edit
 
 ![Profile Edit](diagrams/09_profile_edit.svg)
 
 ---
 
-## 10. NFC ID Card Generation
+## 9. NFC ID Card Generation
 
 ![NFC ID Generation](diagrams/10_nfc_id_generation.svg)
 
 ---
 
-## 11. NCSC PDF Form Generation
+## 10. NCSC PDF Form Generation
 
 ![NCSC PDF](diagrams/11_ncsc_pdf.svg)
 
 ---
 
-## 12. Centenarian Claim Form Generation
+## 11. Centenarian Claim Form Generation
 
 ![Centenarian Form](diagrams/12_centenarian_form.svg)
 
 ---
 
-## 13. Dashboard & Analytics Data Loading
+## 12. Dashboard & Analytics Data Loading
 
 ![Dashboard](diagrams/13_dashboard.svg)
 
 ---
 
-## 14. GIS Mapping & Geotagging
+## 13. GIS Mapping & Geotagging
 
 ![GIS Mapping](diagrams/14_gis_mapping.svg)
 
 ---
 
-## 15. SMS Notification (Bulk Send)
+## 14. SMS Notification (Bulk Send)
 
 ![SMS Notification](diagrams/15_sms_notification.svg)
 
 ---
 
-## 16. Reports Export (PDF / Screenshot)
+## 15. Reports Export (PDF / Screenshot)
 
 ![Reports Export](diagrams/16_reports_export.svg)
 
 ---
 
-## 17. User Management (Create / Update / Delete)
+## 16. User Management (Create / Update / Delete)
 
 ![User Management](diagrams/17_user_management.svg)
 
 ---
 
-## 18. Role-Based Access Control (RBAC)
+## 17. Role-Based Access Control (RBAC)
 
 ![RBAC](diagrams/18_rbac.svg)
 
 ---
 
-## 19. Configuration & Signatories Management
+## 18. Configuration & Signatories Management
 
 ![Configuration](diagrams/19_configuration.svg)
 
 ---
 
-## 20. Theme / Settings Persistence
+## 19. Theme / Settings Persistence
 
 ![Theme Persistence](diagrams/20_theme_persistence.svg)
 
 ---
 
-## 21. Audit Logging (All System Actions)
+## 20. Audit Logging (All System Actions)
 
 ![Audit Logging](diagrams/21_audit_logging.svg)
 
 ---
 
-## 22. Seniors List Search & Filter
+## 21. Seniors List Search & Filter
 
 ![Search Filter](diagrams/22_search_filter.svg)
 
 ---
 
-## 23. Logout Flow
+## 22. Logout Flow
 
 ![Logout](diagrams/23_logout.svg)
 
 ---
 
-## 24. App Initialization (Cold Start)
+## 23. App Initialization (Cold Start)
 
 ![Cold Start](diagrams/24_cold_start.svg)
 
 ---
 
-## 25. System Architecture Overview
+## 24. System Architecture Overview
 
 ![System Architecture](diagrams/25_system_architecture.svg)
 
 ---
 
-## 26. Data Flow Diagram
+## 25. Data Flow Diagram
 
 ![Data Flow](diagrams/26_data_flow.svg)
 

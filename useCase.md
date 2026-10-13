@@ -32,7 +32,6 @@
 |-------|----------|--------|-------------|
 | UC-1.1 | Login to System | Super Admin, MSWDO Officer, Barangay Encoder | Staff authenticate using username + SHA-256 hashed password with session token generation |
 | UC-1.2 | Manage User Accounts | Super Admin | Create, update, deactivate staff accounts; assign roles and barangay assignments |
-| UC-1.3 | Force Logout User Session | Super Admin | Terminate active sessions remotely for security enforcement |
 | UC-1.4 | View Audit Logs | Super Admin | View chronological log of all system actions with actor, timestamp, and severity |
 | UC-1.5 | Auto-Expire Sessions | System | Automatically invalidate sessions after 60 minutes of inactivity |
 
@@ -198,7 +197,6 @@ Pending → Under Review → Verified → Approved → Claimed
 | Manage Benefits | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Configure System | ✅ | ❌ | ❌ | ❌ | ❌ |
 | View Audit Logs | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Force Logout | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Auto-Expire Sessions | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Auto-Send SMS | ❌ | ❌ | ❌ | ❌ | ✅ |
 | Real-time Sync | ❌ | ❌ | ❌ | ❌ | ✅ |

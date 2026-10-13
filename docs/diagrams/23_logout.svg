@@ -48,7 +48,7 @@
   <line x1="475.0" y1="270" x2="679.5" y2="270" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-23_logout)"/>
   <text x="581.25" y="263" text-anchor="middle" font-size="9" fill="#334155">deactivateSession(token)</text>
   <line x1="687.5" y1="320" x2="892.0" y2="320" stroke="#334155" stroke-width="1.5" marker-end="url(#arrowhead-23_logout)"/>
-  <text x="793.75" y="313" text-anchor="middle" font-size="9" fill="#334155">UPDATE user_sessions SET is_active = false</text>
+  <text x="793.75" y="313" text-anchor="middle" font-size="9" fill="#334155">Clear saved login state</text>
   <line x1="900.0" y1="370" x2="695.5" y2="370" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-23_logout)"/>
   <text x="793.75" y="363" text-anchor="middle" font-size="9" fill="#64748b">Deactivated</text>
   <line x1="687.5" y1="420" x2="483.0" y2="420" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowhead-dashed-23_logout)"/>
