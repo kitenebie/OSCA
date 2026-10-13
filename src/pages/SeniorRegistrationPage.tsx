@@ -32,7 +32,6 @@ import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 
 
 
-import ThumbprintCapture from '../components/profiling/ThumbprintCapture';
 
 
 

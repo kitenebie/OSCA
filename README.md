@@ -14,7 +14,7 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 | 2 | [Entity Relationship Diagram (ERD)](./Entity.md) | Naglalaman ng database schema, kabilang ang senior records, centenarian honoring, session/configuration, at transmittal/PhilHealth support tables. |
 | 3 | [Methodology](./methodology.md) | Detalyadong dokumentasyon ng **development methodology** — kasama ang System Architecture (SPA + BaaS pattern), Technology Stack, Agile Iterative SDLC, Database Design, Security Implementation (authentication flow, RLS, audit trail), lahat ng System Modules (Registration, Centenarian Honoring, SMS, GIS, Dashboard, Reports, PDF, NFC, Configuration), State Management Strategy, Deployment & Infrastructure, UI Design Principles, Testing Strategy, at Compliance Standards. |
 | 4 | [Use Case Diagram](./useCase.md) | Use-case specification para sa staff, system services, HID scanner, registration, honoring, at document generation. |
-| 5 | [System Workflow](./workflow.md) | Technical workflow ng kasalukuyang app: 11-step registration, HID/ESP32 scanner modes, storage, PDF/DOCX documents, reports, RBAC, at Supabase services. |
+| 5 | [System Workflow](./workflow.md) | Technical workflow ng kasalukuyang app: 11-step registration, HID scanner, storage, PDF/DOCX documents, reports, RBAC, at Supabase services. |
 | 6 | [Sequence Diagrams](./docs/sequenceDiagram.md) | Index ng 26 SVG diagrams. May legacy diagrams dito; basahin ang note sa file bago ituring na current implementation detail. |
 
 ---
@@ -24,7 +24,7 @@ Sumusunod sa mga pamantayang **NCSC-SCDF v4.0b3** at **Data Privacy Act of 2012 
 | Document | Summary |
 |----------|---------|
 | [Legacy Fingerprint Bridge README](./fingerprint-bridge/README.md) | Lumang .NET bridge documentation; hindi na ginagamit ng DigitalPersona scanner sa web app. |
-| [ESP32 Firmware README](./fingerprint-bridge/esp32-firmware/README.md) | Documentation para sa ESP32 microcontroller firmware na ginagamit sa fingerprint hardware sensor setup. |
+| [Standalone ESP32 Firmware README](./fingerprint-bridge/esp32-firmware/README.md) | Standalone hardware firmware reference; hindi ginagamit ng website fingerprint capture. |
 
 ---
 
@@ -171,7 +171,6 @@ Ang mga sumusunod na screenshots ay nagpapakita ng mga pangunahing interface ng 
 | 15 | ![Roles & Permissions](./public/assets/images/15.png) | **Configuration: Roles & Permissions** — RBAC (Role-Based Access Control) configuration na may granular permissions per role (Seniors CRUD, Users CRUD, etc.) para sa 6 na system roles. |
 | 16 | ![Appearance & Theme](./public/assets/images/16.png) | **Configuration: Appearance & Theme** — System appearance settings kasama ang font family/size selection, color theme picker (12+ themes: OSCA Default, Ocean, Sunset, Royal, etc.), at light/dark mode toggle. |
 | 17 | ![Biometric Testing](./public/assets/images/17.png) | **Configuration: Biometric Testing** — Hardware testing page para sa camera (face capture), E-Lagda digital signature pad, at USB fingerprint scanner, kasama ang setup guide at troubleshooting. |
-| 18 | ![Scanner Settings](./public/assets/images/18.png) | **Configuration: Scanner Settings** — Fingerprint scanner configuration (DigitalPersona U.are.U 4500 USB at ESP32 + R307/AS608 WiFi) na may endpoint URL setup. |
 | 19 | ![ID Card Config](./public/assets/images/19.png) | **Configuration: ID Card Config** — NFC ID Card text configuration (Variant 1 & 2) kasama ang front/back side labels, benefits text, at ID Card Signatories (OSCA Head at Municipal Mayor) na may E-Lagda digital signatures. |
 | 20 | ![System Settings](./public/assets/images/20.png) | **Configuration: System Settings** — Logo & Images, Brand & Identity (colors, tagline), Landing Page Content, Hero Background, Footer Logos, at Contact Information configuration. |
 

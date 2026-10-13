@@ -12,8 +12,7 @@ OSCA is a React 18 + TypeScript single-page application. Zustand stores coordina
 Browser (React/Vite)
   ├─ Zustand: authStore, seniorsStore, settingsStore, uiStore
   ├─ Services: Supabase, session, storage, fingerprint device
-  ├─ HID SDK + HID Authentication Device Client (optional, local scanner PC)
-  └─ ESP32/R307 HTTP preview endpoint (optional scanner-test mode)
+  └─ HID SDK + HID Authentication Device Client (local scanner PC)
                   │
                   ▼
 Supabase: PostgreSQL · Storage · Realtime
@@ -65,10 +64,6 @@ The supported registration component is `FingerprintScanner`.
 
 This feature captures an **image record only**. The application does not create biometric templates, enroll a person, compare fingerprints, or verify identity. The obsolete `fingerprint-bridge` .NET project is retained as legacy capture-test code and is not called by the React application.
 
-### ESP32 + R307/AS608 — optional test path
-
-The firmware in `fingerprint-bridge/esp32-firmware/` joins an existing Wi-Fi network and exposes `GET /status` and `GET /live/detect/fingerprint`. The browser test UI polls the live endpoint approximately every 500 ms; it returns a BMP when a finger is detected. The current ESP32 capture component is for live preview/test behavior and does **not** pass that BMP into the registration record or Storage upload. See its dedicated README for wiring and setup.
-
 ### Privacy and deployment warning
 
 The current storage implementation returns public URLs. Fingerprint images are sensitive personal data and must not be used as login or proof-of-identity credentials. Before a production biometric rollout, make the bucket private, serve files through authorized access controls, document consent/retention, and move any credential matching to a server-side system with a suitable biometric-security design.
@@ -109,7 +104,7 @@ The staff page `GranteeClaimFormsPage.tsx` reviews public claim submissions in `
 | Senior records and reference barangays | `seniors`, `barangays` |
 | User settings and roles | `users`, `roles`, `user_settings`, `user_sessions` |
 | Documents | `document_signatories`, `transmittal_barangay_signatures`, PhilHealth transmittal tables |
-| System settings | `system_settings`, including `fingerprint_scanner_type` and `fingerprint_scanner_endpoint` |
+| System settings | `system_settings` |
 | Storage rotation | `seniors-1` → `seniors-2` → `seniors-3`, checked against a 50 MB limit per bucket |
 
 ## Development

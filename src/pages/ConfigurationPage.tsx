@@ -939,54 +939,6 @@ export default function ConfigurationPage() {
 
   );
 
-  const [fingerprintScannerType, setFingerprintScannerType] = useState<'digitalpersona' | 'esp32'>('digitalpersona');
-
-  const [fingerprintEndpoint, setFingerprintEndpoint] = useState<string>('http://192.168.8.1');
-
-  const [fpSettingsLoaded, setFpSettingsLoaded] = useState(false);
-
-
-
-  // Load fingerprint settings from database on mount
-
-  useEffect(() => {
-
-    (async () => {
-
-      try {
-
-        const typeRow = await systemSettingsService.get('fingerprint_scanner_type');
-
-        const endpointRow = await systemSettingsService.get('fingerprint_scanner_endpoint');
-
-        if (typeRow?.settingValue) setFingerprintScannerType(typeRow.settingValue as 'digitalpersona' | 'esp32');
-
-        if (endpointRow?.settingValue && typeRow?.settingValue === 'esp32') setFingerprintEndpoint(endpointRow.settingValue);
-
-        // Also sync to localStorage for ThumbprintCapture component
-
-        const config = {
-
-          type: typeRow?.settingValue || 'digitalpersona',
-
-          endpoint: typeRow?.settingValue === 'esp32' ? endpointRow?.settingValue || 'http://192.168.8.1' : 'hid-agent'
-
-        };
-
-        localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(config));
-
-      } catch (err) {
-
-        console.warn('Failed to load fingerprint settings from DB, using defaults');
-
-      }
-
-      setFpSettingsLoaded(true);
-
-    })();
-
-  }, []);
-
   const { hasPermission, currentUser } = useAuthStore();
 
   const userIsSuperAdmin = isSuperAdmin(currentUser?.role);
@@ -5958,293 +5910,34 @@ export default function ConfigurationPage() {
       {/* ====== TAB: BIOMETRIC HARDWARE TESTING ====== */}
 
             {/* ====== TAB: FINGERPRINT SCANNER SETTINGS ====== */}
-
       {activeConfigTab === "fingerprint_settings" && (
-
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden w-full">
-
           <div className="border-b border-slate-100 dark:border-slate-700 p-4 bg-slate-50/50 dark:bg-slate-900/50 flex items-center gap-2">
-
             <Usb size={16} className="text-violet-600" />
-
-            <h5 className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm">Fingerprint Scanner Configuration</h5>
-
+            <h5 className="font-bold text-slate-800 dark:text-slate-100 text-xs md:text-sm">Fingerprint Scanner Settings</h5>
           </div>
-
-
-
-          <div className="p-6 space-y-6">
-
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">
-
-              Select the fingerprint scanner type and configure the connection endpoint. This setting is saved locally and used by the fingerprint capture component throughout the application.
-
+          <div className="p-6 space-y-4">
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              OSCA uses the DigitalPersona U.are.U 4500 USB fingerprint scanner through the HID Web SDK and local HID Authentication Device Client.
             </p>
-
-
-
-            {/* Scanner Type Selection */}
-
-            <div className="space-y-3">
-
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Scanner Type</label>
-
-              <select
-
-                value={fingerprintScannerType}
-
-                onChange={(e) => {
-
-                  const type = e.target.value as 'digitalpersona' | 'esp32';
-
-                  setFingerprintScannerType(type);
-
-                  setFingerprintEndpoint('http://192.168.8.1');
-
-                }}
-
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-semibold text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-
-              >
-
-                <option value="digitalpersona">DigitalPersona U.are.U 4500 (USB — HID Web SDK)</option>
-
-                <option value="esp32">ESP32 + Arduino Fingerprint Module (WiFi — R307/AS608)</option>
-
-              </select>
-
+            <div className="rounded-xl border-2 border-teal-300 bg-teal-50/50 dark:bg-teal-950/20 p-4 space-y-2">
+              <div className="flex items-center gap-2">
+                <Fingerprint size={14} className="text-teal-600" />
+                <h6 className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase">U.are.U 4500</h6>
+                <span className="text-[9px] font-bold text-teal-600 bg-teal-100 px-1.5 py-0.5 rounded-full">SUPPORTED</span>
+              </div>
+              <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                <li>• USB wired connection</li>
+                <li>• Requires the HID Authentication Device Client and scanner driver on this Windows computer</li>
+                <li>• Use Biometric Testing to check scanner connectivity</li>
+              </ul>
             </div>
-
-
-
-            {/* Endpoint Configuration */}
-
-            {fingerprintScannerType === 'esp32' && <div className="space-y-3">
-
-              <label className="text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">Scanner Endpoint URL</label>
-
-              <input
-
-                type="text"
-
-                value={fingerprintEndpoint}
-                onChange={(e) => setFingerprintEndpoint(e.target.value)}
-
-                placeholder="http://192.168.8.1"
-
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm font-mono text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
-
-              />
-
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">
-
-                The ESP32 creates a WiFi hotspot (OSCA-Fingerprint). Connect to it, then the scanner is at http://192.168.8.1.
-
-              </p>
-
-            </div>}
-
-            {fingerprintScannerType === 'digitalpersona' && <p className="text-xs text-slate-500 dark:text-slate-400">The HID Web SDK connects through HID Authentication Device Client installed on this Windows computer. No endpoint URL or custom .NET bridge is needed.</p>}
-
-
-
-            {/* Save Button */}
-
-            <button
-
-              type="button"
-
-              onClick={async () => {
-
-                try {
-
-                  // Save to database (system_settings table)
-
-                  await systemSettingsService.bulkUpsert([
-
-                    { settingKey: 'fingerprint_scanner_type', settingValue: fingerprintScannerType },
-
-                    { settingKey: 'fingerprint_scanner_endpoint', settingValue: fingerprintScannerType === 'esp32' ? fingerprintEndpoint : 'hid-agent' }
-
-                  ]);
-
-                  // Also sync to localStorage for immediate use by ThumbprintCapture
-
-                  const config = { type: fingerprintScannerType, endpoint: fingerprintScannerType === 'esp32' ? fingerprintEndpoint : 'hid-agent' };
-
-                  localStorage.setItem('osca_fingerprint_scanner', JSON.stringify(config));
-
-                  showToast('Fingerprint scanner settings saved!', 'success');
-
-                } catch (err: any) {
-
-                  showToast('Failed to save: ' + (err.message || 'Database error'), 'error');
-
-                }
-
-              }}
-
-              className="flex items-center gap-2 px-5 py-2.5 bg-teal-600 text-white rounded-xl text-xs font-bold hover:bg-teal-700 shadow-md shadow-teal-200 dark:shadow-teal-900/30 transition"
-
-            >
-
-              <Save size={14} />
-
-              Save Scanner Settings
-
-            </button>
-
-
-
-            {/* Scanner-specific info cards */}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-
-              {/* U.are.U 4500 Card */}
-
-              <div className={`rounded-xl border-2 p-4 space-y-2 transition ${
-
-                fingerprintScannerType === 'digitalpersona' ? 'border-teal-300 bg-teal-50/50 dark:bg-teal-950/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-
-              }`}>
-
-                <div className="flex items-center gap-2">
-
-                  <Fingerprint size={14} className="text-teal-600" />
-
-                  <h6 className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase">U.are.U 4500</h6>
-
-                  {fingerprintScannerType === 'digitalpersona' && <span className="text-[9px] font-bold text-teal-600 bg-teal-100 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
-
-                </div>
-
-                <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
-
-                  <li>• USB wired connection</li>
-
-                  <li>• 512 DPI, high quality image</li>
-
-                  <li>• Requires the HID Authentication Device Client and scanner driver</li>
-
-                  <li>• Single capture per scan</li>
-
-                  <li>• Capture test only; no image or template is stored</li>
-
-                </ul>
-
-              </div>
-
-
-
-              {/* ESP32 Card */}
-
-              <div className={`rounded-xl border-2 p-4 space-y-2 transition ${
-
-                fingerprintScannerType === 'esp32' ? 'border-violet-300 bg-violet-50/50 dark:bg-violet-950/20' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800'
-
-              }`}>
-
-                <div className="flex items-center gap-2">
-
-                  <Cpu size={14} className="text-violet-600" />
-
-                  <h6 className="text-[11px] font-bold text-slate-800 dark:text-slate-100 uppercase">ESP32 + R307/AS608</h6>
-
-                  {fingerprintScannerType === 'esp32' && <span className="text-[9px] font-bold text-violet-600 bg-violet-100 px-1.5 py-0.5 rounded-full">ACTIVE</span>}
-
-                </div>
-
-                <ul className="text-[10px] text-slate-500 dark:text-slate-400 space-y-0.5">
-
-                  <li>• WiFi wireless connection</li>
-
-                  <li>• 500 DPI, 256x288 image</li>
-
-                  <li>• No bridge needed — direct WiFi</li>
-
-                  <li>• Live detection (real-time preview)</li>
-
-                </ul>
-
-              </div>
-
-            </div>
-
-
-
-            {/* ESP32 Setup Guide (shown when ESP32 selected) */}
-
-            {fingerprintScannerType === 'esp32' && (
-
-              <div className="bg-violet-50 dark:bg-violet-950/30 border border-violet-100 dark:border-violet-800 rounded-xl p-4 space-y-3 mt-2">
-
-                <h6 className="text-[11px] font-bold text-violet-800 dark:text-violet-200 uppercase">ESP32 Scanner Setup</h6>
-
-                <div className="space-y-2 text-[10px] text-slate-600 dark:text-slate-400">
-
-                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
-
-                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">1</span>
-
-                    <p><strong>Hardware:</strong> Connect R307/AS608 fingerprint module to ESP32 — TX→GPIO16, RX→GPIO17, VCC→3.3V, GND→GND</p>
-
-                  </div>
-
-                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
-
-                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">2</span>
-
-                    <p><strong>Flash firmware:</strong> Open <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">fingerprint-bridge/esp32-firmware/esp32_fingerprint_server.ino</code> in Arduino IDE. Select ESP32 Dev Module. Upload.</p>
-
-                  </div>
-
-                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
-
-                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">3</span>
-
-                    <p><strong>Connect WiFi:</strong> On this PC, connect to WiFi network <code className="bg-slate-100 dark:bg-slate-700 px-1 rounded">OSCA-Fingerprint</code> (password: osca1234)</p>
-
-                  </div>
-
-                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
-
-                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">4</span>
-
-                    <p><strong>Verify:</strong> Open <a href="http://192.168.8.1/status" target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 underline">http://192.168.8.1/status</a> in your browser — should return JSON with device info.</p>
-
-                  </div>
-
-                  <div className="flex items-start gap-2 bg-white dark:bg-slate-800 rounded-lg p-2 border border-violet-100 dark:border-violet-800">
-
-                    <span className="w-4 h-4 rounded-full bg-violet-600 text-white text-[9px] font-bold flex items-center justify-center shrink-0">5</span>
-
-                    <p><strong>Test:</strong> Go to Biometric Testing tab above and scan a fingerprint. The live preview should appear.</p>
-
-                  </div>
-
-                </div>
-
-                <div className="mt-2">
-
-                  <h6 className="text-[10px] font-bold text-violet-700 dark:text-violet-300 mb-1">API Endpoints:</h6>
-
-                  <pre className="text-[10px] bg-slate-900 text-green-400 rounded p-2 font-mono overflow-x-auto">{`GET http://192.168.8.1/status                  → Device info (JSON)
-
-GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected, JSON if not`}</pre>
-
-                </div>
-
-              </div>
-
-            )}
-
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+              The HID Web SDK discovers the local client automatically. No scanner endpoint needs to be configured.
+            </p>
           </div>
-
         </div>
-
       )}
-
-
 
       {activeConfigTab === "biometrics" && (
 
@@ -6430,26 +6123,16 @@ GET http://192.168.8.1/live/detect/fingerprint  → BMP image if finger detected
 
                 <p className="text-[10px] text-slate-400">
 
-                  {fingerprintScannerType === 'digitalpersona'
-                    ? 'Test the U.are.U 4500 through the HID local client. Capture status and quality are shown; no image or template is saved.'
-                    : 'Test the ESP32 fingerprint scanner connection over WiFi.'}
+                  Test the U.are.U 4500 through the HID local client. Capture status and quality are shown; no image or template is saved.
 
                 </p>
 
                 <ThumbprintCapture
-                  scannerType={fingerprintScannerType}
-
                   value={testFingerprintUrl}
 
                   onChange={(url) => {
-
                     setTestFingerprintUrl(url);
-
-
                   }}
-
-                  seniorId="test-config"
-
                 />
 
               </div>
