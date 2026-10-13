@@ -27,67 +27,59 @@
 
 ---
 
-## 4. NFC ID Card Generation
+## 4. PDF Form Generation
 
-![Activity Diagram 4: NFC ID Card Generation](assets/activity-diagrams/ad_04_nfc_id.svg)
-
-**Description:** An authorized user selects a registered senior citizen, fetches their profile data, generates a unique OSCA ID number, and renders the ID card layout (front and back). The card can be previewed with a flip animation. The user can then either print the card as PDF or initiate NFC write simulation to encode data onto a physical NFC tag.
-
----
-
-## 5. PDF Form Generation
-
-![Activity Diagram 5: PDF Form Generation](assets/activity-diagrams/ad_05_pdf_form.svg)
+![Activity Diagram 4: PDF Form Generation](assets/activity-diagrams/ad_05_pdf_form.svg)
 
 **Description:** The system supports two PDF forms: the **NCSC-SCDF Form** (standard profiling) and the **Centenarian Honoring Grantee Claim Form** (for seniors aged 100+). The selected PDF template is loaded, senior data is auto-filled using `pdf-lib` (drawText overlay), digital signatures and signatory data are embedded, and the form is previewed before download.
 
 ---
 
-## 6. SMS Notification Center
+## 5. SMS Notification Center
 
-![Activity Diagram 6: SMS Notification](assets/activity-diagrams/ad_06_sms.svg)
+![Activity Diagram 5: SMS Notification](assets/activity-diagrams/ad_06_sms.svg)
 
 **Description:** Users can send either individual or bulk SMS notifications. For bulk SMS, recipients are selected by filter (barangay, age bracket, benefit status). A message template is selected or created (pension notice, vaccine schedule, medical mission, or custom). The message is previewed with recipient count, and upon confirmation, sent via the SMS gateway. Delivery status is logged in the database.
 
 ---
 
-## 7. Dashboard & Analytics
+## 6. Dashboard & Analytics
 
-![Activity Diagram 7: Dashboard & Analytics](assets/activity-diagrams/ad_07_dashboard.svg)
+![Activity Diagram 6: Dashboard & Analytics](assets/activity-diagrams/ad_07_dashboard.svg)
 
 **Description:** The dashboard loads multiple data sources in parallel (total counts, demographics, distribution data). ApexCharts renders interactive visualizations including pie charts (gender), bar charts (age groups), area charts (monthly registrations), and donut charts (barangay distribution). Summary KPI cards display key statistics. Users can filter by barangay/date or export as screenshot/PDF.
 
 ---
 
-## 8. GIS Mapping & Geotagging
+## 7. GIS Mapping & Geotagging
 
-![Activity Diagram 8: GIS Mapping](assets/activity-diagrams/ad_08_gis.svg)
+![Activity Diagram 7: GIS Mapping](assets/activity-diagrams/ad_08_gis.svg)
 
 **Description:** The Leaflet-based interactive map initializes centered on Juban municipality. Senior citizen geotag data is fetched and rendered as clustered markers using MarkerCluster for efficient visualization. Users can click markers to view senior info popups, filter by barangay, or zoom/pan to explore spatial distribution.
 
 ---
 
-## 9. Reports Module
+## 8. Reports Module
 
-![Activity Diagram 9: Reports Generation](assets/activity-diagrams/ad_09_reports.svg)
+![Activity Diagram 8: Reports Generation](assets/activity-diagrams/ad_09_reports.svg)
 
 **Description:** The reports module produces document previews and downloadable DOCX files for OSCA/MSWDO/PhilHealth transmittals, Certificate of Transfer, DSWD Social Pension Certification, and the Octogenarian/Nonagenarian/Centenarian masterlist. The existing PDF/screenshot export utilities remain available for report-style outputs.
 
 ---
 
-## 10. User & Role Management (Super Admin)
+## 9. User & Role Management (Super Admin)
 
-![Activity Diagram 10: User & Role Management](assets/activity-diagrams/ad_10_user_mgmt.svg)
+![Activity Diagram 9: User & Role Management](assets/activity-diagrams/ad_10_user_mgmt.svg)
 
 **Description:** The Super Admin can create new user accounts, update roles (Encoder, Supervisor, Super Admin), and manage document signatories. Changes are saved to Supabase and Row-Level Security (RLS) policies are updated accordingly to enforce proper access control.
 
 ---
 
-## 11. System Overview (High-Level Flow)
+## 10. System Overview (High-Level Flow)
 
-![Activity Diagram 11: System Overview](assets/activity-diagrams/ad_11_overview.svg)
+![Activity Diagram 10: System Overview](assets/activity-diagrams/ad_11_overview.svg)
 
-**Description:** High-level overview of the complete OSCA system. Users authenticate via Supabase, are routed by role, and access available modules (Registration, Profiling, Biometrics, NFC ID, PDF Forms, SMS, Dashboard, GIS Map, Reports). Each module enforces role-based permissions. Sessions end via logout or timeout.
+**Description:** High-level overview of the complete OSCA system. Users authenticate via Supabase, are routed by role, and access available modules (Registration, Profiling, Biometrics, PDF Forms, SMS, Dashboard, GIS Map, Reports). Each module enforces role-based permissions. Sessions end via logout or timeout.
 
 ---
 
@@ -112,14 +104,13 @@
 | 1 | User Authentication | All Users | Login, credential validation, RBAC routing |
 | 2 | Senior Registration | Encoder | 11-step NCSC-SCDF form, data persistence |
 | 3 | Fingerprint Biometrics | Encoder | HID PNG capture and storage on record submission; no matching/verification |
-| 4 | NFC ID Card Generation | Encoder, Supervisor | Card rendering, NFC encoding |
-| 5 | PDF Form Generation | Encoder, Supervisor | NCSC/Centenarian form auto-fill |
-| 6 | SMS Notification | Supervisor, Admin | Individual/bulk SMS, templates |
-| 7 | Dashboard & Analytics | All Users | Charts, KPIs, data filtering |
-| 8 | GIS Mapping | All Users | Leaflet map, markers, clusters |
-| 9 | Reports Module | Supervisor, Admin | Generate and download PDF/screenshot or DOCX documents |
-| 10 | User & Role Management | Super Admin | CRUD users, assign roles, signatories |
-| 11 | System Overview | All Users | End-to-end system flow |
+| 4 | PDF Form Generation | Encoder, Supervisor | NCSC/Centenarian form auto-fill |
+| 5 | SMS Notification | Supervisor, Admin | Individual/bulk SMS, templates |
+| 6 | Dashboard & Analytics | All Users | Charts, KPIs, data filtering |
+| 7 | GIS Mapping | All Users | Leaflet map, markers, clusters |
+| 8 | Reports Module | Supervisor, Admin | Generate and download PDF/screenshot or DOCX documents |
+| 9 | User & Role Management | Super Admin | CRUD users, assign roles, signatories |
+| 10 | System Overview | All Users | End-to-end system flow |
 
 ---
 

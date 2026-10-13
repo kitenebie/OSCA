@@ -127,11 +127,6 @@
   <text x="1087" y="247" text-anchor="middle" font-size="8" fill="#475569">Claim Form PDF</text>
   <text x="1087" y="259" text-anchor="middle" font-size="8" fill="#475569">with signatories</text>
 
-  <rect x="855" y="285" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
-  <text x="927" y="305" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">🪪 NFC ID Card</text>
-  <text x="927" y="322" text-anchor="middle" font-size="8" fill="#475569">Front/Back layout</text>
-  <text x="927" y="334" text-anchor="middle" font-size="8" fill="#475569">html2canvas → PNG</text>
-
   <rect x="1015" y="285" width="145" height="55" rx="8" fill="#fff" stroke="#f9a8d4"/>
   <text x="1087" y="305" text-anchor="middle" font-size="10" font-weight="bold" fill="#9d174d">📱 SMS Notifs</text>
   <text x="1087" y="322" text-anchor="middle" font-size="8" fill="#475569">Template-based</text>

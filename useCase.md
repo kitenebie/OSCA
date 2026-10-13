@@ -51,14 +51,13 @@
 
 ---
 
-### UC-3: NFC ID Card & PDF Generation
+### UC-3: PDF & Document Generation
 
 | UC ID | Use Case | Actors | Description |
 |-------|----------|--------|-------------|
-| UC-3.1 | Generate NFC ID Card | Super Admin, MSWDO Officer, Barangay Encoder | Create digital OSCA ID (front/back) with photo, QR code, and NFC write simulation |
-| UC-3.2 | Generate NCSC-SCDF PDF Form | Super Admin, MSWDO Officer | Auto-fill official NCSC form with senior's data using pdf-lib (client-side) |
-| UC-3.3 | Generate Centenarian Honoring PDF | Super Admin, MSWDO Officer | Auto-generate Annex A Grantee Claim Form for eligible seniors |
-| UC-3.4 | Generate DOCX Documents | Super Admin, MSWDO Officer | Generate/download OSCA and MSWDO transmittals, PhilHealth transmittal, Certificate of Transfer, DSWD certification, and milestone masterlist |
+| UC-3.1 | Generate NCSC-SCDF PDF Form | Super Admin, MSWDO Officer | Auto-fill official NCSC form with senior's data using pdf-lib (client-side) |
+| UC-3.2 | Generate Centenarian Honoring PDF | Super Admin, MSWDO Officer | Auto-generate Annex A Grantee Claim Form for eligible seniors |
+| UC-3.3 | Generate DOCX Documents | Super Admin, MSWDO Officer | Generate/download OSCA and MSWDO transmittals, PhilHealth transmittal, Certificate of Transfer, DSWD certification, and milestone masterlist |
 
 ---
 
@@ -165,10 +164,9 @@ Pending → Under Review → Verified → Approved → Claimed
 
 | Parent Use Case | Child Use Case |
 |-----------------|----------------|
-| Generate Document | UC-3.1 Generate NFC ID Card |
-| Generate Document | UC-3.2 Generate NCSC-SCDF PDF |
-| Generate Document | UC-3.3 Generate Centenarian PDF |
-| Generate Document | UC-3.4 Generate DOCX Documents |
+| Generate Document | UC-3.1 Generate NCSC-SCDF PDF |
+| Generate Document | UC-3.2 Generate Centenarian PDF |
+| Generate Document | UC-3.3 Generate DOCX Documents |
 
 ---
 
@@ -183,7 +181,6 @@ Pending → Under Review → Verified → Approved → Claimed
 | View/Search Seniors | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Update Profile | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Approve/Reject | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Generate NFC ID | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Generate PDF Forms | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Enable Honoring | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Submit Claim Form | ❌ | ❌ | ❌ | ✅ | ❌ |
@@ -208,10 +205,10 @@ Pending → Under Review → Verified → Approved → Claimed
 
 | Regulation | Related Use Cases |
 |-----------|-------------------|
-| **NCSC-SCDF v4.0b3** | UC-2.1 (11-Step Registration), UC-3.2 (PDF Form) |
+| **NCSC-SCDF v4.0b3** | UC-2.1 (11-Step Registration), UC-3.1 (PDF Form) |
 | **R.A. 10173 (Data Privacy Act)** | UC-1.4 (Audit Logs), UC-1.5 (Session Expiry), UC-9.1 (Configuration) |
 | **R.A. 11982 (Centenarian Honoring)** | UC-4.1 through UC-4.7 (Full Honoring Program) |
-| **R.A. 9994 (Expanded Senior Citizens Act)** | UC-8.1, UC-8.2 (Benefits Management), UC-3.1 (ID Generation) |
+| **R.A. 9994 (Expanded Senior Citizens Act)** | UC-8.1, UC-8.2 (Benefits Management) |
 
 ---
 
