@@ -276,6 +276,9 @@ html.dark .bg-slate-900\/50 {
 html.dark .leaflet-container {
   background: var(--osca-dark-base);
 }
+html.dark .census-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+}
 html.dark .leaflet-popup-content-wrapper,
 html.dark .leaflet-popup-tip {
   background-color: var(--osca-dark-surface) !important;
