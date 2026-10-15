@@ -217,9 +217,8 @@ export default function MappingPage() {
         
         {/* Leaflet Map Card */}
         <div className="xl:col-span-8 bg-white border border-slate-200 rounded-3xl p-4 shadow-sm relative xl:h-[568px]">
-          <div className="h-[300px] sm:h-[400px] md:h-[480px] xl:h-[536px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
+          <div className="census-map h-[300px] sm:h-[400px] md:h-[480px] xl:h-[536px] w-full rounded-2xl overflow-hidden relative z-10 border border-slate-100">
             <MapContainer
-              className="census-map"
               center={JUBAN_CENTER}
               zoom={13}
               style={{ width: '100%', height: '100%' }}
