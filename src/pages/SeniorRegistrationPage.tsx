@@ -660,14 +660,14 @@ function SeniorRegistrationWizard() {
 
 
 
-  const isValidMobileNumber = (value: string) => /^09\d{10}$/.test(value);
+  const isValidMobileNumber = (value: string) => /^\d{11}$/.test(value);
   const isValidEmailAddress = (value: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
   const isInvalid = (field: string) => {
     if (!touched[field]) return false;
     const value = String((form as any)[field] || '').trim();
     if (field === 'contactNumber') return !isValidMobileNumber(value);
     if (field === 'emailAddress') return Boolean(value) && !isValidEmailAddress(value);
-    if (field === 'emergencyContactPhone') return Boolean(value) && !isValidMobileNumber(value);
+    if (field === 'emergencyContactPhone') return !isValidMobileNumber(value);
     return !value;
   };
 
@@ -1398,7 +1398,7 @@ function SeniorRegistrationWizard() {
 
       if (!isValidMobileNumber(form.contactNumber)) {
         markTouched('contactNumber');
-        showToast('Mobile number must be exactly 12 digits and start with 09.', 'warning');
+        showToast('Mobile number must contain exactly 11 digits.', 'warning');
         return false;
       }
       if (form.emailAddress.trim() && !isValidEmailAddress(form.emailAddress.trim())) {
@@ -1406,9 +1406,9 @@ function SeniorRegistrationWizard() {
         showToast('Please enter a valid email address.', 'warning');
         return false;
       }
-      if (form.emergencyContactPhone && !isValidMobileNumber(form.emergencyContactPhone)) {
+      if (!isValidMobileNumber(form.emergencyContactPhone)) {
         markTouched('emergencyContactPhone');
-        showToast('Emergency mobile number must be exactly 12 digits and start with 09.', 'warning');
+        showToast('Emergency contact number must contain exactly 11 digits.', 'warning');
         return false;
       }
 

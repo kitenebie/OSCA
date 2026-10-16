@@ -28,7 +28,7 @@ import { auditLogsService } from '../services/supabaseService';
 
 
 
-import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus } from 'lucide-react';
+import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus, Trash2 } from 'lucide-react';
 
 // Defined outside the page component so controlled inputs retain focus while
 // a field is being edited. A component declared inside the page is recreated
@@ -297,6 +297,7 @@ export default function GranteeClaimFormsPage() {
 
 
   const [selectedRecord, setSelectedRecord] = useState<any | null>(null);
+  const [formToDelete, setFormToDelete] = useState<any | null>(null);
 
   const logClaimStatusSMS = async (record: any, status: string) => {
     const recipientName = [record.first_name, record.last_name].filter(Boolean).join(' ') || 'Senior Citizen';
@@ -485,6 +486,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
 
@@ -527,16 +529,13 @@ export default function GranteeClaimFormsPage() {
 
   useEffect(() => { fetchRecords(); }, []);
 
-  const latestRecordForSenior = (senior: any) => records.find(record => record.osca_number === senior.oscaNumber);
+  const hasActiveClaimForm = (senior: any) => records.some(record => record.osca_number === senior.oscaNumber && record.status !== 'Rejected');
   const isSeniorDeceased = (record: any) => record.senior
     ? Boolean(record.senior.is_deceased || record.senior.status === 'Deceased')
     : Boolean(record.is_deceased);
   const eligibleSeniors = seniors
     .filter(senior => senior.status === 'Qualified for Honoring')
-    .filter(senior => {
-      const latestRecord = latestRecordForSenior(senior);
-      return !latestRecord || latestRecord.status === 'Rejected' || Boolean(latestRecord.deleted_at);
-    });
+    .filter(senior => !hasActiveClaimForm(senior));
   const filteredEligibleSeniors = eligibleSeniors.filter(senior => {
     const query = createFormSearch.trim().toLowerCase();
     if (!query) return true;
@@ -565,13 +564,14 @@ export default function GranteeClaimFormsPage() {
 
       const { data: existingRecord, error: existingError } = await supabase
         .from('centenarian_honoring')
-        .select('id, status, deleted_at')
+        .select('id')
         .eq('osca_number', senior.oscaNumber)
-        .order('created_at', { ascending: false })
+        .is('deleted_at', null)
+        .neq('status', 'Rejected')
         .limit(1)
         .maybeSingle();
       if (existingError) throw existingError;
-      if (existingRecord && existingRecord.status !== 'Rejected' && !existingRecord.deleted_at) {
+      if (existingRecord) {
         showToast('This senior already has an active claim form.', 'error');
         await fetchRecords();
         return;
@@ -624,6 +624,37 @@ export default function GranteeClaimFormsPage() {
     } finally {
       setCreatingForSeniorId(null);
     }
+  };
+
+  const handleDeleteClaimForm = async () => {
+    if (!hasPermission('canEditClaimForm') || !formToDelete) return;
+    setUpdatingStatus(true);
+    const { error } = await supabase.from('centenarian_honoring')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', formToDelete.id)
+      .is('deleted_at', null);
+    if (error) showToast('Failed to delete claim form', 'error');
+    else {
+      auditLogsService.log({
+        action: 'DELETE',
+        entity: 'Grantee Claim Form',
+        details: `${currentUser?.fullName || 'Staff'} deleted the claim form for ${formToDelete.first_name} ${formToDelete.last_name} (${formToDelete.osca_number}).`,
+        actorName: currentUser?.fullName || 'Staff',
+        actorRole: currentUser?.role || 'admin',
+        barangay: formToDelete.barangay || '',
+        severity: 'warning',
+        targetPage: 'GranteeClaimForms',
+        targetId: formToDelete.id,
+      });
+      showToast('Claim form deleted', 'success');
+      if (selectedRecord?.id === formToDelete.id) {
+        setSelectedRecord(null);
+        setDrawerOpen(false);
+      }
+      setFormToDelete(null);
+      await fetchRecords();
+    }
+    setUpdatingStatus(false);
   };
 
   // Load registration toggle setting
@@ -2431,6 +2462,12 @@ export default function GranteeClaimFormsPage() {
 
 
                       </button>
+                      {hasPermission('canEditClaimForm') && <button
+                        onClick={() => setFormToDelete(record)}
+                        className="p-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
+                        title="Delete form"
+                        aria-label={`Delete claim form for ${record.first_name} ${record.last_name}`}
+                      ><Trash2 size={14} className="text-red-600" /></button>}
                 {record.status === 'Approved' && (
                   <>
                     <button onClick={async () => {
@@ -4054,6 +4091,17 @@ export default function GranteeClaimFormsPage() {
 
 
       {/* Fullscreen Image Viewer */}
+
+      {formToDelete && <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50" role="presentation" onClick={() => !updatingStatus && setFormToDelete(null)}>
+        <div role="dialog" aria-modal="true" aria-labelledby="delete-claim-form-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl" onClick={event => event.stopPropagation()}>
+          <h3 id="delete-claim-form-title" className="text-lg font-bold text-slate-800">Delete claim form?</h3>
+          <p className="mt-2 text-sm text-slate-600">Delete the form for {formToDelete.first_name} {formToDelete.last_name}? The form will be removed from the active list.</p>
+          <div className="mt-6 flex justify-end gap-2">
+            <button onClick={() => setFormToDelete(null)} disabled={updatingStatus} className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-600 disabled:opacity-50">Cancel</button>
+            <button onClick={handleDeleteClaimForm} disabled={updatingStatus} className="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{updatingStatus ? 'Deleting…' : 'Delete Form'}</button>
+          </div>
+        </div>
+      </div>}
 
       {/* Create Claim Form Modal */}
       {showCreateFormModal && (

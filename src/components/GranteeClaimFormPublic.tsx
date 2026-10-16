@@ -17273,18 +17273,17 @@ export default function GranteeClaimFormPublic({ onBack }: Props) {
       return;
     }
 
-    // 2. Check centenarian_honoring — latest record must NOT be Rejected or soft-deleted
+    // 2. Recheck all non-deleted forms to prevent status changes from allowing duplicates.
     const { data: honoringRecord, error: honoringError } = await supabase
       .from('centenarian_honoring')
       .select('status, deleted_at')
       .eq('osca_number', oscaNumber)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
 
     if (honoringError) { showToast('Failed to verify honoring record. Please try again.', 'error'); return; }
 
-    if (honoringRecord && (honoringRecord.status === 'Rejected' || honoringRecord.deleted_at !== null)) {
+    if (honoringRecord?.length) {
       setShowNotQualifiedModal(true);
       return;
     }
