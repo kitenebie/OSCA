@@ -17,6 +17,7 @@ import { useUIStore } from '../store/uiStore';
 
 import { useAuthStore } from '../store/authStore';
 import { getBarangayScope } from '../utils/dataAccess';
+import { getMonthlyPension, isSocPenProgram } from '../utils/pension';
 
 
 
@@ -894,7 +895,7 @@ function SeniorRegistrationWizard() {
 
 
 
-    monthlyPension: editingSenior?.monthlyPension || '',
+    monthlyPension: editingSenior ? getMonthlyPension(editingSenior) : '',
 
 
 
@@ -1787,7 +1788,7 @@ function SeniorRegistrationWizard() {
 
 
 
-      pensionBeneficiary: form.pensionBeneficiary,
+      pensionBeneficiary: isSocPenProgram(form.monthlyPension),
 
 
 

@@ -45,6 +45,7 @@ import { fillCentenarianForm } from "../utils/centenarianFormFiller";
 
 import { centenarianService } from "../services/supabaseService";
 import { getBarangayScope } from "../utils/dataAccess";
+import { getMonthlyPension, hasMonthlyPension } from "../utils/pension";
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
@@ -127,8 +128,8 @@ export default function SeniorsListPage() {
   const pensionPrograms = Array.from(
     new Set(
       seniors
-        .map((senior) => senior.monthlyPension?.trim())
-        .filter((pension): pension is string => !!pension && pension.toLowerCase() !== "none"),
+        .map(getMonthlyPension)
+        .filter(Boolean),
     ),
   ).sort((a, b) => a.localeCompare(b));
   const canUpdateStatus = hasPermission("canUpdateStatus");
@@ -327,12 +328,12 @@ export default function SeniorsListPage() {
 
     // 4. Pension check
 
-    const monthlyPension = senior.monthlyPension?.trim() || "";
-    const hasMonthlyPension = Boolean(monthlyPension && monthlyPension.toLowerCase() !== "none");
+    const monthlyPension = getMonthlyPension(senior);
+    const seniorHasMonthlyPension = hasMonthlyPension(senior);
     const matchesPension =
       selectedPension === "All" ||
-      (selectedPension === "__no_monthly_pension__" && !hasMonthlyPension) ||
-      (hasMonthlyPension && monthlyPension.toLowerCase() === selectedPension.toLowerCase());
+      (selectedPension === "__no_monthly_pension__" && !seniorHasMonthlyPension) ||
+      (seniorHasMonthlyPension && monthlyPension.toLowerCase() === selectedPension.toLowerCase());
 
     return matchesSearch && matchesBarangay && matchesStatus && matchesPension;
   });
@@ -821,14 +822,14 @@ export default function SeniorsListPage() {
 
                     <td className="py-3.5 px-5 text-center hidden sm:table-cell">
                       <span
-                        title={senior.monthlyPension?.trim() || "Not specified"}
+                        title={getMonthlyPension(senior) || "Not specified"}
                         className={`inline-block max-w-48 truncate align-bottom text-[9px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
-                          senior.monthlyPension?.trim() && senior.monthlyPension.trim().toLowerCase() !== "none"
+                          hasMonthlyPension(senior)
                             ? "bg-teal-50 text-teal-700 border border-teal-100"
                             : "bg-slate-50 text-slate-400 border border-slate-100"
                         }`}
                       >
-                        {senior.monthlyPension?.trim() || "Not specified"}
+                        {getMonthlyPension(senior) || "Not specified"}
                       </span>
                     </td>
 

@@ -8,6 +8,7 @@ import { auditLogsService } from '../../services/supabaseService';
 import { FileDown, Printer, RefreshCw, ExternalLink } from 'lucide-react';
 import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
+import { getMonthlyPension, hasMonthlyPension } from '../../utils/pension';
 
 const REPORT_TEMPLATES = [
   { id: 'master',  name: 'Master List of Senior Citizens',    desc: 'Comprehensive listing of senior citizens grouped alphabetically.' },
@@ -53,11 +54,6 @@ const partitionSeniors = (items: SeniorCitizen[]) => {
     }
   }
   return pages;
-};
-
-const hasMonthlyPension = (senior: SeniorCitizen) => {
-  const pension = senior.monthlyPension?.trim();
-  return Boolean(pension && pension.toLowerCase() !== 'none');
 };
 
 export default function ReportGenerator() {
@@ -344,7 +340,7 @@ export default function ReportGenerator() {
                         <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{[s.firstName, s.middleName, s.lastName, s.suffix].filter(Boolean).join(' ')}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.address || [s.houseNo, s.street].filter(Boolean).join(', ') || 'Not recorded'}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.barangay || 'Not recorded'}</td>
-                        <td style={{ ...cell, color:'#0f766e', fontWeight:700 }}>{s.monthlyPension}</td>
+                        <td style={{ ...cell, color:'#0f766e', fontWeight:700 }}>{getMonthlyPension(s)}</td>
                         <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.contactNumber || 'N/A'}</td>
                         <td style={{ ...cell, color:'#475569' }}>{s.status}</td>
                       </tr>)}</tbody>

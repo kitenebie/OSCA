@@ -3,6 +3,7 @@ import { Trash, Upload, Camera } from 'lucide-react';
 import AddressMapPicker from '../../profiling/AddressMapPicker';
 import CustomSelect from '../../ui/CustomSelect';
 import CustomDatePicker from '../../ui/CustomDatePicker';
+import { isSocPenProgram } from '../../../utils/pension';
 
 interface StepProps {
   form: any;
@@ -706,7 +707,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <CustomSelect
                       value={form.monthlyPension}
-                      onChange={(val) => setForm({ ...form, monthlyPension: val })}
+                      onChange={(val) => setForm({ ...form, monthlyPension: val, pensionBeneficiary: isSocPenProgram(val) })}
                       options={PENSION_OPTIONS.map((v) => ({ value: v, label: v }))}
                       placeholder="--Select--"
                       searchable
