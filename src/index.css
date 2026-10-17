@@ -659,3 +659,9 @@ html.dark #printable-report-sheet table td {
 html.dark #printable-report-sheet table tr:hover td {
   background-color: transparent !important;
 }
+
+/* The app's global dark header rule must not color Word document headers. */
+html.dark .docx-preview-container header {
+  background-color: transparent !important;
+  border-bottom: 0 !important;
+}
