@@ -4,7 +4,7 @@ import { ApexOptions } from 'apexcharts';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useBarangays } from '../../hooks/useBarangays';
-import { BarChart, PieChart, TrendingUp, Heart, Users } from 'lucide-react';
+import { BarChart, PieChart, TrendingUp, Heart, Users, Mars, Venus } from 'lucide-react';
 import { SeniorCitizen } from '../../types';
 
 interface BarangayChartProps {
@@ -444,7 +444,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
                 ? 'bg-white text-teal-600 shadow-sm' 
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
-            <Users size={13} />
+            <Users size={13} className="text-teal-700 dark:text-teal-300" />
             <span>Sex</span>
           </button>
           <button
@@ -516,7 +516,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-blue-50 border border-blue-100">
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                  <span className="text-lg">♂</span>
+                  <Mars size={21} strokeWidth={2.5} className="text-blue-700 dark:text-blue-300" aria-hidden="true" />
                 </div>
                 <span className="text-2xl font-black text-blue-600">{maleSeniors}</span>
                 <span className="text-xs font-semibold text-blue-500 mt-0.5">Male</span>
@@ -526,7 +526,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
               </div>
               <div className="flex flex-col items-center justify-center p-5 rounded-2xl bg-pink-50 border border-pink-100">
                 <div className="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mb-2">
-                  <span className="text-lg">♀</span>
+                  <Venus size={21} strokeWidth={2.5} className="text-pink-700 dark:text-pink-300" aria-hidden="true" />
                 </div>
                 <span className="text-2xl font-black text-pink-500">{femaleSeniors}</span>
                 <span className="text-xs font-semibold text-pink-400 mt-0.5">Female</span>
