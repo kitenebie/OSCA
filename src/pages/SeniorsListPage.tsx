@@ -738,7 +738,7 @@ export default function SeniorsListPage() {
                   <th className="py-4 px-5 text-center">Age (Age)</th>
 
                   <th className="py-4 px-5 text-center hidden sm:table-cell">
-                    Pension Enrollee
+                    Monthly Pension
                   </th>
 
                   <th className="py-4 px-5 text-center">Status</th>
@@ -811,17 +811,14 @@ export default function SeniorsListPage() {
 
                     <td className="py-3.5 px-5 text-center hidden sm:table-cell">
                       <span
-                        className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded-full font-mono uppercase
-
-                        ${
-                          senior.pensionBeneficiary
+                        title={senior.monthlyPension?.trim() || "Not specified"}
+                        className={`inline-block max-w-48 truncate align-bottom text-[9px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
+                          senior.monthlyPension?.trim() && senior.monthlyPension.trim().toLowerCase() !== "none"
                             ? "bg-teal-50 text-teal-700 border border-teal-100"
                             : "bg-slate-50 text-slate-400 border border-slate-100"
                         }`}
                       >
-                        {senior.pensionBeneficiary
-                          ? "Pensioner"
-                          : "Non-Pensioner"}
+                        {senior.monthlyPension?.trim() || "Not specified"}
                       </span>
                     </td>
 

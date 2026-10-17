@@ -11,6 +11,7 @@ import { SeniorCitizen } from '../../types';
 
 const REPORT_TEMPLATES = [
   { id: 'master',  name: 'Master List of Senior Citizens',    desc: 'Comprehensive listing of senior citizens grouped alphabetically.' },
+  { id: 'pension-masterlist', name: 'Overall Pension Beneficiary Masterlist', desc: 'All seniors with a recorded monthly pension, including address and pension details.' },
   { id: 'pension', name: 'Pension Beneficiary Roster',        desc: 'Listing of indigent seniors registered for the DSWD SocPen monthly grant.' },
   { id: 'social-pension', name: 'Social Pension Masterlist', desc: 'Recipients of social pension: last name, first name, middle name, and barangay.' },
   { id: 'deceased', name: 'Deceased Seniors Masterlist', desc: 'Deceased senior records: last name, first name, middle name, barangay, and date of death.' },
@@ -54,6 +55,11 @@ const partitionSeniors = (items: SeniorCitizen[]) => {
   return pages;
 };
 
+const hasMonthlyPension = (senior: SeniorCitizen) => {
+  const pension = senior.monthlyPension?.trim();
+  return Boolean(pension && pension.toLowerCase() !== 'none');
+};
+
 export default function ReportGenerator() {
   const { barangays: barangaysData } = useBarangays();
   const seniors         = useSeniorsStore((state) => state.seniors);
@@ -88,10 +94,12 @@ export default function ReportGenerator() {
 
   const filteredSeniors = useMemo(() => seniors.filter((s) => {
     const matchBarangay = filterBarangay === 'All' || s.barangay === filterBarangay;
-    const matchStatus = selectedTemplate === 'social-pension' || selectedTemplate === 'deceased'
+    const matchStatus = selectedTemplate === 'social-pension' || selectedTemplate === 'deceased' || selectedTemplate === 'pension-masterlist'
       ? true
       : filterStatus === 'All' || s.status === filterStatus;
-    const isTemplateMatch = selectedTemplate === 'social-pension'
+    const isTemplateMatch = selectedTemplate === 'pension-masterlist'
+      ? hasMonthlyPension(s)
+      : selectedTemplate === 'social-pension'
       ? s.pensionBeneficiary
       : selectedTemplate === 'deceased'
         ? s.isDeceased && Boolean(s.dateOfDeath)
@@ -103,6 +111,8 @@ export default function ReportGenerator() {
 
   const reportTitle = selectedTemplate === 'master'
     ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS'
+    : selectedTemplate === 'pension-masterlist'
+      ? 'OVERALL PENSION BENEFICIARY MASTERLIST'
     : selectedTemplate === 'pension'
       ? 'INDIGENT PENSION PROGRAM DISBURSEMENT ROSTER'
       : selectedTemplate === 'social-pension'
@@ -288,13 +298,13 @@ export default function ReportGenerator() {
                       {reportTitle}
                     </h3>
                     <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
-                      Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus}
+                      Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {selectedTemplate === 'pension-masterlist' ? 'All pension records' : filterStatus === 'All' ? 'All' : filterStatus}
                     </p>
                   </div>
                 ) : (
                   <div style={{ borderBottom:'1px solid #e2e8f0', paddingBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'9px', fontWeight:800, color:'#0f172a', textTransform:'uppercase' }}>
-                      {selectedTemplate === 'social-pension' ? 'SOCIAL PENSION MASTERLIST' : selectedTemplate === 'deceased' ? 'DECEASED SENIORS MASTERLIST' : selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
+                      {selectedTemplate === 'pension-masterlist' ? 'OVERALL PENSION BENEFICIARY MASTERLIST' : selectedTemplate === 'social-pension' ? 'SOCIAL PENSION MASTERLIST' : selectedTemplate === 'deceased' ? 'DECEASED SENIORS MASTERLIST' : selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
                     </span>
                     <span style={{ fontSize:'8px', fontFamily:'monospace', color:'#94a3b8' }}>
                       Page {pageIdx + 1} of {totalPages}
@@ -325,6 +335,19 @@ export default function ReportGenerator() {
                           </tr>
                         ))}
                       </tbody>
+                    </table>
+                  ) : selectedTemplate === 'pension-masterlist' ? (
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'7.5px' }}>
+                      <thead><tr>{['OSCA ID','Full Name','Address','Barangay','Monthly Pension','Contact No.','Status'].map((h) => <th key={h} style={hcell}>{h}</th>)}</tr></thead>
+                      <tbody>{pageRows.map((s, i) => <tr key={s.id} style={stripe(i)}>
+                        <td style={{ ...cell, fontFamily:'monospace', fontWeight:700, color:'#475569', whiteSpace:'nowrap' }}>{s.oscaNumber || 'N/A'}</td>
+                        <td style={{ ...cell, color:'#0f172a', fontWeight:700, textTransform:'uppercase' }}>{[s.firstName, s.middleName, s.lastName, s.suffix].filter(Boolean).join(' ')}</td>
+                        <td style={{ ...cell, color:'#475569' }}>{s.address || [s.houseNo, s.street].filter(Boolean).join(', ') || 'Not recorded'}</td>
+                        <td style={{ ...cell, color:'#475569' }}>{s.barangay || 'Not recorded'}</td>
+                        <td style={{ ...cell, color:'#0f766e', fontWeight:700 }}>{s.monthlyPension}</td>
+                        <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.contactNumber || 'N/A'}</td>
+                        <td style={{ ...cell, color:'#475569' }}>{s.status}</td>
+                      </tr>)}</tbody>
                     </table>
                   ) : selectedTemplate === 'social-pension' ? (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
