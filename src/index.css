@@ -635,3 +635,27 @@ html.dark .docx-preview-container .docx-wrapper > section.docx {
   background-color: #fff !important;
   border-color: #000 !important;
 }
+
+/* Keep the generated report canvas independent of the app's dark theme. */
+html.dark #printable-report-sheet {
+  color-scheme: light;
+}
+
+html.dark #printable-report-sheet .pdf-page {
+  color: #0f172a;
+  background-color: #fff !important;
+}
+
+html.dark #printable-report-sheet table th {
+  background-color: #0f766e !important;
+  color: #fff !important;
+  border-color: #0f766e !important;
+}
+
+html.dark #printable-report-sheet table td {
+  border-color: #ccfbf1 !important;
+}
+
+html.dark #printable-report-sheet table tr:hover td {
+  background-color: transparent !important;
+}
