@@ -123,6 +123,14 @@ export default function SeniorsListPage() {
   const canFilterStatus = hasPermission("canFilterStatus");
   const canFilterPension = hasPermission("canFilterPension");
   const canEditRecord = hasPermission("canEditRecord");
+
+  const pensionPrograms = Array.from(
+    new Set(
+      seniors
+        .map((senior) => senior.monthlyPension?.trim())
+        .filter((pension): pension is string => !!pension && pension.toLowerCase() !== "none"),
+    ),
+  ).sort((a, b) => a.localeCompare(b));
   const canUpdateStatus = hasPermission("canUpdateStatus");
   const canArchive = hasPermission("canArchive");
   const canViewProfile = hasPermission("canViewProfile");
@@ -319,10 +327,12 @@ export default function SeniorsListPage() {
 
     // 4. Pension check
 
+    const monthlyPension = senior.monthlyPension?.trim() || "";
+    const hasMonthlyPension = Boolean(monthlyPension && monthlyPension.toLowerCase() !== "none");
     const matchesPension =
       selectedPension === "All" ||
-      (selectedPension === "Pensioner" && senior.pensionBeneficiary) ||
-      (selectedPension === "Non-Pensioner" && !senior.pensionBeneficiary);
+      (selectedPension === "__no_monthly_pension__" && !hasMonthlyPension) ||
+      (hasMonthlyPension && monthlyPension.toLowerCase() === selectedPension.toLowerCase());
 
     return matchesSearch && matchesBarangay && matchesStatus && matchesPension;
   });
@@ -685,7 +695,7 @@ export default function SeniorsListPage() {
             htmlFor="pension"
             className="text-[10px] font-bold text-slate-500 uppercase tracking-wide"
           >
-            Pension Program
+            Monthly Pension
           </label>
 
           <select
@@ -694,11 +704,11 @@ export default function SeniorsListPage() {
             onChange={(e) => setSelectedPension(e.target.value)}
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
-            <option value="All">All (Pensioner/Non)</option>
-
-            <option value="Pensioner">Pension Beneficiary (SocPen)</option>
-
-            <option value="Non-Pensioner">Non-Beneficiary</option>
+            <option value="All">All Programs</option>
+            {pensionPrograms.map((program) => (
+              <option key={program} value={program}>{program}</option>
+            ))}
+            <option value="__no_monthly_pension__">No Monthly Pension</option>
           </select>
         </div>}
       </div>}
