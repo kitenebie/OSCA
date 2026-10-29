@@ -48,7 +48,7 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <p className="text-sm text-slate-400">Medical, dental, optical, hearing, social/emotional concerns, and maintenance medicines.</p>
         </div>
         <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
-          Step 6 of 11
+          Step 6 of 10
         </span>
       </div>
 

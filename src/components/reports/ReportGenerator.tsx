@@ -17,6 +17,16 @@ const REPORT_TEMPLATES = [
   { id: 'social-pension', name: 'Social Pension Masterlist', desc: 'Recipients of social pension: last name, first name, middle name, and barangay.' },
   { id: 'deceased', name: 'Deceased Seniors Masterlist', desc: 'Deceased senior records: last name, first name, middle name, barangay, and date of death.' },
   { id: 'census',  name: 'Census & Demographics Sheet',       desc: 'Demographic audit detailing age brackets, gender and barangay statistics.' },
+  { id: 'custom', name: 'Custom Report', desc: 'Choose the senior details to include in your report.' },
+];
+
+const CUSTOM_COLUMNS: { key: keyof SeniorCitizen; label: string }[] = [
+  { key: 'oscaNumber', label: 'OSCA ID' }, { key: 'lastName', label: 'Last Name' },
+  { key: 'firstName', label: 'First Name' }, { key: 'middleName', label: 'Middle Name' },
+  { key: 'barangay', label: 'Barangay' }, { key: 'age', label: 'Age' },
+  { key: 'sex', label: 'Sex' }, { key: 'classification', label: 'Classification' },
+  { key: 'status', label: 'Status' }, { key: 'contactNumber', label: 'Contact Number' },
+  { key: 'registeredDate', label: 'Registration Date' },
 ];
 
 const HIDDEN_SHEET_ID = 'printable-report-sheet';
@@ -69,6 +79,8 @@ export default function ReportGenerator() {
   const [selectedTemplate, setSelectedTemplate] = useState('master');
   const [filterBarangay,   setFilterBarangay]   = useState('All');
   const [filterStatus,     setFilterStatus]     = useState('All');
+  const [filterClassification, setFilterClassification] = useState('All');
+  const [customColumns, setCustomColumns] = useState<(keyof SeniorCitizen)[]>(['oscaNumber', 'lastName', 'firstName', 'barangay', 'age', 'classification', 'status']);
   const [isRendering,      setIsRendering]      = useState(false);
   const [isGenerating,     setIsGenerating]     = useState(false);
   const [pdfBlobUrl,       setPdfBlobUrl]       = useState<string | null>(null);
@@ -96,14 +108,15 @@ export default function ReportGenerator() {
     const isTemplateMatch = selectedTemplate === 'pension-masterlist'
       ? hasMonthlyPension(s)
       : selectedTemplate === 'social-pension'
-      ? s.pensionBeneficiary
+        ? s.pensionBeneficiary
       : selectedTemplate === 'deceased'
         ? s.isDeceased && Boolean(s.dateOfDeath)
         : selectedTemplate === 'pension'
           ? s.pensionBeneficiary
         : true;
-    return matchBarangay && matchStatus && isTemplateMatch;
-  }), [seniors, filterBarangay, filterStatus, selectedTemplate]);
+    const matchClassification = filterClassification === 'All' || s.classification === filterClassification;
+    return matchBarangay && matchStatus && matchClassification && isTemplateMatch;
+  }), [seniors, filterBarangay, filterStatus, filterClassification, selectedTemplate]);
 
   const reportTitle = selectedTemplate === 'master'
     ? 'E-CENSUS MASTER LIST OF REGISTERED SENIOR CITIZENS'
@@ -113,6 +126,8 @@ export default function ReportGenerator() {
       ? 'INDIGENT PENSION PROGRAM DISBURSEMENT ROSTER'
       : selectedTemplate === 'social-pension'
         ? 'MASTERLIST OF SOCIAL PENSION RECIPIENTS'
+      : selectedTemplate === 'custom'
+        ? 'CUSTOM SENIOR CITIZEN REPORT'
         : 'MASTERLIST OF DECEASED SENIOR CITIZENS';
 
   const generatePreview = useCallback(async () => {
@@ -130,7 +145,7 @@ export default function ReportGenerator() {
     } finally {
       setIsGenerating(false);
     }
-  }, [faviconUrl, filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast, systemLogoUrl]);
+  }, [customColumns, faviconUrl, filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast, systemLogoUrl]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -215,8 +230,8 @@ export default function ReportGenerator() {
               <h3 style={{ fontSize:'12px', fontWeight:900, color:'#0f172a', textTransform:'uppercase', letterSpacing:'0.03em', margin:0 }}>
                 MUNICIPAL DEMOGRAPHICS & CENSUS SHEET
               </h3>
-              <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
-                Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus}
+                <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
+                Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {filterStatus === 'All' ? 'All' : filterStatus} • Classification: {filterClassification}
               </p>
             </div>
 
@@ -225,11 +240,11 @@ export default function ReportGenerator() {
                 <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px', background:'#f8fafc', padding:'16px', borderRadius:'8px', border:'1px solid #e2e8f0', marginBottom:'24px' }}>
                   <div>
                     <p style={{ fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 4px' }}>Poblacion Demographics</p>
-                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Poblacion Barangays: <strong style={{ color:'#0f172a' }}>{seniors.filter(s => s.barangay.includes('Poblacion')).length}</strong></p>
+                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Poblacion Barangays: <strong style={{ color:'#0f172a' }}>{filteredSeniors.filter(s => s.barangay.includes('Poblacion')).length}</strong></p>
                   </div>
                   <div>
                     <p style={{ fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 4px' }}>Outer Barangays Demographics</p>
-                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Outer Barangays: <strong style={{ color:'#0f172a' }}>{seniors.filter(s => !s.barangay.includes('Poblacion')).length}</strong></p>
+                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Outer Barangays: <strong style={{ color:'#0f172a' }}>{filteredSeniors.filter(s => !s.barangay.includes('Poblacion')).length}</strong></p>
                   </div>
                 </div>
                 <p style={{ fontSize:'9px', fontWeight:700, color:'#475569', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'8px' }}>Barangay Census Breakdowns</p>
@@ -241,8 +256,8 @@ export default function ReportGenerator() {
                   </tr></thead>
                   <tbody>
                     {barangaysData.map((b, i) => {
-                      const cnt = seniors.filter(s => s.barangay === b.name).length;
-                      const pen = seniors.filter(s => s.barangay === b.name && s.pensionBeneficiary).length;
+                      const cnt = filteredSeniors.filter(s => s.barangay === b.name).length;
+                      const pen = filteredSeniors.filter(s => s.barangay === b.name && s.pensionBeneficiary).length;
                       return (
                         <tr key={b.id} style={stripe(i)}>
                           <td style={{ ...cell, fontWeight:700, color:'#0f172a' }}>{b.name}</td>
@@ -294,7 +309,7 @@ export default function ReportGenerator() {
                       {reportTitle}
                     </h3>
                     <p style={{ fontSize:'8px', color:'#94a3b8', marginTop:'6px', textTransform:'uppercase', fontFamily:'monospace' }}>
-                      Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {selectedTemplate === 'pension-masterlist' ? 'All pension records' : filterStatus === 'All' ? 'All' : filterStatus}
+                      Filters: {filterBarangay === 'All' ? 'All Barangays' : 'Brgy. ' + filterBarangay} • Status: {selectedTemplate === 'pension-masterlist' ? 'All pension records' : filterStatus === 'All' ? 'All' : filterStatus} • Classification: {filterClassification}
                     </p>
                   </div>
                 ) : (
@@ -309,7 +324,14 @@ export default function ReportGenerator() {
                 )}
 
                 <div style={{ flex:1, marginTop:'20px' }}>
-                  {selectedTemplate === 'master' ? (
+                  {selectedTemplate === 'custom' ? (
+                    <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
+                      <thead><tr>{CUSTOM_COLUMNS.filter(({ key }) => customColumns.includes(key)).map(({ key, label }) => <th key={key} style={hcell}>{label}</th>)}</tr></thead>
+                      <tbody>{pageRows.map((senior, i) => <tr key={senior.id} style={stripe(i)}>
+                        {CUSTOM_COLUMNS.filter(({ key }) => customColumns.includes(key)).map(({ key }) => <td key={key} style={cell}>{senior[key] == null || senior[key] === '' ? 'N/A' : String(senior[key])}</td>)}
+                      </tr>)}</tbody>
+                    </table>
+                  ) : selectedTemplate === 'master' ? (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
                         {['OSCA ID','Last Name','First Name','Middle Name','Barangay','Age','Sex','Contact No.','Registered'].map((h) => (
@@ -448,12 +470,30 @@ export default function ReportGenerator() {
             </div>
           </div>
 
+          {selectedTemplate === 'custom' && <div className="space-y-2">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Report Columns</label>
+            <div className="grid grid-cols-2 gap-2">
+              {CUSTOM_COLUMNS.map(({ key, label }) => <label key={key} className="flex items-center gap-2 text-[11px] text-slate-600">
+                <input type="checkbox" checked={customColumns.includes(key)} disabled={customColumns.length === 1 && customColumns.includes(key)} onChange={(e) => setCustomColumns((current) => e.target.checked ? [...current, key] : current.filter((column) => column !== key))} />{label}
+              </label>)}
+            </div>
+          </div>}
+
           <div className="space-y-1.5 pt-2">
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Barangay Filter</label>
             <select value={filterBarangay} onChange={(e) => setFilterBarangay(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
               <option value="All">All Barangays (LGU Juban)</option>
               {barangaysData.map((b) => <option key={b.id} value={b.name}>{b.name}</option>)}
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Classification Filter</label>
+            <select value={filterClassification} onChange={(e) => setFilterClassification(e.target.value)}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
+              <option value="All">All Classifications</option>
+              {Array.from(new Set(seniors.map((s) => s.classification).filter((value): value is string => Boolean(value)))).sort().map((classification) => <option key={classification} value={classification}>{classification}</option>)}
             </select>
           </div>
 
@@ -472,7 +512,7 @@ export default function ReportGenerator() {
 
           <div className="pt-3 mt-auto border-t border-slate-100">
             <button type="button" disabled={isRendering || isGenerating} onClick={handleExportPDF}
-              className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-400 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
+              className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-600 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
               <FileDown size={13} /><span>{isRendering ? 'Saving...' : 'Save as PDF'}</span>
             </button>
           </div>

@@ -3255,13 +3255,8 @@ export default function ConfigurationPage() {
 
     try {
 
-      localStorage.setItem("osca_roles_config", JSON.stringify(roles));
-
-
-
-      // Delete all existing roles and re-insert
-
-      await supabase.from("roles").delete().neq("role", "");
+      const { data: savedRows, error: loadError } = await supabase.from("roles").select("role");
+      if (loadError) throw loadError;
 
 
 
@@ -3322,9 +3317,14 @@ export default function ConfigurationPage() {
 
 
 
-      const { error } = await supabase.from("roles").insert(rows);
-
-      if (error) console.warn("[SUPABASE ROLE INSERT NOTICE]", error);
+      const { error: saveError } = await supabase.from("roles").upsert(rows, { onConflict: "role" });
+      if (saveError) throw saveError;
+      const removedRoles = (savedRows || []).map((row: { role: string }) => row.role).filter((role: string) => !roles.some((item) => item.role === role));
+      if (removedRoles.length) {
+        const { error: deleteError } = await supabase.from("roles").delete().in("role", removedRoles);
+        if (deleteError) throw deleteError;
+      }
+      localStorage.setItem("osca_roles_config", JSON.stringify(roles));
 
 
 
@@ -3341,7 +3341,7 @@ export default function ConfigurationPage() {
 
       console.error("Save roles error:", err);
 
-      showToast("Roles configuration saved locally!", "success");
+      showToast("Could not save roles. Please try again.", "error");
 
     }
 
@@ -3762,7 +3762,7 @@ export default function ConfigurationPage() {
 
                 {/* Horizontal Role Scrollable Tabs */}
 
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-slate-100 scrollbar-none">
+                <div className="flex flex-wrap items-center gap-2 max-h-40 overflow-y-auto pb-2 border-b border-slate-100">
 
                   {roles.map((r) => {
 
@@ -5985,7 +5985,7 @@ export default function ConfigurationPage() {
 
                   <h6 className="font-bold text-xs text-slate-800 dark:text-slate-100 uppercase tracking-wide">
 
-                    Biometric Profile Photo (Camera Sync)
+                  Senior Photo Capture (Camera Test)
 
                   </h6>
 
@@ -5999,9 +5999,7 @@ export default function ConfigurationPage() {
 
                 <p className="text-[10px] text-slate-400">
 
-                  Test the camera connection and AI face detection to ensure
-
-                  they are working before use in registration.
+                  Test photo capture before using the camera in registration.
 
                 </p>
 

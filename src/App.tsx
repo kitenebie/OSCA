@@ -177,9 +177,14 @@ export default function App() {
         <LoginPage />
       ) : (
         <DashboardLayout>
-          {canAccessCurrentPage ? renderPage() : (
+          {canAccessCurrentPage ? renderPage() : fallbackPage ? (
             <div className="min-h-[240px] flex items-center justify-center text-sm text-slate-500">
               Verifying page access...
+            </div>
+          ) : (
+            <div className="min-h-[240px] flex flex-col items-center justify-center gap-3 text-center text-sm text-slate-600">
+              <p>No page access is assigned to this account. Ask an administrator to check its system role permissions.</p>
+              <button onClick={() => void logout()} className="px-4 py-2 rounded-lg bg-teal-600 text-white font-semibold">Log out</button>
             </div>
           )}
         </DashboardLayout>

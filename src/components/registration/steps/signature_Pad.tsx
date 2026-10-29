@@ -18,7 +18,7 @@ export default function SignaturePadStep({ form, setForm }: StepProps) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
-            Step 8 of 11
+            Step 8 of 10
           </span>
         </div>
       </div>

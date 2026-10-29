@@ -299,7 +299,7 @@ export default function SMSComposer() {
                     : 'text-slate-500 hover:text-slate-800'}`}
               >
                 <Users size={13} />
-                <span>Single Senior</span>
+                <span>Individual Senior</span>
               </button>
               <button
                 type="button"
@@ -357,7 +357,7 @@ export default function SMSComposer() {
                   ...(barangayScope ? [] : [{ value: 'All', label: 'All Barangays (LGU Juban)' }]),
                   ...accessibleBarangays.map((b) => ({
                     value: b.name,
-                    label: `${b.name} (Est. ${b.seniorCount} seniors)`
+                    label: b.name
                   }))
                 ]}
               />
@@ -381,9 +381,6 @@ export default function SMSComposer() {
               required
               className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-xs font-medium focus:ring-1 focus:ring-teal-500 focus:outline-none leading-relaxed"
             />
-            <p className="text-[9.5px] text-slate-400 font-medium leading-relaxed">
-              💡 <strong>Note:</strong> The variables <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[name]</code> and <code className="bg-slate-100 text-slate-700 px-1 rounded font-mono">[barangay]</code> will be automatically replaced with the senior's name and address before sending.
-            </p>
           </div>
 
           <button

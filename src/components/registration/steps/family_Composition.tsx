@@ -24,7 +24,7 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                   <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
 
-                    Step 2 of 11
+                    Step 2 of 10
 
                   </span>
 

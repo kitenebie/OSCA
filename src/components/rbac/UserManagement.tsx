@@ -74,15 +74,15 @@ function validateUserDetails(user: { fullName: string; username: string; email: 
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return 'Enter a valid email address.';
   }
-  if (!/^09\d{10}$/.test(contactNumber)) {
-    return 'Mobile number must be exactly 12 digits and start with 09.';
+  if (!/^09\d{9}$/.test(contactNumber)) {
+    return 'Mobile number must be exactly 11 digits and start with 09.';
   }
   return null;
 }
 
 const filterNameInput = (value: string) => value.replace(/[^\p{L}\p{M} .'-]/gu, '').slice(0, 100);
 const filterUsernameInput = (value: string) => value.toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 32);
-const filterMobileInput = (value: string) => value.replace(/\D/g, '').slice(0, 12);
+const filterMobileInput = (value: string) => value.replace(/\D/g, '').slice(0, 11);
 
 // Password strength indicator component
 function PasswordStrengthIndicator({ validation }: { validation: PasswordValidation }) {
@@ -616,12 +616,11 @@ export default function UserManagement() {
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                   >
                     {roles.length > 0 ? (
-                      roles.map((r) => (
+                      roles.filter((r) => r.role.replace(/[^a-z0-9]/gi, '').toLowerCase() !== 'superadmin').map((r) => (
                         <option key={r.role} value={r.role}>{r.role}</option>
                       ))
                     ) : (
                       <>
-                        <option value="super-admin">super-admin</option>
                         <option value="brgy-admin">brgy-admin</option>
                         <option value="general-encoder">general-encoder</option>
                         <option value="brgy-encoder">brgy-encoder</option>
@@ -669,12 +668,12 @@ export default function UserManagement() {
                   type="tel"
                   required
                   inputMode="numeric"
-                  maxLength={12}
-                  pattern="09[0-9]{10}"
-                  title="Enter exactly 12 digits starting with 09."
+                  maxLength={11}
+                  pattern="09[0-9]{9}"
+                  title="Enter exactly 11 digits starting with 09."
                   value={formData.contactNumber}
                   onChange={(e) => setFormData({ ...formData, contactNumber: filterMobileInput(e.target.value) })}
-                  placeholder="091234567890"
+                  placeholder="09123456789"
                   className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
                 />
               </div>
@@ -888,9 +887,9 @@ export default function UserManagement() {
                     type="tel"
                     required
                     inputMode="numeric"
-                    maxLength={12}
-                    pattern="09[0-9]{10}"
-                    title="Enter exactly 12 digits starting with 09."
+                    maxLength={11}
+                    pattern="09[0-9]{9}"
+                    title="Enter exactly 11 digits starting with 09."
                     value={editForm.contactNumber}
                     onChange={(e) => setEditForm({ ...editForm, contactNumber: filterMobileInput(e.target.value) })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"

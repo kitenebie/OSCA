@@ -43,7 +43,7 @@ export default function EducationHRStep({ form, setForm }: StepProps) {
           <p className="text-sm text-slate-400">Educational background, skills, and community involvement of the senior citizen.</p>
         </div>
         <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
-          Step 3 of 11
+          Step 3 of 10
         </span>
       </div>
 

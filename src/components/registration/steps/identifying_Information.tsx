@@ -294,7 +294,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                   <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
 
-                    Step 1 of 11
+                    Step 1 of 10
 
                   </span>
 

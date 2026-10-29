@@ -29,7 +29,6 @@ import AddressMapPicker from '../components/profiling/AddressMapPicker';
 
 
 
-import InlineFaceCapture from '../components/profiling/InlineFaceCapture';
 
 
 
@@ -80,7 +79,6 @@ import BiometricsPhoto from '../components/registration/steps/biometrics_Photo';
 
 
 
-import SignaturePadStep from '../components/registration/steps/signature_Pad';
 
 
 
@@ -152,19 +150,15 @@ const STEPS: Step[] = [
 
 
 
-  { id: 8, label: 'Signature Pad', icon: FileText },
+  { id: 8, label: 'Assisting Person', icon: Users },
 
 
 
-  { id: 9, label: 'Assisting Person', icon: Users },
+  { id: 9, label: 'Disaster Risk Info', icon: ShieldAlert },
 
 
 
-  { id: 10, label: 'Disaster Risk Info', icon: ShieldAlert },
-
-
-
-  { id: 11, label: 'Review & Submit', icon: Check },
+  { id: 10, label: 'Review & Submit', icon: Check },
 
 
 
@@ -480,7 +474,9 @@ const CLASSIFICATIONS = [
 
 
 
-  "Veteran Senior"
+  "Veteran Senior",
+
+  "LGBTQIA+ Senior"
 
 
 
@@ -1497,34 +1493,6 @@ function SeniorRegistrationWizard() {
 
 
 
-    // Step 8: Signature Pad
-
-
-
-    if (stepNum === 8) {
-
-
-
-      if (!form.signatureData) {
-
-
-
-        showToast('Please sign on the digital signature pad.', 'warning');
-
-
-
-        return false;
-
-
-
-      }
-
-
-
-    }
-
-
-
     // Step 9: Assisting Person — no hard requirements
 
 
@@ -1533,7 +1501,7 @@ function SeniorRegistrationWizard() {
 
 
 
-    if (stepNum === 10) {
+    if (stepNum === 9) {
 
 
 
@@ -1613,7 +1581,7 @@ function SeniorRegistrationWizard() {
 
       // Save interviewer data to lookup table when leaving Step 9
 
-      if (currentStep === 9 && form._saveInterviewer) {
+      if (currentStep === 8 && form._saveInterviewer) {
 
         form._saveInterviewer();
 
@@ -2854,27 +2822,9 @@ function SeniorRegistrationWizard() {
 
 
 
-                    {/* STEP 7: BIOMETRICS & PHOTO */}
-
-
-
           {currentStep === 7 && <BiometricsPhoto form={form} setForm={setForm} />}
 
-
-
-          {/* STEP 8: SIGNATURE PAD */}
-
-
-
-          {currentStep === 8 && <SignaturePadStep form={form} setForm={setForm} />}
-
-
-
-{/* STEP 9: ASSISTING PERSON */}
-
-
-
-          {currentStep === 9 && <AssistingPersonStep form={form} setForm={setForm} />}
+          {currentStep === 8 && <AssistingPersonStep form={form} setForm={setForm} />}
 
 
 
@@ -2882,7 +2832,7 @@ function SeniorRegistrationWizard() {
 
 
 
-          {currentStep === 10 && <DisasterRiskInfo form={form} setForm={setForm} />}
+          {currentStep === 9 && <DisasterRiskInfo form={form} setForm={setForm} />}
 
 
 
@@ -2890,7 +2840,7 @@ function SeniorRegistrationWizard() {
 
 
 
-          {currentStep === 11 && <ReviewSubmit form={form} setForm={setForm} previewOscaNumber={previewOscaNumber} originalForm={originalForm.current} isEditMode={isEditMode} />}
+          {currentStep === 10 && <ReviewSubmit form={form} setForm={setForm} previewOscaNumber={previewOscaNumber} originalForm={originalForm.current} isEditMode={isEditMode} />}
 
 
 

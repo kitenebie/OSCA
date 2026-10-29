@@ -69,7 +69,7 @@ export default function ReviewSubmit({ form, setForm, previewOscaNumber, origina
           <h5 className="font-bold text-base text-slate-800 uppercase tracking-wide">Review & Submit</h5>
           <p className="text-sm text-slate-400">Carefully review all details below before submitting.</p>
         </div>
-        <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">Step 11 of 11</span>
+        <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">Step 10 of 10</span>
       </div>
 
       {/* OSCA ID Banner */}

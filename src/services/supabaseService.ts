@@ -621,6 +621,11 @@ export const smsLogsService = {
     if (error) throw error;
   },
 
+  async delete(id: string): Promise<void> {
+    const { error } = await supabase.from('sms_logs').delete().eq('id', id).eq('status', 'Pending');
+    if (error) throw error;
+  },
+
   subscribe(callback: (logs: SMSLog[]) => void, barangayScope?: string | null) {
     if (barangayScope === null) return () => undefined;
 
@@ -748,7 +753,7 @@ export const rolesService = {
     } catch { /* ignore */ }
 
     const { data, error } = await supabase.from('roles').select('*');
-    if (error || !data) return localRoles.map((role) => ({
+    if (error || !data || data.length === 0) return localRoles.map((role) => ({
       ...role,
       permissions: withActionPermissionDefaults(role.permissions),
     }));

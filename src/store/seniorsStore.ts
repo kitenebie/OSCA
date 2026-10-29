@@ -35,6 +35,7 @@ interface SeniorsState {
   sendSMS: (recipientName: string, recipientPhone: string, barangay: string, message: string, sentBy: string, status?: SMSLog['status']) => Promise<boolean>;
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
   resendSMS: (logId: string) => Promise<void>;
+  deletePendingSMS: (logId: string) => Promise<void>;
 }
 
 export const useSeniorsStore = create<SeniorsState>((set, get) => ({
@@ -365,5 +366,10 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     } catch (error) {
       console.error('Failed to resend SMS:', error);
     }
+  },
+
+  deletePendingSMS: async (logId) => {
+    await smsLogsService.delete(logId);
+    set((state) => ({ smsLogs: state.smsLogs.filter((log) => log.id !== logId || log.status !== 'Pending') }));
   },
 }));

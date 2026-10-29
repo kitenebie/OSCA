@@ -101,7 +101,7 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
           <h5 className="font-bold text-base text-slate-800 uppercase tracking-wide">IX. Assisting Person</h5>
           <p className="text-sm text-slate-400">Details of persons assisting the senior citizen during this registration.</p>
         </div>
-        <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">Step 9 of 11</span>
+        <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">Step 8 of 10</span>
       </div>
 
       {/* Info Banner */}

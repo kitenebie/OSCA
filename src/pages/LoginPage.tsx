@@ -619044,7 +619044,7 @@ export default function LoginPage() {
 
 
 
-                        facial recognition.
+                        senior photo capture.
 
 
 

@@ -70,7 +70,7 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
           <p className="text-sm text-slate-400">Source of income, assets, monthly income bracket, and common problems/needs.</p>
         </div>
         <span className="text-[13px] font-bold text-teal-600 bg-teal-50 px-2.5 py-1 rounded-full border border-teal-100 uppercase tracking-wider font-mono">
-          Step 5 of 11
+          Step 5 of 10
         </span>
       </div>
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import SMSComposer from '../components/sms/SMSComposer';
 import { useSeniorsStore } from '../store/seniorsStore';
 import { useAuthStore } from '../store/authStore';
-import { Mail, Send, CheckCircle2, ShieldCheck, HelpCircle, Terminal, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Mail, Send, CheckCircle2, ShieldCheck, HelpCircle, Terminal, RotateCcw, ChevronLeft, ChevronRight, Trash2 } from 'lucide-react';
 
 // Status sort priority: Failed → Pending → Sent
 const STATUS_PRIORITY: Record<string, number> = {
@@ -35,7 +35,7 @@ function formatTimestamp(timestamp: string): string {
 }
 
 export default function SMSCenterPage() {
-  const { smsLogs, resendSMS } = useSeniorsStore();
+  const { smsLogs, resendSMS, deletePendingSMS } = useSeniorsStore();
   const { hasPermission } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -53,6 +53,15 @@ export default function SMSCenterPage() {
 
   const handleResend = async (logId: string) => {
     await resendSMS(logId);
+  };
+
+  const handleDeletePending = async (logId: string) => {
+    if (!window.confirm('Delete this pending SMS?')) return;
+    try {
+      await deletePendingSMS(logId);
+    } catch {
+      window.alert('Could not delete the pending SMS.');
+    }
   };
 
   return (
@@ -134,6 +143,10 @@ export default function SMSCenterPage() {
                         >
                           <RotateCcw size={11} />
                           Re-send
+                        </button>
+                      ) : log.status === 'Pending' && hasPermission('canManageNotifications') ? (
+                        <button onClick={() => void handleDeletePending(log.id)} aria-label="Delete pending SMS" title="Delete pending SMS" className="inline-flex items-center justify-center p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                          <Trash2 size={14} />
                         </button>
                       ) : (
                         <span className="text-slate-300 text-[10px]">—</span>
