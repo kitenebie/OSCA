@@ -47,10 +47,20 @@ export default function UATReportPage() {
     return counts;
   }, { Yes: 0, 'Needs changes': 0, No: 0 }), [submissions]);
 
-  const outcomeCounts = useMemo(() => submissions.flatMap((item) => item.answers || []).reduce((counts, answer) => {
-    if (answer.outcome && answer.outcome in counts) counts[answer.outcome]++;
+  const outcomeCounts = useMemo(() => {
+    const counts: Record<Outcome | 'Resolved', number> = { Works: 0, 'Partly works': 0, 'Does not work': 0, Resolved: 0, 'Not tested': 0 };
+    const resolutionByKey = new Map(resolutions.map((item) => [item.issue_key, item]));
+    for (const submission of submissions) for (const answer of submission.answers || []) {
+      let outcome = answer.outcome;
+      if (answer.question && (outcome === 'Partly works' || outcome === 'Does not work')) {
+        const key = JSON.stringify([answer.section || 'Additional questions', answer.question]);
+        const resolution = resolutionByKey.get(key);
+        if (resolution && submission.created_at <= resolution.resolved_at) outcome = 'Resolved';
+      }
+      if (outcome && outcome in counts) counts[outcome as keyof typeof counts]++;
+    }
     return counts;
-  }, { Works: 0, 'Partly works': 0, 'Does not work': 0, 'Not tested': 0 }), [submissions]);
+  }, [submissions, resolutions]);
 
   const backlog = useMemo(() => {
     const grouped = new Map<string, BacklogItem>();
@@ -115,7 +125,7 @@ export default function UATReportPage() {
           </section>
           <section className="mt-7 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <h2 className="text-lg font-bold">Workflow outcomes</h2>
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{Object.entries(outcomeCounts).map(([label, count]) => <div key={label}><div className="flex justify-between text-sm"><span className="font-medium text-slate-700">{label}</span><span className="font-bold">{count}</span></div><div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-full rounded-full bg-teal-600" style={{ width: `${count ? Math.max(4, count / Math.max(1, Object.values(outcomeCounts).reduce((a, b) => a + b, 0)) * 100) : 0}%` }} /></div></div>)}</div>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{Object.entries(outcomeCounts).map(([label, count]) => <div key={label}><div className="flex justify-between text-sm"><span className="font-medium text-slate-700">{label}</span><span className="font-bold">{count}</span></div><div className="mt-2 h-2 rounded-full bg-slate-100"><div className={`h-full rounded-full ${label === 'Does not work' ? 'bg-red-600' : label === 'Partly works' ? 'bg-amber-500' : label === 'Not tested' ? 'bg-slate-400' : 'bg-teal-600'}`} style={{ width: `${count ? Math.max(4, count / Math.max(1, Object.values(outcomeCounts).reduce((a, b) => a + b, 0)) * 100) : 0}%` }} /></div></div>)}</div>
           </section>
           <section className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="border-b border-slate-100 p-5"><h2 className="text-lg font-bold">Backlog from reported issues</h2><p className="mt-1 text-sm text-slate-500">Questions marked “Partly works” or “Does not work,” ranked by failed reports first.</p></div>
