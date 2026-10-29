@@ -454,36 +454,6 @@ const EMPLOYMENT_STATUSES = [
 
 
 
-const CLASSIFICATIONS = [
-
-
-
-  "Regular Senior Citizen",
-
-
-
-  "Indigent Senior Citizen",
-
-
-
-  "PWD Senior Citizen",
-
-
-
-  "Solo Parent Senior Citizen",
-
-
-
-  "Veteran Senior",
-
-  "LGBTQIA+ Senior"
-
-
-
-];
-
-
-
 const PENSION_OPTIONS = [
 
 

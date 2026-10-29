@@ -9,6 +9,7 @@ import { FileDown, Printer, RefreshCw, ExternalLink } from 'lucide-react';
 import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
 import { getMonthlyPension, hasMonthlyPension } from '../../utils/pension';
+import { SENIOR_CLASSIFICATIONS } from '../../constants/seniorClassifications';
 
 const REPORT_TEMPLATES = [
   { id: 'master',  name: 'Master List of Senior Citizens',    desc: 'Comprehensive listing of senior citizens grouped alphabetically.' },
@@ -88,6 +89,10 @@ export default function ReportGenerator() {
   const prevBlobRef  = useRef<string | null>(null);
   const systemLogoUrl = systemSettings['logo_url'] || '/juban-logo.png';
   const faviconUrl = systemSettings['favicon_url'] || '/favicon.ico';
+  const classificationOptions = useMemo(() => Array.from(new Set([
+    ...SENIOR_CLASSIFICATIONS,
+    ...seniors.map((senior) => senior.classification).filter((value): value is string => Boolean(value)),
+  ])).sort(), [seniors]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -493,7 +498,7 @@ export default function ReportGenerator() {
             <select value={filterClassification} onChange={(e) => setFilterClassification(e.target.value)}
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
               <option value="All">All Classifications</option>
-              {Array.from(new Set(seniors.map((s) => s.classification).filter((value): value is string => Boolean(value)))).sort().map((classification) => <option key={classification} value={classification}>{classification}</option>)}
+              {classificationOptions.map((classification) => <option key={classification} value={classification}>{classification}</option>)}
             </select>
           </div>
 

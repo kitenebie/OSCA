@@ -4,6 +4,7 @@ import AddressMapPicker from '../../profiling/AddressMapPicker';
 import CustomSelect from '../../ui/CustomSelect';
 import CustomDatePicker from '../../ui/CustomDatePicker';
 import { isSocPenProgram } from '../../../utils/pension';
+import { SENIOR_CLASSIFICATIONS } from '../../../constants/seniorClassifications';
 
 interface StepProps {
   form: any;
@@ -134,22 +135,6 @@ const EMPLOYMENT_STATUSES = [
   "Self-Employed",
 
   "Other"
-
-];
-
-const CLASSIFICATIONS = [
-
-  "Regular Senior Citizen",
-
-  "Indigent Senior Citizen",
-
-  "PWD Senior Citizen",
-
-  "Solo Parent Senior Citizen",
-
-  "Veteran Senior",
-
-  "LGBTQIA+ Senior"
 
 ];
 
@@ -693,7 +678,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                     <CustomSelect
                       value={form.classification}
                       onChange={(val) => setForm({ ...form, classification: val })}
-                      options={CLASSIFICATIONS.map((v) => ({ value: v, label: v }))}
+                      options={SENIOR_CLASSIFICATIONS.map((v) => ({ value: v, label: v }))}
                       placeholder="--Select--"
                     />
 
