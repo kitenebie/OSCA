@@ -15,7 +15,8 @@ import {
   UserRoundCog,
   MonitorCog,
   ClipboardList,
-  AlertTriangle
+  AlertTriangle,
+  CircleHelp
 } from 'lucide-react';
 
 export default function Sidebar() {
@@ -216,6 +217,15 @@ export default function Sidebar() {
               </button>
             );
           })}
+          <a
+            href="/uat"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all duration-150 relative group text-[#cbd5e1cc] hover:bg-[#0206171a] hover:text-white"
+          >
+            <CircleHelp size={18} className="text-[#cbd5e1b3] group-hover:text-white" />
+            {sidebarOpen ? <span className="truncate">UAT Feedback</span> : (
+              <span className="absolute left-full ml-2 px-2 py-1 bg-[#020617] text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 shadow-md border border-[#0206174d] font-bold">UAT Feedback</span>
+            )}
+          </a>
         </nav>
 
         {/* Footer Actions */}

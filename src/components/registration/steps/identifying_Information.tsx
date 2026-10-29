@@ -147,7 +147,9 @@ const CLASSIFICATIONS = [
 
   "Solo Parent Senior Citizen",
 
-  "Veteran Senior"
+  "Veteran Senior",
+
+  "LGBTQIA+ Senior"
 
 ];
 
