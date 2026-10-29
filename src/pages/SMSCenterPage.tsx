@@ -40,6 +40,8 @@ export default function SMSCenterPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
+  const [bulkDeleteError, setBulkDeleteError] = useState('');
   const canManageNotifications = hasPermission('canManageNotifications');
 
   const totalLogs = smsLogs.length;
@@ -68,13 +70,14 @@ export default function SMSCenterPage() {
   };
 
   const handleBulkDelete = async () => {
-    if (!selectedIds.size || !window.confirm(`Delete ${selectedIds.size} selected SMS messages? This cannot be undone.`)) return;
+    if (!selectedIds.size) return;
     setIsDeleting(true);
     try {
       await deleteSMSLogs([...selectedIds]);
       setSelectedIds(new Set());
+      setShowBulkDeleteConfirm(false);
     } catch {
-      window.alert('Could not delete the selected SMS messages.');
+      setBulkDeleteError('Could not delete the selected SMS messages. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -117,7 +120,7 @@ export default function SMSCenterPage() {
             <Terminal size={14} className="text-slate-500" />
             <h5 className="font-bold text-xs uppercase tracking-wide">Sent Messages (Outbound SMS History)</h5>
           </div>
-          {canManageNotifications && selectedIds.size > 0 && <button onClick={() => void handleBulkDelete()} disabled={isDeleting} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-50">
+          {canManageNotifications && selectedIds.size > 0 && <button onClick={() => { setBulkDeleteError(''); setShowBulkDeleteConfirm(true); }} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50">
             <Trash2 size={14} /> Delete selected ({selectedIds.size})
           </button>}
         </div>
@@ -233,6 +236,19 @@ export default function SMSCenterPage() {
           </div>
         )}
 
+      </div>}
+
+      {showBulkDeleteConfirm && <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget && !isDeleting) setShowBulkDeleteConfirm(false); }}>
+        <section role="dialog" aria-modal="true" aria-labelledby="bulk-delete-title" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-red-50 text-red-600"><Trash2 size={20} /></div>
+          <h2 id="bulk-delete-title" className="text-lg font-bold text-slate-900">Delete selected messages?</h2>
+          <p className="mt-2 text-sm text-slate-600">You selected {selectedIds.size} SMS {selectedIds.size === 1 ? 'message' : 'messages'}. This action cannot be undone.</p>
+          {bulkDeleteError && <p role="alert" className="mt-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{bulkDeleteError}</p>}
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" autoFocus onClick={() => setShowBulkDeleteConfirm(false)} disabled={isDeleting} className="rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50">Cancel</button>
+            <button type="button" onClick={() => void handleBulkDelete()} disabled={isDeleting} className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60">{isDeleting ? 'Deleting…' : 'Delete messages'}</button>
+          </div>
+        </section>
       </div>}
 
     </div>
