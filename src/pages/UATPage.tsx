@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Check, CircleHelp, ClipboardCheck, LoaderCircle, Send } from 'lucide-react';
+import { ArrowLeft, Check, CircleHelp, ClipboardCheck, LoaderCircle, Plus, Send, X } from 'lucide-react';
 import { supabase } from '../../utils/supabase';
 
 const sections = [
@@ -40,24 +40,28 @@ const sections = [
 ];
 
 type Outcome = 'Works' | 'Partly works' | 'Does not work' | 'Not tested';
+type ExtraQuestion = { id: string; question: string; outcome?: Outcome; comment: string };
 
 export default function UATPage() {
   const [tester, setTester] = useState('');
   const [role, setRole] = useState('');
   const [device, setDevice] = useState('');
   const [answers, setAnswers] = useState<Record<string, { outcome: Outcome; comment: string }>>({});
+  const [extraQuestions, setExtraQuestions] = useState<ExtraQuestion[]>([]);
   const [overall, setOverall] = useState('');
   const [feedback, setFeedback] = useState('');
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
 
-  const total = sections.reduce((sum, section) => sum + section.items.length, 0);
-  const completed = sections.reduce((sum, section) => sum + section.items.filter((question) => answers[question]?.outcome).length, 0);
+  const total = sections.reduce((sum, section) => sum + section.items.length, 0) + extraQuestions.length;
+  const completed = sections.reduce((sum, section) => sum + section.items.filter((question) => answers[question]?.outcome).length, 0)
+    + extraQuestions.filter((item) => item.question.trim() && item.outcome).length;
   const setOutcome = (question: string, outcome: Outcome) => setAnswers((current) => ({
     ...current, [question]: { outcome, comment: current[question]?.comment || '' },
   }));
   const setComment = (question: string, comment: string) => setAnswers((current) => ({
     ...current, [question]: { outcome: current[question]?.outcome, comment },
   }));
+  const updateExtraQuestion = (id: string, update: Partial<ExtraQuestion>) => setExtraQuestions((current) => current.map((item) => item.id === id ? { ...item, ...update } : item));
 
   const submit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,6 +73,8 @@ export default function UATPage() {
       device: device.trim() || null,
       answers: sections.flatMap((section) => section.items.map((question) => ({
         section: section.title, question, ...answers[question],
+      }))).concat(extraQuestions.map(({ question, outcome, comment }) => ({
+        section: 'Additional questions', question: question.trim(), outcome, comment,
       }))),
       overall, feedback: feedback.trim() || null,
     });
@@ -116,6 +122,17 @@ export default function UATPage() {
             </fieldset>)}
           </div>
         </section>)}
+        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="font-bold">Additional questions</h2><p className="mt-1 text-sm text-slate-500">Add questions you want to test and answer.</p></div>
+            <button type="button" onClick={() => setExtraQuestions((items) => [...items, { id: crypto.randomUUID(), question: '', comment: '' }])} className="inline-flex items-center gap-2 rounded-lg border border-teal-200 px-3 py-2 text-sm font-semibold text-teal-800 hover:bg-teal-50"><Plus size={16} /> Add your own question</button>
+          </div>
+          {extraQuestions.map((item, index) => <div key={item.id} className="mt-4 rounded-xl border border-slate-200 p-4">
+            <div className="flex items-start gap-3"><label className="flex-1 text-sm font-semibold text-slate-700">Your question {index + 1}<input autoFocus={index === extraQuestions.length - 1 && !item.question} maxLength={300} value={item.question} onChange={(event) => updateExtraQuestion(item.id, { question: event.target.value })} className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2.5 font-normal outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" placeholder="What else would you like to test?" /></label><button type="button" aria-label={`Remove question ${index + 1}`} onClick={() => setExtraQuestions((items) => items.filter((question) => question.id !== item.id))} className="mt-6 rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-800"><X size={16} /></button></div>
+            <fieldset className="mt-4"><legend className="mb-2 text-xs font-semibold text-slate-600">Your answer</legend><div className="flex flex-wrap gap-2">{(['Works', 'Partly works', 'Does not work', 'Not tested'] as Outcome[]).map((outcome) => <label key={outcome} className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold ${item.outcome === outcome ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-300 text-slate-600 hover:border-teal-500'}`}><input className="sr-only" type="radio" name={`extra-${item.id}`} value={outcome} checked={item.outcome === outcome} onChange={() => updateExtraQuestion(item.id, { outcome })} />{outcome}</label>)}</div></fieldset>
+            <label className="mt-3 block text-xs font-semibold text-slate-600">Comment (optional)<textarea value={item.comment} onChange={(event) => updateExtraQuestion(item.id, { comment: event.target.value })} rows={2} maxLength={1000} className="mt-1.5 w-full resize-y rounded-lg border border-slate-300 px-3 py-2 text-sm font-normal outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-100" placeholder="Add a comment; leave out senior personal information." /></label>
+          </div>)}
+        </section>
         <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <h2 className="font-bold">Overall, is OSCA ready for your day-to-day work?</h2>
           <div className="mt-3 flex flex-wrap gap-2">{['Yes', 'Needs changes', 'No'].map((item) => <label key={item} className={`cursor-pointer rounded-full border px-4 py-2 text-sm font-semibold ${overall === item ? 'border-teal-700 bg-teal-700 text-white' : 'border-slate-300 text-slate-600'}`}><input className="sr-only" type="radio" name="overall" value={item} checked={overall === item} onChange={() => setOverall(item)} />{item}</label>)}</div>

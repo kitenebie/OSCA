@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.complete-password-reset]
 verify_jwt = false
+
+[functions.uat-report]
+verify_jwt = false
