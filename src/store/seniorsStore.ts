@@ -36,6 +36,7 @@ interface SeniorsState {
   sendBatchSMS: (barangay: string, message: string, sentBy: string) => Promise<number>;
   resendSMS: (logId: string) => Promise<void>;
   deletePendingSMS: (logId: string) => Promise<void>;
+  deleteSMSLogs: (logIds: string[]) => Promise<void>;
 }
 
 export const useSeniorsStore = create<SeniorsState>((set, get) => ({
@@ -371,5 +372,11 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
   deletePendingSMS: async (logId) => {
     await smsLogsService.delete(logId);
     set((state) => ({ smsLogs: state.smsLogs.filter((log) => log.id !== logId || log.status !== 'Pending') }));
+  },
+
+  deleteSMSLogs: async (logIds) => {
+    await smsLogsService.deleteMany(logIds);
+    const deleted = new Set(logIds);
+    set((state) => ({ smsLogs: state.smsLogs.filter((log) => !deleted.has(log.id)) }));
   },
 }));

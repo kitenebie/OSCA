@@ -35,9 +35,12 @@ function formatTimestamp(timestamp: string): string {
 }
 
 export default function SMSCenterPage() {
-  const { smsLogs, resendSMS, deletePendingSMS } = useSeniorsStore();
+  const { smsLogs, resendSMS, deletePendingSMS, deleteSMSLogs } = useSeniorsStore();
   const { hasPermission } = useAuthStore();
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const canManageNotifications = hasPermission('canManageNotifications');
 
   const totalLogs = smsLogs.length;
 
@@ -63,6 +66,27 @@ export default function SMSCenterPage() {
       window.alert('Could not delete the pending SMS.');
     }
   };
+
+  const handleBulkDelete = async () => {
+    if (!selectedIds.size || !window.confirm(`Delete ${selectedIds.size} selected SMS messages? This cannot be undone.`)) return;
+    setIsDeleting(true);
+    try {
+      await deleteSMSLogs([...selectedIds]);
+      setSelectedIds(new Set());
+    } catch {
+      window.alert('Could not delete the selected SMS messages.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const allVisibleSelected = paginatedLogs.length > 0 && paginatedLogs.every((log) => selectedIds.has(log.id));
+  const toggleVisibleSelection = () => setSelectedIds((current) => {
+    const next = new Set(current);
+    if (allVisibleSelected) paginatedLogs.forEach((log) => next.delete(log.id));
+    else paginatedLogs.forEach((log) => next.add(log.id));
+    return next;
+  });
 
   return (
     <div className="space-y-6 animate-fadeIn font-sans">
@@ -93,6 +117,9 @@ export default function SMSCenterPage() {
             <Terminal size={14} className="text-slate-500" />
             <h5 className="font-bold text-xs uppercase tracking-wide">Sent Messages (Outbound SMS History)</h5>
           </div>
+          {canManageNotifications && selectedIds.size > 0 && <button onClick={() => void handleBulkDelete()} disabled={isDeleting} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 disabled:opacity-50">
+            <Trash2 size={14} /> Delete selected ({selectedIds.size})
+          </button>}
         </div>
 
         {/* Logs table content */}
@@ -109,6 +136,7 @@ export default function SMSCenterPage() {
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-slate-50/20 border-b border-slate-100 text-[10px] font-bold text-slate-400 uppercase tracking-wider font-mono">
+                  {canManageNotifications && <th className="py-3 px-3 text-center"><input type="checkbox" aria-label="Select messages on this page" checked={allVisibleSelected} onChange={toggleVisibleSelection} className="h-4 w-4 accent-teal-600" /></th>}
                   <th className="py-3 px-5 hidden sm:table-cell">Timestamp</th>
                   <th className="py-3 px-5">Senior Citizen Recipient</th>
                   <th className="py-3 px-5 hidden md:table-cell">Barangay</th>
@@ -122,6 +150,11 @@ export default function SMSCenterPage() {
             <tbody className="divide-y divide-slate-100 font-medium">
                 {paginatedLogs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                    {canManageNotifications && <td className="py-3 px-3 text-center"><input type="checkbox" aria-label={`Select message to ${log.recipientName}`} checked={selectedIds.has(log.id)} onChange={() => setSelectedIds((current) => {
+                      const next = new Set(current);
+                      if (next.has(log.id)) next.delete(log.id); else next.add(log.id);
+                      return next;
+                    })} className="h-4 w-4 accent-teal-600" /></td>}
                     <td className="py-3 px-5 text-slate-500 text-[11px] hidden sm:table-cell">{formatTimestamp(log.timestamp)}</td>
                     <td className="py-3 px-5 text-slate-900 font-bold uppercase">{log.recipientName}</td>
                     <td className="py-3 px-5 text-slate-600 hidden md:table-cell">{log.barangay}</td>

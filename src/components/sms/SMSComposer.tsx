@@ -157,7 +157,7 @@ export default function SMSComposer() {
 
   const [recipientType, setRecipientType] = useState<'individual' | 'barangay' | 'all'>('individual');
   const [selectedSeniorId, setSelectedSeniorId] = useState('');
-  const [selectedBarangay, setSelectedBarangay] = useState(() => barangayScope ?? 'All');
+  const [selectedBarangay, setSelectedBarangay] = useState(() => barangayScope ?? '');
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
@@ -192,6 +192,10 @@ export default function SMSComposer() {
       return;
     }
     if (!currentUser) return;
+    if (recipientType === 'barangay' && !selectedBarangay) {
+      showToast('Please select a barangay.', 'error');
+      return;
+    }
 
     setIsSending(true);
 
@@ -351,15 +355,9 @@ export default function SMSComposer() {
                 id="barangay-select"
                 value={selectedBarangay}
                 onChange={(val) => setSelectedBarangay(val)}
-                placeholder={barangayScope ? `Brgy. ${barangayScope}` : 'All Barangays (LGU Juban)'}
+                placeholder={barangayScope ? `Brgy. ${barangayScope}` : '-- Select Barangay --'}
                 required
-                options={[
-                  ...(barangayScope ? [] : [{ value: 'All', label: 'All Barangays (LGU Juban)' }]),
-                  ...accessibleBarangays.map((b) => ({
-                    value: b.name,
-                    label: b.name
-                  }))
-                ]}
+                options={accessibleBarangays.map((b) => ({ value: b.name, label: b.name }))}
               />
             </div>
           )}

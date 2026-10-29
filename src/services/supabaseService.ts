@@ -626,6 +626,12 @@ export const smsLogsService = {
     if (error) throw error;
   },
 
+  async deleteMany(ids: string[]): Promise<void> {
+    if (!ids.length) return;
+    const { error } = await supabase.from('sms_logs').delete().in('id', ids);
+    if (error) throw error;
+  },
+
   subscribe(callback: (logs: SMSLog[]) => void, barangayScope?: string | null) {
     if (barangayScope === null) return () => undefined;
 
