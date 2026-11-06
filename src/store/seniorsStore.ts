@@ -339,7 +339,7 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
         recipientName: `${r.firstName} ${r.lastName}`,
         recipientPhone: r.contactNumber,
         barangay: r.barangay,
-        message: message.replace(/\[name\]/g, 'po').replace(/\[barangay\]/g, 'inyong'),
+        message: message.replace(/\[name\]/g, r.firstName).replace(/\[barangay\]/g, r.barangay),
         status: 'Pending' as const,
         timestamp,
         sentBy,
