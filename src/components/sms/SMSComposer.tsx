@@ -283,11 +283,11 @@ export default function SMSComposer() {
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       
       {/* Compose Form */}
-      <div className="lg:col-span-2 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+      <div className="lg:col-span-3 bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col justify-between">
         <form onSubmit={handleSend} className="space-y-5">
           <div className="border-b border-slate-100 pb-3">
             <h4 className="font-bold text-slate-800 text-sm md:text-base">SMS Dispatch Composer</h4>
-            <p className="text-[11px] text-slate-400">Select target receivers, load preset layouts, and trigger broadcasts</p>
+            <p className="text-[11px] text-slate-400">Select target receivers and send messages</p>
           </div>
 
           {/* Select Recipient Categories */}
@@ -393,7 +393,7 @@ export default function SMSComposer() {
       </div>
 
       {/* Templates Library panel */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex flex-col">
+      <div className="hidden">
         <div className="border-b border-slate-100 pb-3 mb-4">
           <div className="flex items-center gap-2 text-teal-600">
             <FileText size={16} />
