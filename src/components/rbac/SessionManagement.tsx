@@ -161,6 +161,7 @@ export default function SessionManagement() {
   };
 
   const getTimeRemaining = (expiresAt: string) => {
+    if (new Date(expiresAt).getUTCFullYear() === 9999) return 'No timeout';
     const now = new Date();
     const expiry = new Date(expiresAt);
     const diff = expiry.getTime() - now.getTime();

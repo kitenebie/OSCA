@@ -182,7 +182,7 @@ export default function SMSComposer() {
 
   const handleSelectTemplate = (templateText: string) => {
     setMessage(templateText);
-    showToast('SMS template loaded! Tokens ([name], [barangay]) will parse dynamically on send.', 'info');
+    showToast('SMS template loaded. Bulk messages use a general greeting and location.', 'info');
   };
 
   const handleSend = async (e: React.FormEvent) => {

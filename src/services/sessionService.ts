@@ -21,9 +21,8 @@ export interface UserSession {
   terminatedBy: string | null;
 }
 
-// OSCA staff often work through a full office day. Sessions are still validated
-// and can be force-terminated, but they no longer expire after one hour.
-const SESSION_DURATION_MINUTES = 8 * 60;
+// The database requires an expiry date; this sentinel represents no timeout.
+const SESSION_NO_EXPIRY = '9999-12-31T23:59:59.000Z';
 const REFRESH_TOKEN_DAYS = 30; // Remember Me lasts 30 days
 
 // Generate a cryptographically secure random token
@@ -73,7 +72,7 @@ export const sessionService = {
     const refreshToken = rememberMe ? generateToken(80) : null;
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + SESSION_DURATION_MINUTES * 60 * 1000);
+    const expiresAt = new Date(SESSION_NO_EXPIRY);
 
     const { data, error } = await supabase
       .from('user_sessions')
@@ -122,6 +121,10 @@ export const sessionService = {
       return null;
     }
 
+    if (expiresAt.getUTCFullYear() !== 9999) {
+      await sessionService.extendSession(sessionToken);
+      session.expiresAt = SESSION_NO_EXPIRY;
+    }
     return session;
   },
 
@@ -173,7 +176,7 @@ export const sessionService = {
     // Create a new session with fresh tokens (carry over device info)
     const newSessionToken = generateToken(64);
     const newRefreshToken = generateToken(80);
-    const expiresAt = new Date(now.getTime() + SESSION_DURATION_MINUTES * 60 * 1000);
+    const expiresAt = new Date(SESSION_NO_EXPIRY);
 
     const { data: newData, error: newError } = await supabase
       .from('user_sessions')
@@ -211,7 +214,7 @@ export const sessionService = {
    */
   async extendSession(sessionToken: string): Promise<void> {
     const now = new Date();
-    const newExpiry = new Date(now.getTime() + SESSION_DURATION_MINUTES * 60 * 1000);
+    const newExpiry = new Date(SESSION_NO_EXPIRY);
     await supabase
       .from('user_sessions')
       .update({

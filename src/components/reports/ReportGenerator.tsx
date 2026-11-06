@@ -242,16 +242,6 @@ export default function ReportGenerator() {
 
             <div style={{ flex:1, marginTop:'24px' }}>
               <div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'24px', background:'#f8fafc', padding:'16px', borderRadius:'8px', border:'1px solid #e2e8f0', marginBottom:'24px' }}>
-                  <div>
-                    <p style={{ fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 4px' }}>Poblacion Demographics</p>
-                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Poblacion Barangays: <strong style={{ color:'#0f172a' }}>{filteredSeniors.filter(s => s.barangay.includes('Poblacion')).length}</strong></p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize:'9px', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'0.06em', margin:'0 0 4px' }}>Outer Barangays Demographics</p>
-                    <p style={{ fontSize:'11px', fontWeight:600, color:'#334155', margin:0 }}>Seniors in Outer Barangays: <strong style={{ color:'#0f172a' }}>{filteredSeniors.filter(s => !s.barangay.includes('Poblacion')).length}</strong></p>
-                  </div>
-                </div>
                 <p style={{ fontSize:'9px', fontWeight:700, color:'#475569', textTransform:'uppercase', letterSpacing:'0.06em', marginBottom:'8px' }}>Barangay Census Breakdowns</p>
                 <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                   <thead><tr>
@@ -266,7 +256,7 @@ export default function ReportGenerator() {
                       return (
                         <tr key={b.id} style={stripe(i)}>
                           <td style={{ ...cell, fontWeight:700, color:'#0f172a' }}>{b.name}</td>
-                          <td style={{ ...cell, textAlign:'center' }}>{b.population.toLocaleString()}</td>
+                          <td style={{ ...cell, textAlign:'center' }}>200</td>
                           <td style={{ ...cell, textAlign:'center', fontWeight:700, color:'#0f766e' }}>{cnt} Seniors</td>
                           <td style={{ ...cell, textAlign:'right', fontFamily:'monospace' }}>{pen} of {cnt} ({cnt > 0 ? Math.round((pen/cnt)*100) : 0}%)</td>
                         </tr>
@@ -339,7 +329,7 @@ export default function ReportGenerator() {
                   ) : selectedTemplate === 'master' ? (
                     <table style={{ width:'100%', borderCollapse:'collapse', fontSize:'8px' }}>
                       <thead><tr>
-                        {['OSCA ID','Last Name','First Name','Middle Name','Barangay','Age','Sex','Contact No.','Registered'].map((h) => (
+                        {['OSCA ID','Last Name','First Name','Middle Name','Barangay','Age','Sex','Marital Status','Birth Date','Pensioner','Non Pensioner','PWD'].map((h) => (
                           <th key={h} style={hcell}>{h}</th>
                         ))}
                       </tr></thead>
@@ -353,8 +343,11 @@ export default function ReportGenerator() {
                             <td style={{ ...cell, color:'#475569' }}>{s.barangay}</td>
                             <td style={{ ...cell, textAlign:'center' }}>{s.age}</td>
                             <td style={{ ...cell, textAlign:'center', color:'#475569' }}>{s.sex}</td>
-                            <td style={{ ...cell, fontFamily:'monospace', color:'#475569' }}>{s.contactNumber || 'N/A'}</td>
-                            <td style={{ ...cell, textAlign:'right', fontFamily:'monospace', color:'#94a3b8' }}>{s.registeredDate}</td>
+                            <td style={cell}>{s.civilStatus || 'N/A'}</td>
+                            <td style={cell}>{s.birthdate || 'N/A'}</td>
+                            <td style={cell}>{getMonthlyPension(s) || '—'}</td>
+                            <td style={cell}>{!hasMonthlyPension(s) ? '✓' : ''}</td>
+                            <td style={cell}>{s.classification?.toLowerCase().includes('pwd') ? '✓' : ''}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -517,7 +510,7 @@ export default function ReportGenerator() {
 
           <div className="pt-3 mt-auto border-t border-slate-100">
             <button type="button" disabled={isRendering || isGenerating} onClick={handleExportPDF}
-              className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-600 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
+              className="w-full flex items-center justify-center gap-1.5 py-3 bg-teal-600 hover:bg-teal-500 disabled:bg-slate-200 disabled:text-slate-800 text-xs font-bold text-white rounded-xl shadow-lg shadow-teal-600/10 transition-all active:scale-95">
               <FileDown size={13} /><span>{isRendering ? 'Saving...' : 'Save as PDF'}</span>
             </button>
           </div>

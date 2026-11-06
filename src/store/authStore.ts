@@ -225,8 +225,7 @@ function startSessionMonitor(store: any) {
     }
   }, 30000); // Every 30 seconds
 
-  // Keep an active staff session alive. Inactive sessions still expire after
-  // the configured window, and administrators can still terminate them.
+  // Keep session activity current; administrators can still terminate sessions.
   activityTouchInterval = setInterval(async () => {
     const token = getStoredSessionToken();
     if (token) {
