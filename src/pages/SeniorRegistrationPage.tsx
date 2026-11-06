@@ -2882,7 +2882,7 @@ function SeniorRegistrationWizard() {
 
 
 
-            {currentStep < 11 ? (
+            {currentStep < 10 ? (
 
 
 
