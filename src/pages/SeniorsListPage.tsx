@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 import { useSeniorsStore } from "../store/seniorsStore";
 
@@ -73,6 +74,7 @@ export default function SeniorsListPage() {
   const [filterBarangay, setFilterBarangay] = useState("All");
 
   const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [actionMenuPosition, setActionMenuPosition] = useState({ top: 0, left: 0 });
 
   const [showPdfDrawer, setShowPdfDrawer] = useState(false);
 
@@ -112,8 +114,14 @@ export default function SeniorsListPage() {
     const handleClick = () => setOpenActionMenu(null);
 
     document.addEventListener("click", handleClick);
+    window.addEventListener("scroll", handleClick, true);
+    window.addEventListener("resize", handleClick);
 
-    return () => document.removeEventListener("click", handleClick);
+    return () => {
+      document.removeEventListener("click", handleClick);
+      window.removeEventListener("scroll", handleClick, true);
+      window.removeEventListener("resize", handleClick);
+    };
   }, [openActionMenu]);
 
   // RBAC permissions checks
@@ -348,11 +356,6 @@ export default function SeniorsListPage() {
     startIndex,
     startIndex + itemsPerPage,
   );
-
-  const getActionMenuPosition = (rowIndex: number) =>
-    rowIndex >= paginatedSeniors.length - 3
-      ? "bottom-full mb-1 origin-bottom-right"
-      : "top-full mt-1 origin-top-right";
 
   const handleRowClick = (id: string) => {
     setCurrentPage("SeniorProfile", id);
@@ -759,7 +762,7 @@ export default function SeniorsListPage() {
               </thead>
 
               <tbody className="divide-y divide-slate-100">
-                {paginatedSeniors.map((senior, rowIndex) => (
+                {paginatedSeniors.map((senior) => (
                   <tr
                     key={senior.id}
                     className="hover:bg-slate-50/50 group transition-all duration-150"
@@ -882,11 +885,18 @@ export default function SeniorsListPage() {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setOpenActionMenu(
-                                  openActionMenu === senior.id
-                                    ? null
-                                    : senior.id,
-                                );
+                                if (openActionMenu === senior.id) {
+                                  setOpenActionMenu(null);
+                                  return;
+                                }
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const menuHeight = 140;
+                                const openAbove = window.innerHeight - rect.bottom < menuHeight + 8 && rect.top > menuHeight + 8;
+                                setActionMenuPosition({
+                                  top: Math.max(8, openAbove ? rect.top - menuHeight : Math.min(rect.bottom, window.innerHeight - menuHeight - 8)),
+                                  left: Math.max(8, Math.min(rect.right - 168, window.innerWidth - 176)),
+                                });
+                                setOpenActionMenu(senior.id);
                               }}
                               title="Edit record"
                               className="p-2 text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
@@ -914,7 +924,7 @@ export default function SeniorsListPage() {
                             {/* Click popup menu */}
 
                             {openActionMenu === senior.id && (
-                              <div className={`absolute right-0 z-50 transition-all duration-150 ${getActionMenuPosition(rowIndex)}`}>
+                              createPortal(<div style={{ top: actionMenuPosition.top, left: actionMenuPosition.left }} className="fixed z-[100] max-h-[calc(100vh-1rem)] min-w-[160px] overflow-y-auto transition-all duration-150">
                                 <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-1.5 min-w-[160px] space-y-0.5">
                                   
 
@@ -968,7 +978,7 @@ export default function SeniorsListPage() {
 
                                   <div className="h-px bg-slate-100 dark:bg-slate-700 my-1"></div>
                                 </div>
-                              </div>
+                              </div>, document.body)
                             )}
                           </div>
                         )}
