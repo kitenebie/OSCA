@@ -14471,7 +14471,7 @@ export async function fillNcscForm(options: NcscFillOptions): Promise<Blob> {
 
 
 
-    const btField = btMap[senior.bloodType.toUpperCase()];
+    const btField = btMap[senior.bloodType.toUpperCase().replace(/[+-]$/, '')];
 
 
 

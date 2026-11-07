@@ -36,7 +36,7 @@ const AREA_DIFFICULTY = [
   'Lack of medical attention',
 ];
 
-const BLOOD_TYPES = ['O', 'A', 'B', 'AB', "Don't know"];
+const BLOOD_TYPES = ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', "Don't know"];
 
 export default function HealthProfileStep({ form, setForm }: StepProps) {
   return (
@@ -59,7 +59,7 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           Blood Type
         </h6>
         <div className="flex flex-wrap gap-2">
-          {BLOOD_TYPES.map((bt) => (
+          {(['O', 'A', 'B', 'AB'].includes(form.bloodType) ? [form.bloodType, ...BLOOD_TYPES] : BLOOD_TYPES).map((bt) => (
             <button
               key={bt}
               type="button"
@@ -70,7 +70,7 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
                   : 'bg-white text-slate-600 border-slate-200 hover:border-teal-300'
               }`}
             >
-              {bt}
+              {['O', 'A', 'B', 'AB'].includes(bt) ? `${bt} (Rh unspecified)` : bt}
             </button>
           ))}
         </div>
