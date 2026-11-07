@@ -57003,7 +57003,7 @@ export default function LoginPage() {
 
 
 
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
 
 
