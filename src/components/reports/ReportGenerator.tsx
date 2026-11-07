@@ -81,6 +81,7 @@ export default function ReportGenerator() {
   const [filterBarangay,   setFilterBarangay]   = useState('All');
   const [filterStatus,     setFilterStatus]     = useState('All');
   const [filterClassification, setFilterClassification] = useState('All');
+  const [customTitle, setCustomTitle] = useState('');
   const [customColumns, setCustomColumns] = useState<(keyof SeniorCitizen)[]>(['oscaNumber', 'lastName', 'firstName', 'barangay', 'age', 'classification', 'status']);
   const [isRendering,      setIsRendering]      = useState(false);
   const [isGenerating,     setIsGenerating]     = useState(false);
@@ -132,7 +133,7 @@ export default function ReportGenerator() {
       : selectedTemplate === 'social-pension'
         ? 'MASTERLIST OF SOCIAL PENSION RECIPIENTS'
       : selectedTemplate === 'custom'
-        ? 'CUSTOM SENIOR CITIZEN REPORT'
+        ? customTitle.trim() || 'CUSTOM SENIOR CITIZEN REPORT'
         : 'MASTERLIST OF DECEASED SENIOR CITIZENS';
 
   const generatePreview = useCallback(async () => {
@@ -150,7 +151,7 @@ export default function ReportGenerator() {
     } finally {
       setIsGenerating(false);
     }
-  }, [customColumns, faviconUrl, filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast, systemLogoUrl]);
+  }, [customColumns, reportTitle, faviconUrl, filteredSeniors, filterBarangay, filterStatus, isInitialized, isLoading, selectedTemplate, showToast, systemLogoUrl]);
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -310,7 +311,7 @@ export default function ReportGenerator() {
                 ) : (
                   <div style={{ borderBottom:'1px solid #e2e8f0', paddingBottom:'8px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
                     <span style={{ fontSize:'9px', fontWeight:800, color:'#0f172a', textTransform:'uppercase' }}>
-                      {selectedTemplate === 'pension-masterlist' ? 'OVERALL PENSION BENEFICIARY MASTERLIST' : selectedTemplate === 'social-pension' ? 'SOCIAL PENSION MASTERLIST' : selectedTemplate === 'deceased' ? 'DECEASED SENIORS MASTERLIST' : selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
+                      {selectedTemplate === 'custom' ? reportTitle : selectedTemplate === 'pension-masterlist' ? 'OVERALL PENSION BENEFICIARY MASTERLIST' : selectedTemplate === 'social-pension' ? 'SOCIAL PENSION MASTERLIST' : selectedTemplate === 'deceased' ? 'DECEASED SENIORS MASTERLIST' : selectedTemplate === 'master' ? 'E-CENSUS MASTER LIST' : 'PENSION BENEFICIARY ROSTER'}
                     </span>
                     <span style={{ fontSize:'8px', fontFamily:'monospace', color:'#94a3b8' }}>
                       Page {pageIdx + 1} of {totalPages}
@@ -469,6 +470,8 @@ export default function ReportGenerator() {
           </div>
 
           {selectedTemplate === 'custom' && <div className="space-y-2">
+            <label htmlFor="custom-report-title" className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Report Title</label>
+            <input id="custom-report-title" type="text" value={customTitle} onChange={(e) => setCustomTitle(e.target.value)} placeholder="Custom Senior Citizen Report" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Report Columns</label>
             <div className="grid grid-cols-2 gap-2">
               {CUSTOM_COLUMNS.map(({ key, label }) => <label key={key} className="flex items-center gap-2 text-[11px] text-slate-600">
