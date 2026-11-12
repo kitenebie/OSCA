@@ -5,6 +5,7 @@ import { useUIStore } from '../store/uiStore';
 import StatCard from '../components/dashboard/StatCard';
 import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
+import RecentRegistrationsWidget from '../components/dashboard/RecentRegistrationsWidget';
 import { Users, CreditCard, Landmark, Calendar, ShieldCheck } from 'lucide-react';
 import { getBarangayScope } from '../utils/dataAccess';
 import { getMonthlyPension, isSocPenProgram } from '../utils/pension';
@@ -168,7 +169,9 @@ export default function DashboardPage() {
           <BarangayChart seniors={dashboardSeniors} barangayScope={barangayScope} />
         </div>
         <div className="lg:col-span-2">
-          {hasPermission('canViewPendingApprovals') && <PendingApprovalsWidget seniors={dashboardSeniors} />}
+          {hasPermission('canViewPendingApprovals')
+            ? <PendingApprovalsWidget seniors={dashboardSeniors} />
+            : hasPermission('canViewTableList') && <RecentRegistrationsWidget seniors={dashboardSeniors} />}
         </div>
       </div>
 

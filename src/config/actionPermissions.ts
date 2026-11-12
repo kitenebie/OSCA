@@ -17,6 +17,7 @@ type LegacyPermission = keyof RolePermission['permissions'];
 
 export const ACTION_PERMISSIONS: { key: ActionPermissionKey; label: string; group: string; fallback: LegacyPermission }[] = [
   { key: 'canViewTableList', label: 'View senior table list', group: 'Senior Profiles', fallback: 'canViewSeniors' },
+  { key: 'canViewOnlyAssignedBrgy', label: 'Limit records to assigned barangay', group: 'Senior Profiles', fallback: 'canViewSeniors' },
   { key: 'canEditRecord', label: 'Edit senior record and photo', group: 'Senior Profiles', fallback: 'canEditSenior' },
   { key: 'canViewProfile', label: 'View senior profile', group: 'Senior Profiles', fallback: 'canAccessSeniorProfile' },
   { key: 'canViewIDCard', label: 'View or generate senior ID card', group: 'Senior Profiles', fallback: 'canAccessSeniorProfile' },
@@ -46,6 +47,6 @@ export const withActionPermissionDefaults = (
   ...permissions,
   ...Object.fromEntries(ACTION_PERMISSIONS.map(({ key, fallback }) => [
     key,
-    saved[key] ?? permissions[key] ?? permissions[fallback],
+    saved[key] ?? permissions[key] ?? (key === 'canViewOnlyAssignedBrgy' ? false : permissions[fallback]),
   ])),
 });

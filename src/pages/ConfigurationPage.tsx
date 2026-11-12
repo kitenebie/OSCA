@@ -477,6 +477,8 @@ const DEFAULT_ROLES: RolePermission[] = [
 
       canAccessMapping: true,
 
+      canViewOnlyAssignedBrgy: true,
+
     },
 
   },
