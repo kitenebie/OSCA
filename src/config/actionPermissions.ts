@@ -16,6 +16,12 @@ export type ActionPermissionKey =
 type LegacyPermission = keyof RolePermission['permissions'];
 
 export const ACTION_PERMISSIONS: { key: ActionPermissionKey; label: string; group: string; fallback: LegacyPermission }[] = [
+  { key: 'canViewTableList', label: 'View senior table list', group: 'Senior Profiles', fallback: 'canViewSeniors' },
+  { key: 'canEditRecord', label: 'Edit senior record and photo', group: 'Senior Profiles', fallback: 'canEditSenior' },
+  { key: 'canViewProfile', label: 'View senior profile', group: 'Senior Profiles', fallback: 'canAccessSeniorProfile' },
+  { key: 'canViewIDCard', label: 'View or generate senior ID card', group: 'Senior Profiles', fallback: 'canAccessSeniorProfile' },
+  { key: 'canUpdateStatus', label: 'Update senior status', group: 'Senior Profiles', fallback: 'canApproveReject' },
+  { key: 'canArchive', label: 'Deactivate or reactivate senior record', group: 'Senior Profiles', fallback: 'canDeleteSenior' },
   { key: 'canSearchMappingBarangay', label: 'Search barangays on map', group: 'Mapping', fallback: 'canViewSeniors' },
   { key: 'canOpenSeniorFromMap', label: 'Open senior from map', group: 'Mapping', fallback: 'canViewSeniors' },
   { key: 'canCreateClaimForm', label: 'Create claim form', group: 'Grantee Claim Forms', fallback: 'canCreateSenior' },
@@ -40,6 +46,6 @@ export const withActionPermissionDefaults = (
   ...permissions,
   ...Object.fromEntries(ACTION_PERMISSIONS.map(({ key, fallback }) => [
     key,
-    saved[key] ?? permissions[key] ?? (key === 'canArchive' ? permissions.canDeleteSenior || permissions.canEditSenior : permissions[fallback]),
+    saved[key] ?? permissions[key] ?? permissions[fallback],
   ])),
 });

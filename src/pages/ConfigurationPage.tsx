@@ -231,6 +231,8 @@ const DEFAULT_ROLES: RolePermission[] = [
 
       canApproveReject: true,
 
+      canUpdateStatus: false,
+
 
 
       canViewUsers: true,
