@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 
 interface StepProps {
   form: any;
@@ -101,9 +102,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.incomeOthersText || ''}
-            onChange={(e) => setForm({ ...form, incomeOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, incomeOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other income source"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -135,9 +136,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.realPropOthersText || ''}
-            onChange={(e) => setForm({ ...form, realPropOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, realPropOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other real property"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -169,9 +170,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.movablePropOthersText || ''}
-            onChange={(e) => setForm({ ...form, movablePropOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, movablePropOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other movable property"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -230,9 +231,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.problemsSkillsText || ''}
-              onChange={(e) => setForm({ ...form, problemsSkillsText: e.target.value })}
+              onChange={(e) => setForm({ ...form, problemsSkillsText: capitalizeInput(e.target.value) })}
               placeholder="What skills training do you need?"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
         )}
@@ -243,9 +244,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.problemsLivelihoodText || ''}
-              onChange={(e) => setForm({ ...form, problemsLivelihoodText: e.target.value })}
+              onChange={(e) => setForm({ ...form, problemsLivelihoodText: capitalizeInput(e.target.value) })}
               placeholder="What livelihood opportunities do you need?"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
         )}
@@ -255,9 +256,9 @@ export default function EconomicProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.problemsOthersText || ''}
-            onChange={(e) => setForm({ ...form, problemsOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, problemsOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other problems/needs"
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>

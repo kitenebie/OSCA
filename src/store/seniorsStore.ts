@@ -255,18 +255,18 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     const name = target ? `${target.firstName} ${target.lastName}` : id;
 
     await get().updateSenior(id, {
-      status: 'For Verification',
-      remarks: `Approved by ${officerName} on ${new Date().toLocaleDateString()}.`,
+      status: 'For Compliance',
+      remarks: `Approved for compliance review by ${officerName} on ${new Date().toLocaleDateString()}.`,
     }, officerName);
 
     auditLogsService.log({
-      action: 'APPROVE',
+      action: 'UPDATE',
       entity: 'Senior',
-      details: `Approved (For Verification) by ${officerName} the registration of ${name}`,
+      details: `Moved ${name} to For Compliance review by ${officerName}`,
       actorName: officerName,
       actorRole: 'approver',
       barangay: target?.barangay,
-      severity: 'success',
+      severity: 'info',
       targetPage: 'SeniorProfile',
       targetId: id,
     });
@@ -277,18 +277,18 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
     const name = target ? `${target.firstName} ${target.lastName}` : id;
 
     await get().updateSenior(id, {
-      status: 'Rejected',
-      remarks: `Rejected by ${officerName} on ${new Date().toLocaleDateString()}. Reason: ${reason}`,
+      status: 'For Compliance',
+      remarks: `For Compliance requested by ${officerName} on ${new Date().toLocaleDateString()}. Details: ${reason}`,
     }, officerName);
 
     auditLogsService.log({
-      action: 'REJECT',
+      action: 'UPDATE',
       entity: 'Senior',
-      details: `Rejected by ${officerName} the registration of ${name} (Cause: ${reason})`,
+      details: `Requested For Compliance for ${name} by ${officerName} (Details: ${reason})`,
       actorName: officerName,
       actorRole: 'approver',
       barangay: target?.barangay,
-      severity: 'danger',
+      severity: 'info',
       targetPage: 'SeniorProfile',
       targetId: id,
     });
@@ -296,8 +296,8 @@ export const useSeniorsStore = create<SeniorsState>((set, get) => ({
 
   verifySenior: async (id, officerName) => {
     await get().updateSenior(id, {
-      status: 'For Verification',
-      remarks: `Set to verification review by ${officerName} on ${new Date().toLocaleDateString()}.`,
+      status: 'For Compliance',
+      remarks: `Set to compliance review by ${officerName} on ${new Date().toLocaleDateString()}.`,
     });
   },
 

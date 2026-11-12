@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 
 interface StepProps {
   form: any;
@@ -87,7 +88,7 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
             type="checkbox"
             checked={form.physicalDisability}
             onChange={(e) => setForm({ ...form, physicalDisability: e.target.checked })}
-            className="accent-teal-600 w-4 h-4"
+            className="accent-teal-600 w-4 h-4" tabIndex={0}
           />
           <span className="text-sm font-semibold text-slate-700">Has physical disability</span>
         </label>
@@ -95,9 +96,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.physicalDisabilityText}
-            onChange={(e) => setForm({ ...form, physicalDisabilityText: e.target.value })}
+            onChange={(e) => setForm({ ...form, physicalDisabilityText: capitalizeInput(e.target.value) })}
             placeholder="Specify disability..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         )}
       </div>
@@ -129,9 +130,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.medicalOthersText}
-            onChange={(e) => setForm({ ...form, medicalOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, medicalOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other medical concerns..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -163,9 +164,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.dentalOthersText}
-            onChange={(e) => setForm({ ...form, dentalOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, dentalOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other dental concerns..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -197,9 +198,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.opticalOthersText}
-            onChange={(e) => setForm({ ...form, opticalOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, opticalOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other optical concerns..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -231,9 +232,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.hearingOthersText}
-            onChange={(e) => setForm({ ...form, hearingOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, hearingOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other hearing concerns..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -265,9 +266,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.socialEmotionalOthersText}
-            onChange={(e) => setForm({ ...form, socialEmotionalOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, socialEmotionalOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other social/emotional concerns..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -299,9 +300,9 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.areaDifficultyOthersText}
-            onChange={(e) => setForm({ ...form, areaDifficultyOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, areaDifficultyOthersText: capitalizeInput(e.target.value) })}
             placeholder="Other difficulties..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
           />
         </div>
       </div>
@@ -325,33 +326,33 @@ export default function HealthProfileStep({ form, setForm }: StepProps) {
                 value={med.name}
                 onChange={(e) => {
                   const m = [...form.medicines];
-                  m[idx] = { ...m[idx], name: e.target.value };
+                  m[idx] = { ...m[idx], name: capitalizeInput(e.target.value) };
                   setForm({ ...form, medicines: m });
                 }}
                 placeholder="Medicine name"
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
               />
               <input
                 type="text"
                 value={med.dosage}
                 onChange={(e) => {
                   const m = [...form.medicines];
-                  m[idx] = { ...m[idx], dosage: e.target.value };
+                  m[idx] = { ...m[idx], dosage: capitalizeInput(e.target.value) };
                   setForm({ ...form, medicines: m });
                 }}
                 placeholder="Dosage"
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
               />
               <input
                 type="text"
                 value={med.notes}
                 onChange={(e) => {
                   const m = [...form.medicines];
-                  m[idx] = { ...m[idx], notes: e.target.value };
+                  m[idx] = { ...m[idx], notes: capitalizeInput(e.target.value) };
                   setForm({ ...form, medicines: m });
                 }}
                 placeholder="Notes/Purpose"
-                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
               />
             </div>
           ))}

@@ -47,6 +47,7 @@ import { fillCentenarianForm } from "../utils/centenarianFormFiller";
 import { centenarianService } from "../services/supabaseService";
 import { getBarangayScope } from "../utils/dataAccess";
 import { getMonthlyPension, hasMonthlyPension } from "../utils/pension";
+import { APPROVED_STATUSES, COMPLIANCE_STATUSES, seniorStatusLabel } from "../constants/seniorStatusGroups";
 
 export default function SeniorsListPage() {
   const { barangays: barangaysData } = useBarangays();
@@ -59,7 +60,6 @@ export default function SeniorsListPage() {
     selectedPension,
     setSelectedPension,
     updateSenior,
-    rejectSenior,
     deleteSenior,
   } = useSeniorsStore();
 
@@ -331,8 +331,12 @@ export default function SeniorsListPage() {
 
     // 3. Status check
 
-    const matchesStatus =
-      selectedStatus === "All" || senior.status === selectedStatus;
+    const matchesStatus = selectedStatus === "All" ||
+      (selectedStatus === "Approved"
+        ? APPROVED_STATUSES.includes(senior.status)
+        : selectedStatus === "For Compliance"
+          ? COMPLIANCE_STATUSES.includes(senior.status)
+          : senior.status === selectedStatus);
 
     // 4. Pension check
 
@@ -376,7 +380,8 @@ export default function SeniorsListPage() {
     open: boolean;
     id: string;
     name: string;
-  }>({ open: false, id: "", name: "" });
+    currentStatus: string;
+  }>({ open: false, id: "", name: "", currentStatus: "" });
 
   // Change Photo modal
 
@@ -399,7 +404,7 @@ export default function SeniorsListPage() {
 
   const [newStatus, setNewStatus] = useState<string>("");
 
-  const [rejectionReason, setRejectionReason] = useState("");
+  const [complianceReason, setComplianceReason] = useState("");
   const [dateOfDeath, setDateOfDeath] = useState("");
 
   const getStatusOptionClass = (status: string, selected: string, idle: string) => {
@@ -418,24 +423,25 @@ export default function SeniorsListPage() {
     e: React.MouseEvent,
     id: string,
     name: string,
+    currentStatus: string,
   ) => {
     e.stopPropagation();
     if (!canArchive) return;
 
-    setArchiveModal({ open: true, id, name });
+    setArchiveModal({ open: true, id, name, currentStatus });
   };
 
   const handleArchiveConfirm = async () => {
     if (!canArchive) return;
     try {
-      await updateSenior(archiveModal.id, { status: "Deactivated" });
-
-      showToast(`Successfully archived si ${archiveModal.name}.`, "success");
+      const restoring = archiveModal.currentStatus === "Deactivated";
+      await updateSenior(archiveModal.id, { status: restoring ? "For Compliance" : "Deactivated" });
+      showToast(restoring ? `${archiveModal.name} reactivated for compliance review.` : `Successfully archived ${archiveModal.name}.`, "success");
     } catch {
       showToast("Failed to archive record. Please try again.", "error");
     }
 
-    setArchiveModal({ open: false, id: "", name: "" });
+    setArchiveModal({ open: false, id: "", name: "", currentStatus: "" });
   };
 
   // ID Card handler - navigate to FindUser page for ID card view
@@ -500,10 +506,11 @@ export default function SeniorsListPage() {
   ) => {
     e.stopPropagation();
 
-    setStatusModal({ open: true, id, name, currentStatus });
+    const displayStatus = seniorStatusLabel(currentStatus);
+    setStatusModal({ open: true, id, name, currentStatus: displayStatus });
 
-    setNewStatus(currentStatus);
-    setRejectionReason("");
+    setNewStatus(displayStatus);
+    setComplianceReason("");
     setDateOfDeath(seniors.find((senior) => senior.id === id)?.dateOfDeath || "");
   };
 
@@ -515,13 +522,16 @@ export default function SeniorsListPage() {
       const senior = seniors.find((s) => s.id === statusModal.id);
       const officerName = currentUser?.fullName || "OSCA System";
 
-      if (newStatus === "Rejected") {
-        const reason = rejectionReason.trim();
+      if (newStatus === "For Compliance") {
+        const reason = complianceReason.trim();
         if (!reason) {
-          showToast("Please enter the reason for rejection.", "error");
+          showToast("Please enter the compliance details.", "error");
           return;
         }
-        await rejectSenior(statusModal.id, reason, officerName);
+        await updateSenior(statusModal.id, {
+          status: "For Compliance",
+          remarks: `For Compliance requested by ${officerName} on ${new Date().toLocaleDateString()}. Details: ${reason}`,
+        }, officerName);
       } else if (newStatus === "Deceased") {
         if (!dateOfDeath) {
           showToast("Date of death is required for a deceased record.", "error");
@@ -670,9 +680,11 @@ export default function SeniorsListPage() {
 
             <option value="Pending">Pending Application</option>
 
-            <option value="For Verification">For Verification</option>
+            <option value="For Compliance">For Compliance</option>
 
             <option value="Approved ID">Approved ID</option>
+
+            <option value="Approved">Approved</option>
 
             <option value="Qualified for NSCS">Qualified for NSCS</option>
 
@@ -683,8 +695,6 @@ export default function SeniorsListPage() {
             <option value="Disapproved Data Form">Disapproved Data Form</option>
 
             <option value="Qualified for Honoring">Qualified for Honoring</option>
-
-            <option value="Rejected">Rejected</option>
 
             <option value="Deactivated">Deactivated</option>
 
@@ -842,16 +852,15 @@ export default function SeniorsListPage() {
                       <span
                         className={`inline-block text-[9px] font-bold px-2 py-0.5 rounded font-mono uppercase
                         ${senior.status === "Pending" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20 animate-pulse" : ""}
-                        ${senior.status === "For Verification" ? "bg-blue-500/10 text-blue-600 border border-blue-500/20" : ""}
+                        ${COMPLIANCE_STATUSES.includes(senior.status) ? "bg-amber-500/10 text-amber-700 border border-amber-500/20" : ""}
                         ${senior.status === "Approved ID" || senior.status === "Approved Data Form" || senior.status === "Approved Honoring" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : ""}
                         ${senior.status === "Qualified for NSCS" || senior.status === "Qualified for Honoring" ? "bg-purple-500/10 text-purple-600 border border-purple-500/20" : ""}
                         ${senior.status === "NSCS Form Submitted" ? "bg-indigo-500/10 text-indigo-600 border border-indigo-500/20" : ""}
-                        ${senior.status === "Disapproved Honoring" || senior.status === "Disapproved Data Form" ? "bg-amber-500/10 text-amber-600 border border-amber-500/20" : ""}
-                        ${senior.status === "Rejected" || senior.status === "Deceased" || senior.status === "Deactivated" ? "bg-red-500/10 text-red-600 border border-red-500/20" : ""}
+                        ${senior.status === "Deceased" || senior.status === "Deactivated" ? "bg-red-500/10 text-red-600 border border-red-500/20" : ""}
 
                       `}
                       >
-                        {senior.status}
+                        {seniorStatusLabel(senior.status)}
                       </span>
                     </td>
 
@@ -1008,10 +1017,11 @@ export default function SeniorsListPage() {
                                 e,
                                 senior.id,
                                 `${senior.firstName} ${senior.lastName}`,
+                                senior.status,
                               )
                             }
-                            title="Archive (deactivate)"
-                            className="p-2 text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95"
+                            title={senior.status === "Deactivated" ? "Reactivate for compliance review" : "Archive (deactivate)"}
+                            className={`p-2 rounded-xl transition-all cursor-pointer shadow-xs active:scale-95 ${senior.status === "Deactivated" ? "text-teal-600 hover:bg-teal-50" : "text-slate-500 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40"}`}
                           >
                             <Archive size={18} />
                           </button>
@@ -1146,7 +1156,7 @@ export default function SeniorsListPage() {
 
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm animate-[fadeIn_200ms_ease-out]"
-            onClick={() => setArchiveModal({ open: false, id: "", name: "" })}
+            onClick={() => setArchiveModal({ open: false, id: "", name: "", currentStatus: "" })}
           ></div>
 
           {/* Modal Card */}
@@ -1155,7 +1165,7 @@ export default function SeniorsListPage() {
             {/* Close button */}
 
             <button
-              onClick={() => setArchiveModal({ open: false, id: "", name: "" })}
+              onClick={() => setArchiveModal({ open: false, id: "", name: "", currentStatus: "" })}
               className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all cursor-pointer"
             >
               <X size={16} />
@@ -1171,15 +1181,16 @@ export default function SeniorsListPage() {
 
             <div className="text-center space-y-1.5">
               <h3 className="font-bold text-lg text-slate-800">
-                Archive this Record?
+                {archiveModal.currentStatus === "Deactivated" ? "Reactivate this Record?" : "Deactivate this Record?"}
               </h3>
 
               <p className="text-sm text-slate-500">
                 <span className="font-semibold text-slate-700">
                   {archiveModal.name}
                 </span>{" "}
-                will be deactivated and will no longer appear in the active
-                records list.
+                  {archiveModal.currentStatus === "Deactivated"
+                    ? " will be reactivated and returned to For Compliance for review."
+                    : " will be deactivated and removed from active records."}
               </p>
             </div>
 
@@ -1188,7 +1199,7 @@ export default function SeniorsListPage() {
             <div className="flex gap-3 pt-2">
               <button
                 onClick={() =>
-                  setArchiveModal({ open: false, id: "", name: "" })
+                  setArchiveModal({ open: false, id: "", name: "", currentStatus: "" })
                 }
                 className="flex-1 py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm rounded-xl transition-all cursor-pointer"
               >
@@ -1199,7 +1210,7 @@ export default function SeniorsListPage() {
                 onClick={handleArchiveConfirm}
                 className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95"
               >
-                Archive
+                {archiveModal.currentStatus === "Deactivated" ? "Reactivate" : "Deactivate"}
               </button>
             </div>
           </div>
@@ -1339,7 +1350,7 @@ export default function SeniorsListPage() {
             <div className="space-y-2">
               {/* Main Flow Options */}
               {[
-                { label: "Approved ID", enabled: statusModal.currentStatus === "For Verification", color: "emerald" },
+                { label: "Approved ID", enabled: statusModal.currentStatus === "For Compliance", color: "emerald" },
                 { label: "Qualified for NSCS", enabled: statusModal.currentStatus === "Approved ID", color: "purple" },
                 { label: "NSCS Form Submitted", enabled: statusModal.currentStatus === "Qualified for NSCS", color: "indigo" },
                 { label: "Approved Data Form", enabled: statusModal.currentStatus === "NSCS Form Submitted", color: "emerald" },
@@ -1368,55 +1379,41 @@ export default function SeniorsListPage() {
                   );
                 })}
 
-              {/* Divider - For Verification */}
-              <div className="flex items-center gap-2 pt-2">
-                <div className="flex-1 h-px bg-blue-200 dark:bg-blue-800"></div>
-                <span className="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Verification</span>
-                <div className="flex-1 h-px bg-blue-200 dark:bg-blue-800"></div>
-              </div>
-              <button
-                onClick={() => setNewStatus("For Verification")}
-                aria-pressed={newStatus === "For Verification"}
-                className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${getStatusOptionClass("For Verification", "bg-blue-500 text-white", "bg-blue-500 hover:bg-blue-600 text-white")}`}
-              >
-                For Verification
-              </button>
-
-              {/* Divider - Rejected */}
-              {(statusModal.currentStatus === "Pending" || statusModal.currentStatus === "For Verification") && (
+              {/* For Compliance */}
+              {["Pending", "For Compliance"].includes(statusModal.currentStatus) && (
                 <>
                   <div className="flex items-center gap-2 pt-2">
-                    <div className="flex-1 h-px bg-red-200 dark:bg-red-800"></div>
-                    <span className="text-[9px] font-bold text-red-400 uppercase tracking-wider">Rejection</span>
-                    <div className="flex-1 h-px bg-red-200 dark:bg-red-800"></div>
+                    <div className="flex-1 h-px bg-amber-200 dark:bg-amber-800"></div>
+                    <span className="text-[9px] font-bold text-amber-600 uppercase tracking-wider">Compliance</span>
+                    <div className="flex-1 h-px bg-amber-200 dark:bg-amber-800"></div>
                   </div>
                   <button
-                    onClick={() => setNewStatus("Rejected")}
-                    aria-pressed={newStatus === "Rejected"}
-                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-red-500 ${getStatusOptionClass("Rejected", "bg-red-500 text-white", "text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20")}`}
+                    onClick={() => setNewStatus("For Compliance")}
+                    aria-pressed={newStatus === "For Compliance"}
+                    className={`w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all border-2 border-amber-500 ${getStatusOptionClass("For Compliance", "bg-amber-500 text-white", "text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/20")}`}
                   >
-                    Rejected
+                    For Compliance
                   </button>
-                  {newStatus === "Rejected" && (
+                  {newStatus === "For Compliance" && (
                     <div className="space-y-1.5 pt-1">
                       <label
-                        htmlFor="rejection-reason"
-                        className="block text-xs font-bold text-red-700 dark:text-red-300"
+                        htmlFor="compliance-details"
+                        className="block text-xs font-bold text-amber-700 dark:text-amber-300"
                       >
-                        Reason for rejection <span className="text-red-500">*</span>
+                        Compliance details <span className="text-red-500">*</span>
                       </label>
                       <textarea
-                        id="rejection-reason"
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        placeholder="Enter the reason for rejecting this registration"
+                        id="compliance-details"
+                        value={complianceReason}
+                        onChange={(e) => setComplianceReason(e.target.value)}
+                        placeholder="Enter the documents or updates needed for compliance"
                         rows={3}
                         maxLength={500}
                         autoFocus
-                        className="w-full resize-none rounded-xl border border-red-200 bg-red-50/50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-red-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 dark:border-red-800 dark:bg-red-950/20 dark:text-slate-100"
+                        className="w-full resize-none rounded-xl border border-amber-200 bg-amber-50/50 px-3 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-amber-800 dark:bg-amber-950/20 dark:text-slate-100"
                       />
                       <p className="text-[10px] text-slate-400">
-                        This reason will be saved in the senior record and shown when the profile is viewed.
+                        These details will be saved and shown on the senior profile.
                       </p>
                     </div>
                   )}
@@ -1470,12 +1467,12 @@ export default function SeniorsListPage() {
                 onClick={handleStatusConfirm}
                 disabled={
                   newStatus === statusModal.currentStatus ||
-                  (newStatus === "Rejected" && !rejectionReason.trim()) ||
+                  (newStatus === "For Compliance" && !complianceReason.trim()) ||
                   (newStatus === "Deceased" && !dateOfDeath)
                 }
                 className="flex-1 py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm rounded-xl shadow-md transition-all cursor-pointer active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                {newStatus === "Rejected" ? "Submit Rejection" : "Update Status"}
+                {newStatus === "For Compliance" ? "Send for Compliance" : "Update Status"}
               </button>
             </div>
           </div>
@@ -1518,9 +1515,9 @@ export default function SeniorsListPage() {
                   color: "bg-amber-400",
                 },
                 {
-                  status: "For Verification",
-                  desc: "Submitted documents are being verified",
-                  color: "bg-blue-400",
+                  status: "For Compliance",
+                  desc: "Registration needs documents or updates before approval",
+                  color: "bg-amber-400",
                 },
                 {
                   status: "Approved ID",
@@ -1593,11 +1590,6 @@ export default function SeniorsListPage() {
                 At Any Time
               </p>
               {[
-                {
-                  status: "Rejected",
-                  desc: "Rejected from Pending or For Verification stage",
-                  color: "bg-red-500",
-                },
                 {
                   status: "Deactivated",
                   desc: "Record has been archived / deactivated",

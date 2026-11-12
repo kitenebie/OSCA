@@ -113,16 +113,16 @@ export default function IDCardPreview({ senior }: IDCardPreviewProps) {
           {/* Download PDF button */}
           <button
             type="button"
-            disabled={isExporting || senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'}
+            disabled={isExporting || senior.status === 'Pending' || senior.status === 'For Compliance' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'}
             onClick={handleExportPDF}
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed shadow-sm transition-all duration-150 active:scale-95"
-            title={senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
+            title={senior.status === 'Pending' || senior.status === 'For Compliance' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased' ? 'ID can only be downloaded when the Senior status is Approved.' : ''}
           >
             <FileDown size={14} />
             <span>
               {isExporting
                 ? 'Rendering...'
-                : senior.status === 'Pending' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'
+                : senior.status === 'Pending' || senior.status === 'For Compliance' || senior.status === 'For Verification' || senior.status === 'Rejected' || senior.status === 'Deactivated' || senior.status === 'Deceased'
                   ? 'Not Approved (Download Disabled)'
                   : 'I-download (CR80 PDF)'}
             </span>

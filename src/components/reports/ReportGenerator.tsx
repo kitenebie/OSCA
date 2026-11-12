@@ -10,6 +10,7 @@ import { useBarangays } from '../../hooks/useBarangays';
 import { SeniorCitizen } from '../../types';
 import { getMonthlyPension, hasMonthlyPension } from '../../utils/pension';
 import { SENIOR_CLASSIFICATIONS } from '../../constants/seniorClassifications';
+import { COMPLIANCE_STATUSES } from '../../constants/seniorStatusGroups';
 
 const REPORT_TEMPLATES = [
   { id: 'master',  name: 'Master List of Senior Citizens',    desc: 'Comprehensive listing of senior citizens grouped alphabetically.' },
@@ -110,7 +111,9 @@ export default function ReportGenerator() {
     const matchBarangay = filterBarangay === 'All' || s.barangay === filterBarangay;
     const matchStatus = selectedTemplate === 'social-pension' || selectedTemplate === 'deceased' || selectedTemplate === 'pension-masterlist'
       ? true
-      : filterStatus === 'All' || s.status === filterStatus;
+      : filterStatus === 'All' || (filterStatus === 'For Compliance'
+        ? COMPLIANCE_STATUSES.includes(s.status)
+        : s.status === filterStatus);
     const isTemplateMatch = selectedTemplate === 'pension-masterlist'
       ? hasMonthlyPension(s)
       : selectedTemplate === 'social-pension'
@@ -505,8 +508,8 @@ export default function ReportGenerator() {
               <option value="All">All Status</option>
               <option value="Approved">Approved (Active)</option>
               <option value="Pending">Pending Applications</option>
-              <option value="For Verification">For Verification</option>
-              <option value="Rejected">Rejected</option>
+              <option value="For Compliance">For Compliance</option>
+              <option value="Approved ID">Approved ID</option>
               <option value="Deceased">Deceased</option>
             </select>
           </div>

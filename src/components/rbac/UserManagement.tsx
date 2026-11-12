@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { capitalizeInput } from '../../utils/capitalizeInput';
 import { useAuthStore } from '../../store/authStore';
 import { User } from '../../types';
 import { useBarangays } from '../../hooks/useBarangays';
@@ -584,9 +585,9 @@ export default function UserManagement() {
                   maxLength={100}
                   title="Use letters, spaces, periods, apostrophes, or hyphens."
                   value={formData.fullName}
-                  onChange={(e) => setFormData({ ...formData, fullName: filterNameInput(e.target.value) })}
+                  onChange={(e) => setFormData({ ...formData, fullName: capitalizeInput(filterNameInput(e.target.value)) })}
                   placeholder="e.g. Maria Clara dela Cruz"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                 />
               </div>
 
@@ -604,7 +605,7 @@ export default function UserManagement() {
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: filterUsernameInput(e.target.value) })}
                     placeholder="e.g. mclara"
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono"
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0}
                   />
                 </div>
 
@@ -613,7 +614,7 @@ export default function UserManagement() {
                   <select
                     value={formData.role}
                     onChange={(e) => setFormData({ ...formData, role: e.target.value as User['role'] })}
-                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                    className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                   >
                     {roles.length > 0 ? (
                       roles.filter((r) => r.role.replace(/[^a-z0-9]/gi, '').toLowerCase() !== 'superadmin').map((r) => (
@@ -637,7 +638,7 @@ export default function UserManagement() {
                 <select
                   value={formData.barangayAssigned}
                   onChange={(e) => setFormData({ ...formData, barangayAssigned: e.target.value })}
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                 >
                   <option value="">-- None Assigned --</option>
                   {barangaysData.map((b) => (
@@ -658,7 +659,7 @@ export default function UserManagement() {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value.toLowerCase() })}
                   placeholder="e.g. m.clara@carmonagov.ph"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                 />
               </div>
 
@@ -674,7 +675,7 @@ export default function UserManagement() {
                   value={formData.contactNumber}
                   onChange={(e) => setFormData({ ...formData, contactNumber: filterMobileInput(e.target.value) })}
                   placeholder="09123456789"
-                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                  className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                 />
               </div>
 
@@ -695,7 +696,7 @@ export default function UserManagement() {
                       onChange={(e) => setCreatePassword(e.target.value)}
                       placeholder="Enter password"
                       maxLength={128}
-                      className="w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                      className="w-full px-4 py-2 pr-10 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                     />
                     <button
                       type="button"
@@ -724,7 +725,7 @@ export default function UserManagement() {
                           : createConfirmPassword && createConfirmPassword === createPassword
                           ? 'border-teal-400 dark:border-teal-600'
                           : 'border-slate-200 dark:border-slate-600'
-                      }`}
+                      }`} tabIndex={0}
                     />
                     <button
                       type="button"

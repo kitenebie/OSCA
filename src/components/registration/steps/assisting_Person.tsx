@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import SignaturePad from '../../profiling/SignaturePad';
 import { interviewerService, Interviewer } from '../../../services/supabaseService';
 
@@ -127,17 +128,17 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.assistingPerson1Name}
-              onChange={(e) => setForm({ ...form, assistingPerson1Name: e.target.value })}
+              onChange={(e) => setForm({ ...form, assistingPerson1Name: capitalizeInput(e.target.value) })}
               placeholder="Full Name of Assisting Person"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Relationship to Senior Citizen</label>
             <select
               value={form.assistingPerson1Relationship}
-              onChange={(e) => setForm({ ...form, assistingPerson1Relationship: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              onChange={(e) => setForm({ ...form, assistingPerson1Relationship: capitalizeInput(e.target.value) })}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             >
               <option value="">Select relationship</option>
               {RELATIONSHIP_OPTIONS.map((rel) => (
@@ -169,17 +170,17 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.assistingPerson2Name}
-              onChange={(e) => setForm({ ...form, assistingPerson2Name: e.target.value })}
+              onChange={(e) => setForm({ ...form, assistingPerson2Name: capitalizeInput(e.target.value) })}
               placeholder="Full Name (if applicable)"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
           <div className="space-y-1.5">
             <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Relationship to Senior Citizen</label>
             <select
               value={form.assistingPerson2Relationship}
-              onChange={(e) => setForm({ ...form, assistingPerson2Relationship: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              onChange={(e) => setForm({ ...form, assistingPerson2Relationship: capitalizeInput(e.target.value) })}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             >
               <option value="">Select relationship</option>
               {RELATIONSHIP_OPTIONS.map((rel) => (
@@ -212,11 +213,11 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.interviewerName}
-              onChange={(e) => handleInterviewerNameChange(e.target.value)}
+              onChange={(e) => handleInterviewerNameChange(capitalizeInput(e.target.value))}
               onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
               placeholder="Start typing to search..."
               className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
-              autoComplete="off"
+              autoComplete="off" tabIndex={0}
             />
             {/* Suggestions Dropdown */}
             {showSuggestions && suggestions.length > 0 && (
@@ -242,9 +243,9 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.interviewerOrganization}
-              onChange={(e) => setForm({ ...form, interviewerOrganization: e.target.value })}
+              onChange={(e) => setForm({ ...form, interviewerOrganization: capitalizeInput(e.target.value) })}
               placeholder="e.g. OSCA Juban, MSWDO"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
           <div className="space-y-1.5">
@@ -252,8 +253,8 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="date"
               value={form.interviewDate}
-              onChange={(e) => setForm({ ...form, interviewDate: e.target.value })}
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              onChange={(e) => setForm({ ...form, interviewDate: capitalizeInput(e.target.value) })}
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
           <div className="space-y-1.5">
@@ -261,9 +262,9 @@ export default function AssistingPersonStep({ form, setForm }: StepProps) {
             <input
               type="text"
               value={form.interviewPlace}
-              onChange={(e) => setForm({ ...form, interviewPlace: e.target.value })}
+              onChange={(e) => setForm({ ...form, interviewPlace: capitalizeInput(e.target.value) })}
               placeholder="e.g. OSCA Office, Juban, Sorsogon"
-              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+              className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
             />
           </div>
         </div>

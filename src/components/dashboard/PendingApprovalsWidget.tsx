@@ -2,7 +2,7 @@ import React from 'react';
 import { useSeniorsStore } from '../../store/seniorsStore';
 import { useUIStore } from '../../store/uiStore';
 import { useAuthStore } from '../../store/authStore';
-import { Check, X, ArrowUpRight, ShieldAlert, UserCheck } from 'lucide-react';
+import { Check, ArrowUpRight, ShieldAlert, UserCheck } from 'lucide-react';
 import { SeniorCitizen } from '../../types';
 
 interface PendingApprovalsWidgetProps {
@@ -14,9 +14,7 @@ export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidg
   const { setCurrentPage } = useUIStore();
   const { currentUser, hasPermission } = useAuthStore();
 
-  const pendingSeniors = seniors.filter(
-    (s) => s.status === 'Pending' || s.status === 'For Verification'
-  ).slice(0, 5); // Take top 5
+  const pendingSeniors = seniors.filter((s) => s.status === 'Pending').slice(0, 5);
 
   const canApprove = hasPermission('canApproveReject');
 
@@ -24,16 +22,16 @@ export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidg
     e.stopPropagation();
     if (!currentUser) return;
     await approveSenior(id, currentUser.fullName);
-    useUIStore.getState().showToast(`${name} has been approved!`, 'success');
+    useUIStore.getState().showToast(`${name} moved to compliance review.`, 'success');
   };
 
   const handleReject = async (e: React.MouseEvent, id: string, name: string) => {
     e.stopPropagation();
     if (!currentUser) return;
-    const reason = prompt(`Notice: Enter the reason for rejecting ${name}:`, 'Insufficient documentation');
+    const reason = prompt(`Enter the compliance details needed for ${name}:`, 'Missing or incomplete documentation');
     if (reason === null) return; // cancelled
     await rejectSenior(id, reason || 'Insufficient proof or documentation', currentUser.fullName);
-    useUIStore.getState().showToast(`${name} has been rejected.`, 'warning');
+    useUIStore.getState().showToast(`${name} sent for compliance.`, 'success');
   };
 
   return (
@@ -41,7 +39,7 @@ export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidg
       <div className="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
         <div>
           <h4 className="font-bold text-slate-800 text-sm md:text-base">Pending Reviews</h4>
-          <p className="text-[11px] text-slate-400">List of pending and verification-required files</p>
+          <p className="text-[11px] text-slate-400">List of registrations awaiting review</p>
         </div>
         <button
           onClick={() => {
@@ -92,12 +90,8 @@ export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidg
                   <p className="text-[10px] text-slate-500 font-medium truncate mt-0.5">
                     {senior.barangay} • Age: {senior.age}
                   </p>
-                  <span className={`inline-block text-[9px] font-bold px-1.5 py-0.2 rounded mt-1 font-mono uppercase
-                    ${senior.status === 'Pending' 
-                      ? 'bg-amber-50 text-amber-600 border border-amber-100' 
-                      : 'bg-blue-50 text-blue-600 border border-blue-100'}
-                  `}>
-                    {senior.status === 'Pending' ? 'Pending' : 'For Verification'}
+                  <span className="inline-block text-[9px] font-bold px-1.5 py-0.2 rounded mt-1 font-mono uppercase bg-amber-50 text-amber-600 border border-amber-100">
+                    Pending Application
                   </span>
                 </div>
               </div>
@@ -108,17 +102,17 @@ export default function PendingApprovalsWidget({ seniors }: PendingApprovalsWidg
                   <>
                     <button
                       onClick={(e) => handleApprove(e, senior.id, `${senior.firstName} ${senior.lastName}`)}
-                      title="Approve Profile"
+                      title="Move to Compliance"
                       className="p-1.5 rounded-lg bg-teal-500/10 hover:bg-teal-500 hover:text-white text-teal-600 border border-teal-500/20 transition-all"
                     >
                       <Check size={14} />
                     </button>
                     <button
                       onClick={(e) => handleReject(e, senior.id, `${senior.firstName} ${senior.lastName}`)}
-                      title="Reject Profile"
-                      className="p-1.5 rounded-lg bg-red-500/10 hover:bg-red-500 hover:text-white text-red-600 border border-red-500/20 transition-all"
+                      title="Request Compliance"
+                      className="p-1.5 rounded-lg bg-amber-500/10 hover:bg-amber-500 hover:text-white text-amber-700 border border-amber-500/20 transition-all"
                     >
-                      <X size={14} />
+                      <ShieldAlert size={14} />
                     </button>
                   </>
                 ) : (

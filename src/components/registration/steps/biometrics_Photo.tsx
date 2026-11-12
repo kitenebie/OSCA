@@ -1,4 +1,5 @@
 import InlineFaceCapture from '../../profiling/InlineFaceCapture';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import FingerprintScanner from '../../fingerprint/FingerprintScanner';
 import SignaturePad from '../../profiling/SignaturePad';
 

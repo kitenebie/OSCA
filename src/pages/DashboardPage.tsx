@@ -7,6 +7,7 @@ import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
 import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucide-react';
 import { getBarangayScope } from '../utils/dataAccess';
+import { APPROVED_STATUSES, COMPLIANCE_STATUSES } from '../constants/seniorStatusGroups';
 
 export default function DashboardPage() {
   const { seniors, setSelectedStatus, setSelectedPension } = useSeniorsStore();
@@ -26,9 +27,11 @@ export default function DashboardPage() {
   const totalSeniors = dashboardSeniors.length;
   const pensionSeniors = dashboardSeniors.filter((s) => s.pensionBeneficiary).length;
   const pendingSeniors = dashboardSeniors.filter(
-    (s) => s.status === 'Pending' || s.status === 'For Verification'
+    (s) => s.status === 'Pending'
   ).length;
-  const approvedSeniors = dashboardSeniors.filter((s) => s.status === 'Approved').length;
+  const approvedSeniors = dashboardSeniors.filter((s) => APPROVED_STATUSES.includes(s.status)).length;
+  const complianceSeniors = dashboardSeniors.filter((s) => COMPLIANCE_STATUSES.includes(s.status)).length;
+  const inactiveSeniors = dashboardSeniors.filter((s) => s.status === 'Deactivated').length;
 
   // Navigation handlers for stat cards
   const handleTotalClick = () => {
@@ -51,6 +54,18 @@ export default function DashboardPage() {
 
   const handleApprovedClick = () => {
     setSelectedStatus('Approved');
+    setSelectedPension('All');
+    setCurrentPage('SeniorsList');
+  };
+
+  const handleComplianceClick = () => {
+    setSelectedStatus('For Compliance');
+    setSelectedPension('All');
+    setCurrentPage('SeniorsList');
+  };
+
+  const handleInactiveClick = () => {
+    setSelectedStatus('Deactivated');
     setSelectedPension('All');
     setCurrentPage('SeniorsList');
   };
@@ -132,7 +147,7 @@ export default function DashboardPage() {
           onClick={canUseShortcuts ? handlePendingClick : undefined}
         />
         <StatCard
-          title="Active Approved"
+          title="Approved"
           value={approvedSeniors}
           description="Active records issued with ID cards"
           change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% Active`}
@@ -141,6 +156,28 @@ export default function DashboardPage() {
           bgColor="bg-emerald-50"
           iconColor="text-teal-600"
           onClick={canUseShortcuts ? handleApprovedClick : undefined}
+        />
+        <StatCard
+          title="For Compliance"
+          value={complianceSeniors}
+          description="Senior forms needing compliance"
+          change={`${Math.round((complianceSeniors / (totalSeniors || 1)) * 100)}% of total`}
+          changeType="neutral"
+          icon={ShieldCheck}
+          bgColor="bg-amber-50"
+          iconColor="text-amber-600"
+          onClick={canUseShortcuts ? handleComplianceClick : undefined}
+        />
+        <StatCard
+          title="Inactive"
+          value={inactiveSeniors}
+          description="Deactivated senior records"
+          change={`${Math.round((inactiveSeniors / (totalSeniors || 1)) * 100)}% of total`}
+          changeType="neutral"
+          icon={Users}
+          bgColor="bg-slate-100"
+          iconColor="text-slate-600"
+          onClick={canUseShortcuts ? handleInactiveClick : undefined}
         />
       </div>
 

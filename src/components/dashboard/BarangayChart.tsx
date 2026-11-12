@@ -6,6 +6,7 @@ import { useUIStore } from '../../store/uiStore';
 import { useBarangays } from '../../hooks/useBarangays';
 import { BarChart, PieChart, TrendingUp, Heart, Users, Mars, Venus } from 'lucide-react';
 import { SeniorCitizen } from '../../types';
+import { COMPLIANCE_STATUSES, seniorStatusLabel } from '../../constants/seniorStatusGroups';
 
 interface BarangayChartProps {
   seniors: SeniorCitizen[];
@@ -84,16 +85,17 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
   });
 
   // 3. Status Distribution
-  let statusCounts = {
+  let statusCounts: Record<string, number> = {
     Approved: 0,
+    'Approved ID': 0,
     Pending: 0,
-    'For Verification': 0,
-    Rejected: 0,
+    'For Compliance': 0,
     Deactivated: 0
   };
   seniors.forEach(s => {
-    if (statusCounts[s.status] !== undefined) {
-      statusCounts[s.status]++;
+    const status = COMPLIANCE_STATUSES.includes(s.status) ? 'For Compliance' : seniorStatusLabel(s.status);
+    if (statusCounts[status] !== undefined) {
+      statusCounts[status]++;
     }
   });
 

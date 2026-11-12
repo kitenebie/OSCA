@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 
 interface StepProps {
   form: any;
@@ -103,9 +104,9 @@ export default function EducationHRStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.specOthersText || ''}
-            onChange={(e) => setForm({ ...form, specOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, specOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other specialization..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1" tabIndex={0}
           />
         </div>
       </div>
@@ -126,11 +127,11 @@ export default function EducationHRStep({ form, setForm }: StepProps) {
                 value={(form.shareSkills || ['', '', ''])[idx] || ''}
                 onChange={(e) => {
                   const skills = [...(form.shareSkills || ['', '', ''])];
-                  skills[idx] = e.target.value;
+                  skills[idx] = capitalizeInput(e.target.value);
                   setForm({ ...form, shareSkills: skills });
                 }}
                 placeholder={`Enter skill ${idx + 1}`}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
               />
             </div>
           ))}
@@ -168,9 +169,9 @@ export default function EducationHRStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.commOthersText || ''}
-            onChange={(e) => setForm({ ...form, commOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, commOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other community service..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1" tabIndex={0}
           />
         </div>
       </div>

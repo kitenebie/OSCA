@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore';
 import { auditLogsService } from '../services/supabaseService';
 import { renderBarcodeBits } from '../utils/idGenerator';
 import IDCardFlipInline from '../components/id-generation/IDCardFlipInline';
+import { seniorStatusLabel } from '../constants/seniorStatusGroups';
 // @ts-ignore
 const phLogo = '/ph_logo.png';
 // @ts-ignore
@@ -1168,12 +1169,11 @@ export default function FindUserPage() {
                   <span className={`px-3 py-1 text-[10px] font-bold rounded-full uppercase tracking-wider border
                     ${selectedSenior.status === 'Approved' ? 'bg-teal-50 border-teal-200 text-teal-600' : ''}
                     ${selectedSenior.status === 'Pending' ? 'bg-amber-50 border-amber-200 text-amber-600 animate-pulse' : ''}
-                    ${selectedSenior.status === 'For Verification' ? 'bg-blue-50 border-blue-200 text-blue-600' : ''}
-                    ${selectedSenior.status === 'Rejected' ? 'bg-red-50 border-red-200 text-red-600' : ''}
+                    ${seniorStatusLabel(selectedSenior.status) === 'For Compliance' ? 'bg-amber-50 border-amber-200 text-amber-700' : ''}
                     ${selectedSenior.status === 'Deactivated' ? 'bg-slate-50 border-slate-200 text-slate-500' : ''}
                     ${selectedSenior.status === 'Deceased' ? 'bg-gray-100 border-gray-300 text-gray-700' : ''}
                   `}>
-                    Status: {selectedSenior.status}
+                    Status: {seniorStatusLabel(selectedSenior.status)}
                   </span>
                 </div>
 

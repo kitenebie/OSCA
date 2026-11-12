@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { capitalizeInput } from '../utils/capitalizeInput';
 
 
 
@@ -45,8 +46,8 @@ const EditableInfoRow = ({ label, value, field, record, onUpdate }: {
     <input
       type={field === 'birthdate' || field === 'date_of_death' ? 'date' : field === 'age' ? 'number' : 'text'}
       value={record?.[field] ?? value ?? ''}
-      onChange={(event) => onUpdate(field, event.target.value)}
-      className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none"
+      onChange={(event) => onUpdate(field, field.toLowerCase().includes('email') ? event.target.value : capitalizeInput(event.target.value))}
+      className="w-full px-3 py-2 mt-1 bg-white border border-slate-200 rounded-lg text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none" tabIndex={0}
     />
   </div>
 );
@@ -1908,7 +1909,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+          <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(capitalizeInput(e.target.value))}
 
 
 
@@ -1924,7 +1925,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
+          />
 
 
 
@@ -2797,7 +2799,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                <input type="text" value={rejectRemarks} onChange={(e) => setRejectRemarks(e.target.value)}
+                <input type="text" value={rejectRemarks} onChange={(e) => setRejectRemarks(capitalizeInput(e.target.value))}
 
 
 
@@ -2813,7 +2815,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  className="flex-1 px-4 py-2 bg-white border border-red-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-red-400 focus:outline-none" autoFocus />
+                  className="flex-1 px-4 py-2 bg-white border border-red-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-red-400 focus:outline-none" autoFocus tabIndex={0}
+                />
 
 
 
@@ -3317,7 +3320,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                          <input type="text" value={child.name || ""} aria-label={`Child ${idx + 1} name`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, name: event.target.value } : item) }))} className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none" />
+                          <input type="text" value={child.name || ""} aria-label={`Child ${idx + 1} name`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, name: capitalizeInput(event.target.value) } : item) }))} className="w-full px-2.5 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-teal-500 outline-none" tabIndex={0} />
 
 
 
@@ -3325,7 +3328,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                          <div className="grid grid-cols-3 gap-2 mt-2"><input type="number" value={child.age ?? ""} aria-label={`Child ${idx + 1} age`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, age: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /><input type="text" value={child.sex || ""} aria-label={`Child ${idx + 1} sex`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, sex: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /><input type="text" value={child.occupation || ""} aria-label={`Child ${idx + 1} occupation`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, occupation: event.target.value } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" /></div>
+                          <div className="grid grid-cols-3 gap-2 mt-2"><input type="number" value={child.age ?? ""} aria-label={`Child ${idx + 1} age`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, age: capitalizeInput(event.target.value) } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" tabIndex={0} /><input type="text" value={child.sex || ""} aria-label={`Child ${idx + 1} sex`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, sex: capitalizeInput(event.target.value) } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" tabIndex={0} /><input type="text" value={child.occupation || ""} aria-label={`Child ${idx + 1} occupation`} onChange={(event) => setSelectedRecord((record: any) => ({ ...record, children: record.children.map((item: any, childIndex: number) => childIndex === idx ? { ...item, occupation: capitalizeInput(event.target.value) } : item) }))} className="w-full px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs focus:ring-2 focus:ring-teal-500 outline-none" tabIndex={0} /></div>
 
 
 
@@ -3711,7 +3714,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isEligible} onChange={(e) => { if (e.target.checked) { setIsEligible(true); setIsNotEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isEligible} onChange={(e) => { if (e.target.checked) { setIsEligible(true); setIsNotEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" tabIndex={0} />
 
 
 
@@ -3743,7 +3746,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="checkbox" checked={isNotEligible} onChange={(e) => { if (e.target.checked) { setIsNotEligible(true); setIsEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
+                    <input type="checkbox" checked={isNotEligible} onChange={(e) => { if (e.target.checked) { setIsNotEligible(true); setIsEligible(false); } }} className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" tabIndex={0} />
 
 
 
@@ -3799,7 +3802,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="text" value={verifierName} onChange={(e) => setVerifierName(e.target.value)}
+                    <input type="text" value={verifierName} onChange={(e) => setVerifierName(capitalizeInput(e.target.value))}
 
 
 
@@ -3807,7 +3810,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
+                    />
 
 
 
@@ -3847,7 +3851,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
+                    />
 
 
 
@@ -3879,7 +3884,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="text" value={ncscRegNo} onChange={(e) => setNcscRegNo(e.target.value)}
+                    <input type="text" value={ncscRegNo} onChange={(e) => setNcscRegNo(capitalizeInput(e.target.value))}
 
 
 
@@ -3887,7 +3892,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
+                    />
 
 
 
@@ -3919,7 +3925,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    <input type="text" value={verifierContactInfo} onChange={(e) => setVerifierContactInfo(e.target.value)}
+                    <input type="text" value={verifierContactInfo} onChange={(e) => setVerifierContactInfo(capitalizeInput(e.target.value))}
 
 
 
@@ -3927,7 +3933,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" placeholder="Office, Phone, Email" />
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" placeholder="Office, Phone, Email" tabIndex={0}
+                    />
 
 
 
@@ -3967,7 +3974,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                  <textarea value={remarks} onChange={(e) => setRemarks(e.target.value)} rows={3}
+                  <textarea value={remarks} onChange={(e) => setRemarks(capitalizeInput(e.target.value))} rows={3}
 
 
 
@@ -3983,7 +3990,8 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                    placeholder="Notes, lacking documents, reasons..." />
+                    placeholder="Notes, lacking documents, reasons..." tabIndex={0}
+                  />
 
 
 
@@ -4125,11 +4133,11 @@ export default function GranteeClaimFormsPage() {
                   value={createFormSearch}
                   onFocus={() => setShowCreateFormSuggestions(true)}
                   onChange={event => {
-                    setCreateFormSearch(event.target.value);
+                    setCreateFormSearch(capitalizeInput(event.target.value));
                     setShowCreateFormSuggestions(true);
                   }}
                   placeholder="Search name, OSCA number, or barangay..."
-                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400"
+                  className="w-full pl-9 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400" tabIndex={0}
                 />
                 {showCreateFormSuggestions && createFormSuggestions.length > 0 && (
                   <div
@@ -4240,7 +4248,7 @@ export default function GranteeClaimFormsPage() {
                   placeholder="Enter your account password"
                   className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-400 transition-all"
                   disabled={processingToggle}
-                  autoFocus
+                  autoFocus tabIndex={0}
                 />
                 {passwordError && (
                   <p className="mt-1.5 text-xs text-red-600 font-medium flex items-center gap-1">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import CustomSelect from '../../ui/CustomSelect';
 
 interface StepProps {
@@ -73,10 +74,10 @@ export default function DisasterRiskInfo({ form, setForm }: StepProps) {
               <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Additional Details</label>
               <textarea
                 value={form.riskDetails}
-                onChange={(e) => setForm({ ...form, riskDetails: e.target.value })}
+                onChange={(e) => setForm({ ...form, riskDetails: capitalizeInput(e.target.value) })}
                 placeholder="Specify details of the risk area..."
                 rows={3}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none resize-none" tabIndex={0}
               />
             </div>
           </div>

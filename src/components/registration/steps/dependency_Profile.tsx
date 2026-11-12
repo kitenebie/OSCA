@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 
 interface StepProps {
   form: any;
@@ -76,9 +77,9 @@ export default function DependencyProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.livingOthersText || ''}
-            onChange={(e) => setForm({ ...form, livingOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, livingOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other living arrangement..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1" tabIndex={0}
           />
         </div>
       </div>
@@ -116,9 +117,9 @@ export default function DependencyProfileStep({ form, setForm }: StepProps) {
           <input
             type="text"
             value={form.householdOthersText || ''}
-            onChange={(e) => setForm({ ...form, householdOthersText: e.target.value })}
+            onChange={(e) => setForm({ ...form, householdOthersText: capitalizeInput(e.target.value) })}
             placeholder="Specify other household condition..."
-            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1"
+            className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none mt-1" tabIndex={0}
           />
         </div>
       </div>

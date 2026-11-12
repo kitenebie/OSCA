@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import { Trash } from 'lucide-react';
 
 interface StepProps {
@@ -42,13 +43,13 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
-                    <input type="text" value={form.spouseLastName} onChange={(e) => setForm({ ...form, spouseLastName: e.target.value })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.spouseLastName} onChange={(e) => setForm({ ...form, spouseLastName: capitalizeInput(e.target.value) })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.spouseFirstName} onChange={(e) => setForm({ ...form, spouseFirstName: e.target.value })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.spouseFirstName} onChange={(e) => setForm({ ...form, spouseFirstName: capitalizeInput(e.target.value) })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.spouseMiddleName} onChange={(e) => setForm({ ...form, spouseMiddleName: e.target.value })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.spouseMiddleName} onChange={(e) => setForm({ ...form, spouseMiddleName: capitalizeInput(e.target.value) })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.spouseExtension} onChange={(e) => setForm({ ...form, spouseExtension: e.target.value })} placeholder="Ext. (Jr/Sr)" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.spouseExtension} onChange={(e) => setForm({ ...form, spouseExtension: capitalizeInput(e.target.value) })} placeholder="Ext. (Jr/Sr)" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -62,13 +63,13 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
 
-                    <input type="text" value={form.fatherLastName} onChange={(e) => setForm({ ...form, fatherLastName: e.target.value })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.fatherLastName} onChange={(e) => setForm({ ...form, fatherLastName: capitalizeInput(e.target.value) })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.fatherFirstName} onChange={(e) => setForm({ ...form, fatherFirstName: e.target.value })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.fatherFirstName} onChange={(e) => setForm({ ...form, fatherFirstName: capitalizeInput(e.target.value) })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.fatherMiddleName} onChange={(e) => setForm({ ...form, fatherMiddleName: e.target.value })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.fatherMiddleName} onChange={(e) => setForm({ ...form, fatherMiddleName: capitalizeInput(e.target.value) })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.fatherExtension} onChange={(e) => setForm({ ...form, fatherExtension: e.target.value })} placeholder="Ext." className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.fatherExtension} onChange={(e) => setForm({ ...form, fatherExtension: capitalizeInput(e.target.value) })} placeholder="Ext." className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -82,11 +83,11 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
 
-                    <input type="text" value={form.motherLastName} onChange={(e) => setForm({ ...form, motherLastName: e.target.value })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.motherLastName} onChange={(e) => setForm({ ...form, motherLastName: capitalizeInput(e.target.value) })} placeholder="Last Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.motherFirstName} onChange={(e) => setForm({ ...form, motherFirstName: e.target.value })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.motherFirstName} onChange={(e) => setForm({ ...form, motherFirstName: capitalizeInput(e.target.value) })} placeholder="First Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                    <input type="text" value={form.motherMiddleName} onChange={(e) => setForm({ ...form, motherMiddleName: e.target.value })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.motherMiddleName} onChange={(e) => setForm({ ...form, motherMiddleName: capitalizeInput(e.target.value) })} placeholder="Middle Name" className="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -110,15 +111,15 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                     <div key={idx} className="grid grid-cols-2 md:grid-cols-6 gap-2 mb-2 items-end">
 
-                      <input type="text" value={child.name} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], name: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Full Name" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={child.name} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], name: capitalizeInput(e.target.value) }; setForm({ ...form, children: c }); }} placeholder="Full Name" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="text" value={child.contactNumber} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], contactNumber: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Contact Number" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={child.contactNumber} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], contactNumber: capitalizeInput(e.target.value) }; setForm({ ...form, children: c }); }} placeholder="Contact Number" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="text" value={child.occupation} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], occupation: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Occupation" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={child.occupation} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], occupation: capitalizeInput(e.target.value) }; setForm({ ...form, children: c }); }} placeholder="Occupation" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="text" value={child.income} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], income: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Income" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={child.income} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], income: capitalizeInput(e.target.value) }; setForm({ ...form, children: c }); }} placeholder="Income" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="number" value={child.age} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], age: e.target.value }; setForm({ ...form, children: c }); }} placeholder="Age" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="number" value={child.age} onChange={(e) => { const c = [...form.children]; c[idx] = { ...c[idx], age: capitalizeInput(e.target.value) }; setForm({ ...form, children: c }); }} placeholder="Age" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                       <button type="button" onClick={() => { const c = [...form.children]; c.splice(idx, 1); setForm({ ...form, children: c }); }} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"><Trash size={12} /></button>
 
@@ -146,13 +147,13 @@ export default function FamilyComposition({ form, setForm }: StepProps) {
 
                     <div key={idx} className="grid grid-cols-2 md:grid-cols-5 gap-2 mb-2 items-end">
 
-                      <input type="text" value={dep.name} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], name: e.target.value }; setForm({ ...form, dependents: d }); }} placeholder="Full Name" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={dep.name} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], name: capitalizeInput(e.target.value) }; setForm({ ...form, dependents: d }); }} placeholder="Full Name" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="text" value={dep.occupation} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], occupation: e.target.value }; setForm({ ...form, dependents: d }); }} placeholder="Occupation" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={dep.occupation} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], occupation: capitalizeInput(e.target.value) }; setForm({ ...form, dependents: d }); }} placeholder="Occupation" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="text" value={dep.income} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], income: e.target.value }; setForm({ ...form, dependents: d }); }} placeholder="Income" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="text" value={dep.income} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], income: capitalizeInput(e.target.value) }; setForm({ ...form, dependents: d }); }} placeholder="Income" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
-                      <input type="number" value={dep.age} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], age: e.target.value }; setForm({ ...form, dependents: d }); }} placeholder="Age" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                      <input type="number" value={dep.age} onChange={(e) => { const d = [...form.dependents]; d[idx] = { ...d[idx], age: capitalizeInput(e.target.value) }; setForm({ ...form, dependents: d }); }} placeholder="Age" className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-[13px] font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                       <button type="button" onClick={() => { const d = [...form.dependents]; d.splice(idx, 1); setForm({ ...form, dependents: d }); }} className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all cursor-pointer"><Trash size={12} /></button>
 

@@ -20,6 +20,7 @@ import {
 
 } from "../services/supabaseService";
 import { supabase } from "../../utils/supabase";
+import { COMPLIANCE_STATUSES, seniorStatusLabel } from "../constants/seniorStatusGroups";
 
 
 
@@ -482,7 +483,7 @@ export default function SeniorProfilePage() {
 
     // Send SMS notification
     if (senior.contactNumber) {
-      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "For Verification".`;
+      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "For Compliance".`;
       await sendSMS(
         `${senior.firstName} ${senior.lastName}`,
         senior.contactNumber,
@@ -493,13 +494,13 @@ export default function SeniorProfilePage() {
     }
 
 
-    showToast(`Successfully approved si ${senior.firstName}!`, "success");
+    showToast(`${senior.firstName} moved to For Compliance.`, "success");
 
   };
 
 
 
-  const handleReject = () => {
+  const handleReject = async () => {
 
     if (!currentUser) return;
     if (!senior) return;
@@ -508,7 +509,7 @@ export default function SeniorProfilePage() {
 
     const reason = prompt(
 
-      `Notice: Enter the reason for rejecting ${senior.firstName}:`,
+      `Notice: Enter the compliance details needed for ${senior.firstName}:`,
 
 
 
@@ -522,7 +523,7 @@ export default function SeniorProfilePage() {
 
 
 
-    rejectSenior(
+    await rejectSenior(
 
       senior.id,
 
@@ -541,8 +542,8 @@ export default function SeniorProfilePage() {
 
     // Send SMS notification
     if (senior.contactNumber) {
-      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "Rejected".`;
-      sendSMS(
+      const smsMessage = `Hello ${senior.firstName} ${senior.lastName}, this is from OSCA Office. Your status has been updated to "For Compliance".`;
+      await sendSMS(
         `${senior.firstName} ${senior.lastName}`,
         senior.contactNumber,
         senior.barangay,
@@ -551,7 +552,7 @@ export default function SeniorProfilePage() {
       );
     }
 
-    showToast(`Application rejected for ${senior.firstName}.`, "warning");
+    showToast(`${senior.firstName} was sent for compliance.`, "success");
 
   };
 
@@ -992,15 +993,15 @@ export default function SeniorProfilePage() {
 
               onClick={handleReject}
 
-              className="flex-1 sm:flex-none px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
+              className="flex-1 sm:flex-none px-4 py-2 bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200 text-xs font-bold rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1.5"
 
             >
 
-              <X size={13} className="stroke-[3]" />
+              <ShieldAlert size={13} />
 
 
 
-              <span>Reject</span>
+              <span>For Compliance</span>
 
             </button>
 
@@ -1078,7 +1079,7 @@ export default function SeniorProfilePage() {
 
 
 
-              ${senior.status === "For Verification" ? "bg-blue-50 border-blue-200 text-blue-600" : ""}
+              ${COMPLIANCE_STATUSES.includes(senior.status) ? "bg-amber-50 border-amber-200 text-amber-700" : ""}
 
 
 
@@ -1086,7 +1087,6 @@ export default function SeniorProfilePage() {
 
 
 
-              ${senior.status === "Rejected" ? "bg-red-50 border-red-200 text-red-600" : ""}
 
 
 
@@ -1110,14 +1110,14 @@ export default function SeniorProfilePage() {
 
             >
 
-              {senior.status}
+              {seniorStatusLabel(senior.status)}
 
             </span>
 
-            {senior.status === "Rejected" && senior.remarks && (
-              <div className="mt-10 w-full rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left">
-                <p className="text-[9px] font-extrabold uppercase tracking-wide text-red-700">Reason for rejection</p>
-                <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-red-800">{senior.remarks}</p>
+            {COMPLIANCE_STATUSES.includes(senior.status) && senior.remarks && (
+              <div className="mt-10 w-full rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left">
+                <p className="text-[9px] font-extrabold uppercase tracking-wide text-amber-700">Compliance details</p>
+                <p className="mt-0.5 text-[11px] font-medium leading-relaxed text-amber-800">{senior.remarks}</p>
               </div>
             )}
 

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import { Trash, Upload, Camera } from 'lucide-react';
 import AddressMapPicker from '../../profiling/AddressMapPicker';
 import CustomSelect from '../../ui/CustomSelect';
@@ -374,10 +375,10 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                       type="text"
                       required
                       value={form.houseNo || ''}
-                      onChange={(e) => setForm({ ...form, houseNo: e.target.value })}
+                      onChange={(e) => setForm({ ...form, houseNo: capitalizeInput(e.target.value) })}
                       onBlur={() => markTouched('houseNo')}
                       placeholder="House No. / Blk / Lot  / Purok / Sitio"
-                      className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('houseNo') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`}
+                      className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('houseNo') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} tabIndex={0}
                     />
 
                   </div>
@@ -390,9 +391,9 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                       id="street-input"
                       type="text"
                       value={form.street || ''}
-                      onChange={(e) => setForm({ ...form, street: e.target.value })}
+                      onChange={(e) => setForm({ ...form, street: capitalizeInput(e.target.value) })}
                       placeholder="Street"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
+                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0}
                     />
 
                   </div>
@@ -411,7 +412,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                       readOnly
                       value={[form.houseNo, form.street, form.barangay, form.cityTown, form.province].filter(Boolean).join(', ')}
                       placeholder="Auto-generated from House No., Street, Barangay, Municipality, Province"
-                      className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 cursor-not-allowed focus:outline-none"
+                      className="w-full px-4 py-2.5 bg-slate-100 border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 cursor-not-allowed focus:outline-none" tabIndex={0}
                     />
 
                   </div>
@@ -438,7 +439,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Last Name <span className="text-red-500">*</span></label>
 
-                    <input type="text" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: sanitizeName(e.target.value) })} onBlur={() => markTouched('lastName')} placeholder="Last Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('lastName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    <input type="text" required value={form.lastName} onChange={(e) => setForm({ ...form, lastName: sanitizeName(capitalizeInput(e.target.value)) })} onBlur={() => markTouched('lastName')} placeholder="Last Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('lastName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} tabIndex={0} />
 
                   </div>
 
@@ -446,7 +447,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">First Name <span className="text-red-500">*</span></label>
 
-                    <input type="text" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: sanitizeName(e.target.value) })} onBlur={() => markTouched('firstName')} placeholder="First Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('firstName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    <input type="text" required value={form.firstName} onChange={(e) => setForm({ ...form, firstName: sanitizeName(capitalizeInput(e.target.value)) })} onBlur={() => markTouched('firstName')} placeholder="First Name" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('firstName') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} tabIndex={0} />
 
                   </div>
 
@@ -454,7 +455,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Middle Name</label>
 
-                    <input type="text" value={form.middleName} onChange={(e) => setForm({ ...form, middleName: sanitizeName(e.target.value) })} placeholder="Middle Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.middleName} onChange={(e) => setForm({ ...form, middleName: sanitizeName(capitalizeInput(e.target.value)) })} placeholder="Middle Name" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -481,7 +482,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Place of Birth</label>
 
-                    <input type="text" value={form.birthplace} onChange={(e) => setForm({ ...form, birthplace: e.target.value })} placeholder="Place of Birth" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.birthplace} onChange={(e) => setForm({ ...form, birthplace: capitalizeInput(e.target.value) })} placeholder="Place of Birth" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -534,7 +535,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Ethnic Origin</label>
 
-                    <input type="text" value={form.ethnicOrigin} onChange={(e) => setForm({ ...form, ethnicOrigin: e.target.value })} placeholder="e.g. Bicolano" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.ethnicOrigin} onChange={(e) => setForm({ ...form, ethnicOrigin: capitalizeInput(e.target.value) })} placeholder="e.g. Bicolano" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -542,7 +543,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Language Spoken</label>
 
-                    <input type="text" value={form.languageSpoken} onChange={(e) => setForm({ ...form, languageSpoken: e.target.value })} placeholder="e.g. Bicol, Tagalog" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.languageSpoken} onChange={(e) => setForm({ ...form, languageSpoken: capitalizeInput(e.target.value) })} placeholder="e.g. Bicol, Tagalog" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -554,7 +555,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Mobile No. <span className="text-red-500">*</span></label>
 
-                    <input type="text" inputMode="numeric" required value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value.replace(/\D/g, '').slice(0, 11) })} onBlur={() => markTouched('contactNumber')} placeholder="09123456789" maxLength={11} pattern="[0-9]{11}" title="Enter exactly 11 digits." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('contactNumber') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} />
+                    <input type="text" inputMode="numeric" required value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: capitalizeInput(e.target.value).replace(/\D/g, '').slice(0, 11) })} onBlur={() => markTouched('contactNumber')} placeholder="09123456789" maxLength={11} pattern="[0-9]{11}" title="Enter exactly 11 digits." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('contactNumber') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} tabIndex={0} />
                     {form.contactNumber && !/^\d{11}$/.test(form.contactNumber) && <p className="text-red-500 text-xs mt-1">Enter exactly 11 digits.</p>}
 
                   </div>
@@ -563,7 +564,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Telephone</label>
 
-                    <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: e.target.value })} placeholder="Landline No." className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="tel" value={form.telephone} onChange={(e) => setForm({ ...form, telephone: capitalizeInput(e.target.value) })} placeholder="Landline No." className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
 
                   </div>
 
@@ -571,7 +572,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Email Address</label>
 
-                    <input type="email" value={form.emailAddress} onChange={(e) => setForm({ ...form, emailAddress: e.target.value })} onBlur={() => markTouched('emailAddress')} placeholder="email@example.com" maxLength={254} autoComplete="email" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emailAddress') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} />
+                    <input type="email" value={form.emailAddress} onChange={(e) => setForm({ ...form, emailAddress: e.target.value })} onBlur={() => markTouched('emailAddress')} placeholder="email@example.com" maxLength={254} autoComplete="email" className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emailAddress') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none`} tabIndex={0} />
                     {form.emailAddress.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.emailAddress.trim()) && <p className="text-red-500 text-xs mt-1">Please enter a valid email address.</p>}
 
                   </div>
@@ -598,7 +599,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">GSIS No.</label>
 
-                    <input type="text" value={form.gsis} onChange={(e) => setForm({ ...form, gsis: formatGSIS(e.target.value) })} maxLength={11} placeholder="XXXXXXXXXXX (11 digits)" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.gsis} onChange={(e) => setForm({ ...form, gsis: formatGSIS(capitalizeInput(e.target.value)) })} maxLength={11} placeholder="XXXXXXXXXXX (11 digits)" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
                     {form.gsis && !isValidGSIS(form.gsis) && <p className="text-red-500 text-xs mt-1">Format: 11 digits</p>}
 
                   </div>
@@ -607,7 +608,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">SSS No.</label>
 
-                    <input type="text" value={form.sss} onChange={(e) => setForm({ ...form, sss: formatSSS(e.target.value) })} maxLength={12} placeholder="XX-XXXXXXX-X" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.sss} onChange={(e) => setForm({ ...form, sss: formatSSS(capitalizeInput(e.target.value)) })} maxLength={12} placeholder="XX-XXXXXXX-X" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
                     {form.sss && !isValidSSS(form.sss) && <p className="text-red-500 text-xs mt-1">Format: XX-XXXXXXX-X (10 digits)</p>}
 
                   </div>
@@ -616,7 +617,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">TIN</label>
 
-                    <input type="text" value={form.tin} onChange={(e) => setForm({ ...form, tin: formatTIN(e.target.value) })} maxLength={15} placeholder="XXX-XXX-XXX" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.tin} onChange={(e) => setForm({ ...form, tin: formatTIN(capitalizeInput(e.target.value)) })} maxLength={15} placeholder="XXX-XXX-XXX" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
                     {form.tin && !isValidTIN(form.tin) && <p className="text-red-500 text-xs mt-1">Format: XXX-XXX-XXX (9 or 12 digits)</p>}
 
                   </div>
@@ -625,7 +626,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">PhilHealth No.</label>
 
-                    <input type="text" value={form.philHealth} onChange={(e) => setForm({ ...form, philHealth: formatPhilHealth(e.target.value) })} maxLength={14} placeholder="XX-XXXXXXXXX-X" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.philHealth} onChange={(e) => setForm({ ...form, philHealth: formatPhilHealth(capitalizeInput(e.target.value)) })} maxLength={14} placeholder="XX-XXXXXXXXX-X" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
                     {form.philHealth && !isValidPhilHealth(form.philHealth) && <p className="text-red-500 text-xs mt-1">Format: XX-XXXXXXXXX-X (12 digits)</p>}
 
                   </div>
@@ -638,7 +639,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">SC Assoc/Org ID</label>
 
-                    <input type="text" value={form.scAssocOrgId} onChange={(e) => setForm({ ...form, scAssocOrgId: e.target.value })} placeholder="SC Assoc ID" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.scAssocOrgId} onChange={(e) => setForm({ ...form, scAssocOrgId: capitalizeInput(e.target.value) })} placeholder="SC Assoc ID" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
 
                   </div>
 
@@ -646,7 +647,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Other Govt ID</label>
 
-                    <input type="text" value={form.otherGovtId} onChange={(e) => setForm({ ...form, otherGovtId: e.target.value })} placeholder="Other Govt ID" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" />
+                    <input type="text" value={form.otherGovtId} onChange={(e) => setForm({ ...form, otherGovtId: capitalizeInput(e.target.value) })} placeholder="Other Govt ID" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono" tabIndex={0} />
 
                   </div>
 
@@ -654,7 +655,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">NCSC Reference Code</label>
 
-                    <input type="text" value={form.ncscReferenceCode || ''} onChange={(e) => setForm({ ...form, ncscReferenceCode: e.target.value.replace(/[^0-9]/g, '').slice(0, 5) })} placeholder="5-digit code" maxLength={5} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono tracking-widest" />
+                    <input type="text" value={form.ncscReferenceCode || ''} onChange={(e) => setForm({ ...form, ncscReferenceCode: capitalizeInput(e.target.value).replace(/[^0-9]/g, '').slice(0, 5) })} placeholder="5-digit code" maxLength={5} className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono tracking-widest" tabIndex={0} />
 
                   </div>
 
@@ -736,7 +737,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Emergency Contact Name</label>
 
-                    <input type="text" value={form.emergencyContactName} onChange={(e) => setForm({ ...form, emergencyContactName: e.target.value })} placeholder="Emergency Contact" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" />
+                    <input type="text" value={form.emergencyContactName} onChange={(e) => setForm({ ...form, emergencyContactName: capitalizeInput(e.target.value) })} placeholder="Emergency Contact" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none" tabIndex={0} />
 
                   </div>
 
@@ -744,7 +745,7 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
 
                     <label className="text-[13px] font-bold text-slate-500 uppercase tracking-wide">Emergency Contact Phone <span className="text-red-500">*</span></label>
 
-                    <input type="text" inputMode="numeric" required value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: e.target.value.replace(/\D/g, '').slice(0, 11) })} onBlur={() => markTouched('emergencyContactPhone')} placeholder="09123456789" maxLength={11} pattern="[0-9]{11}" title="Enter exactly 11 digits." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emergencyContactPhone') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} />
+                    <input type="text" inputMode="numeric" required value={form.emergencyContactPhone} onChange={(e) => setForm({ ...form, emergencyContactPhone: capitalizeInput(e.target.value).replace(/\D/g, '').slice(0, 11) })} onBlur={() => markTouched('emergencyContactPhone')} placeholder="09123456789" maxLength={11} pattern="[0-9]{11}" title="Enter exactly 11 digits." className={`w-full px-4 py-2.5 bg-slate-50 border ${inputErr('emergencyContactPhone') || 'border-slate-200'} rounded-xl text-sm font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono`} tabIndex={0} />
                     {form.emergencyContactPhone && !/^\d{11}$/.test(form.emergencyContactPhone) && <p className="text-red-500 text-xs mt-1">Enter exactly 11 digits.</p>}
 
                   </div>
@@ -847,7 +848,8 @@ export default function IdentifyingInformation({ form, setForm, barangaysData, c
                             reader.onload = (ev) => setForm({ ...form, validIdPhoto: ev.target?.result as string });
                             reader.readAsDataURL(file);
                           }
-                        }} />
+                        }} tabIndex={0}
+                        />
                       </div>
                       {/* Capture ID Button */}
                       <button type="button" onClick={startCamera} className="flex items-center justify-center gap-2 px-4 py-3 bg-teal-50 border border-teal-200 rounded-xl text-sm font-semibold text-teal-700 hover:bg-teal-100 transition-all cursor-pointer">

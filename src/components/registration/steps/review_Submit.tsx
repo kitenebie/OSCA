@@ -1,4 +1,5 @@
 import React from 'react';
+import { capitalizeInput } from '../../../utils/capitalizeInput';
 import { User, Fingerprint } from 'lucide-react';
 
 interface StepProps {
