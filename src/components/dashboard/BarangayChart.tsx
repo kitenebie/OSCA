@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactApexChart from 'react-apexcharts';
 import { ApexOptions } from 'apexcharts';
-import { useSeniorsStore } from '../../store/seniorsStore';
-import { useUIStore } from '../../store/uiStore';
 import { useBarangays } from '../../hooks/useBarangays';
 import { BarChart, PieChart, TrendingUp, Heart, Users, Mars, Venus } from 'lucide-react';
 import { SeniorCitizen } from '../../types';
@@ -16,8 +14,6 @@ interface BarangayChartProps {
 
 export default function BarangayChart({ seniors, barangayScope }: BarangayChartProps) {
   const { barangays: barangaysData } = useBarangays();
-  const setSelectedBarangay = useSeniorsStore((state) => state.setSelectedBarangay);
-  const { setCurrentPage } = useUIStore();
   const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>('barangay');
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
 
@@ -38,35 +34,12 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
 
   // --- Dynamic Computations ---
 
-  // 1. Barangay Distribution
-  const barangayCounts: Record<string, number> = {};
+  // Barangay list remains for the gender-by-barangay chart.
   const visibleBarangays = barangayScope === undefined
     ? barangaysData
     : barangayScope
       ? barangaysData.filter((barangay) => barangay.name === barangayScope)
       : [];
-
-  // Only Super Admin sees the full municipality list. Barangay-scoped users
-  // see their assigned barangay, including an empty state when it has no data.
-  visibleBarangays.forEach(b => {
-    barangayCounts[b.name] = 0;
-  });
-  // Accumulate
-  seniors.forEach(s => {
-    if (barangayCounts[s.barangay] !== undefined) {
-      barangayCounts[s.barangay]++;
-    } else {
-      barangayCounts[s.barangay] = 1;
-    }
-  });
-
-  // Sort barangays based on their data count from highest to lowest
-  const sortedBarangays = Object.entries(barangayCounts)
-    .sort((a, b) => b[1] - a[1]);
-
-  const barangayNames = sortedBarangays.map(([name]) => name);
-  const barangayDataValues = sortedBarangays.map(([, count]) => count);
-  const showBarangayDistribution = barangayScope === undefined;
 
   // 2. Age Bracket Counts
   let brackets = {
@@ -155,12 +128,8 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     new Date(`${day}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
   );
   const dailyValues = sortedDays.map((day) => dailyCounts[day]);
-  const firstChartLabels = showBarangayDistribution
-    ? barangayNames
-    : dailyLabels.length > 0 ? dailyLabels : ['No registrations'];
-  const firstChartValues = showBarangayDistribution
-    ? barangayDataValues
-    : dailyValues.length > 0 ? dailyValues : [0];
+  const firstChartLabels = dailyLabels.length > 0 ? dailyLabels : ['No registrations'];
+  const firstChartValues = dailyValues.length > 0 ? dailyValues : [0];
 
   // --- Apex Charts Configuration ---
 
@@ -169,22 +138,11 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     chart: {
       type: 'bar',
       toolbar: { show: false },
-      events: {
-        click: function(event, chartContext, config) {
-          if (!showBarangayDistribution) return;
-          const clickedIndex = config.dataPointIndex;
-          if (clickedIndex !== -1 && clickedIndex !== undefined) {
-            const bName = barangayNames[clickedIndex];
-            setSelectedBarangay(bName);
-            setCurrentPage('SeniorsList');
-          }
-        }
-      }
     },
     plotOptions: {
       bar: {
         borderRadius: 4,
-        horizontal: showBarangayDistribution,
+        horizontal: false,
         barHeight: '75%',
         distributed: true
       }
@@ -234,13 +192,13 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     grid: { borderColor: chartGridColor },
     tooltip: {
       theme: chartTooltipTheme,
-      y: { formatter: (val) => `${val} ${showBarangayDistribution ? 'Senior Citizens' : 'Registrations'}` }
+      y: { formatter: (val) => `${val} Registrations` }
     },
     legend: { show: false }
   };
 
   const barChartSeries = [{
-    name: showBarangayDistribution ? 'Senior Citizens' : 'Registrations',
+    name: 'Registrations',
     data: firstChartValues
   }];
 
@@ -427,7 +385,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
                 : 'text-slate-500 hover:text-slate-800'}`}
           >
             <BarChart size={13} />
-            <span>{showBarangayDistribution ? 'Per Barangay' : 'Per Day'}</span>
+            <span>Registrations</span>
           </button>
           <button
             onClick={() => setActiveTab('demographic')}
@@ -472,15 +430,9 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
               type="bar" 
               height={380} 
             />
-            {showBarangayDistribution ? (
-              <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
-                💡 Click any bar to instantly filter the profiles registry list
-              </div>
-            ) : (
-              <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
-                Daily registrations for your assigned barangay (last 30 active dates)
-              </div>
-            )}
+            <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
+              Daily registrations (last 30 active dates)
+            </div>
           </div>
         )}
 

@@ -5,7 +5,7 @@ import { useUIStore } from '../store/uiStore';
 import StatCard from '../components/dashboard/StatCard';
 import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
-import { Users, CreditCard, Clock, Landmark, Calendar, ShieldCheck } from 'lucide-react';
+import { Users, CreditCard, Landmark, Calendar, ShieldCheck } from 'lucide-react';
 import { getBarangayScope } from '../utils/dataAccess';
 import { APPROVED_STATUSES, COMPLIANCE_STATUSES } from '../constants/seniorStatusGroups';
 
@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const { currentUser, hasPermission } = useAuthStore();
   const { setCurrentPage } = useUIStore();
   const barangayScope = hasPermission('canViewOnlyAssignedBrgy') ? getBarangayScope(currentUser) : undefined;
-  const canUseShortcuts = hasPermission('canUseDashboardShortcuts');
+  const canUseShortcuts = hasPermission('canAccessSeniorsList');
   // Treat the store as a source, not the access boundary. This prevents a
   // previously loaded municipality-wide dataset from appearing during a role
   // or barangay assignment change.
@@ -26,9 +26,6 @@ export default function DashboardPage() {
 
   const totalSeniors = dashboardSeniors.length;
   const pensionSeniors = dashboardSeniors.filter((s) => s.pensionBeneficiary).length;
-  const pendingSeniors = dashboardSeniors.filter(
-    (s) => s.status === 'Pending'
-  ).length;
   const approvedSeniors = dashboardSeniors.filter((s) => APPROVED_STATUSES.includes(s.status)).length;
   const complianceSeniors = dashboardSeniors.filter((s) => COMPLIANCE_STATUSES.includes(s.status)).length;
   const inactiveSeniors = dashboardSeniors.filter((s) => s.status === 'Deactivated').length;
@@ -43,12 +40,6 @@ export default function DashboardPage() {
   const handlePensionClick = () => {
     setSelectedStatus('All');
     setSelectedPension('Pensioner');
-    setCurrentPage('SeniorsList');
-  };
-
-  const handlePendingClick = () => {
-    setSelectedStatus('Pending');
-    setSelectedPension('All');
     setCurrentPage('SeniorsList');
   };
 
@@ -112,7 +103,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Statistics Counter row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="Total Registered Seniors"
           value={totalSeniors}
@@ -136,21 +127,10 @@ export default function DashboardPage() {
           onClick={canUseShortcuts ? handlePensionClick : undefined}
         />
         <StatCard
-          title="Pending Approvals"
-          value={pendingSeniors}
-          description="Applications awaiting review"
-          change={pendingSeniors > 0 ? "Needs Review" : "Queue Clear"}
-          changeType={pendingSeniors > 0 ? "decrease" : "increase"}
-          icon={Clock}
-          bgColor="bg-red-50"
-          iconColor="text-[#FD0000]"
-          onClick={canUseShortcuts ? handlePendingClick : undefined}
-        />
-        <StatCard
           title="Approved"
           value={approvedSeniors}
-          description="Active records issued with ID cards"
-          change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% Active`}
+          description="Senior records approved or beyond approval"
+          change={`${Math.round((approvedSeniors / (totalSeniors || 1)) * 100)}% of total`}
           changeType="increase"
           icon={Landmark}
           bgColor="bg-emerald-50"
