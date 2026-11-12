@@ -46,7 +46,7 @@ import { fillCentenarianForm } from "../utils/centenarianFormFiller";
 
 import { centenarianService } from "../services/supabaseService";
 import { getBarangayScope } from "../utils/dataAccess";
-import { getMonthlyPension, hasMonthlyPension } from "../utils/pension";
+import { getMonthlyPension, hasMonthlyPension, isSocPenProgram } from "../utils/pension";
 import { APPROVED_STATUSES, COMPLIANCE_STATUSES, seniorStatusLabel } from "../constants/seniorStatusGroups";
 
 export default function SeniorsListPage() {
@@ -344,8 +344,9 @@ export default function SeniorsListPage() {
     const seniorHasMonthlyPension = hasMonthlyPension(senior);
     const matchesPension =
       selectedPension === "All" ||
+      (selectedPension === "Pensioner" && isSocPenProgram(monthlyPension)) ||
       (selectedPension === "__no_monthly_pension__" && !seniorHasMonthlyPension) ||
-      (seniorHasMonthlyPension && monthlyPension.toLowerCase() === selectedPension.toLowerCase());
+      (selectedPension !== "Pensioner" && seniorHasMonthlyPension && monthlyPension.toLowerCase() === selectedPension.toLowerCase());
 
     return matchesSearch && matchesBarangay && matchesStatus && matchesPension;
   });
@@ -719,6 +720,7 @@ export default function SeniorsListPage() {
             className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none"
           >
             <option value="All">All Programs</option>
+            <option value="Pensioner">Social Pension (SocPen)</option>
             {pensionPrograms.map((program) => (
               <option key={program} value={program}>{program}</option>
             ))}

@@ -7,6 +7,7 @@ import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
 import { Users, CreditCard, Landmark, Calendar, ShieldCheck } from 'lucide-react';
 import { getBarangayScope } from '../utils/dataAccess';
+import { getMonthlyPension, isSocPenProgram } from '../utils/pension';
 import { APPROVED_STATUSES, COMPLIANCE_STATUSES } from '../constants/seniorStatusGroups';
 
 export default function DashboardPage() {
@@ -25,7 +26,7 @@ export default function DashboardPage() {
       : [];
 
   const totalSeniors = dashboardSeniors.length;
-  const pensionSeniors = dashboardSeniors.filter((s) => s.pensionBeneficiary).length;
+  const pensionSeniors = dashboardSeniors.filter((s) => isSocPenProgram(getMonthlyPension(s))).length;
   const approvedSeniors = dashboardSeniors.filter((s) => APPROVED_STATUSES.includes(s.status)).length;
   const complianceSeniors = dashboardSeniors.filter((s) => COMPLIANCE_STATUSES.includes(s.status)).length;
   const inactiveSeniors = dashboardSeniors.filter((s) => s.status === 'Deactivated').length;

@@ -19,12 +19,14 @@ ALTER TABLE seniors ADD CONSTRAINT seniors_status_check
     'For Verification',
     'Deactivated',
     'Deceased',
+    'For Compliance',
     'Approved ID',
     'Qualified for NSCS',
     'NSCS Form Submitted',
     'Approved Data Form',
     'Disapproved Data Form',
     'Qualified for Honoring',
+    'Annex A Form Submitted',
     'Approved Honoring',
     'Disapproved Honoring'
   ));
