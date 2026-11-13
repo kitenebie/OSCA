@@ -8,7 +8,7 @@ interface DashboardLayoutProps {
 }
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const { sidebarOpen, currentPage, setSidebarOpen } = useUIStore();
 
   useEffect(() => {
     const handleResize = () => {
@@ -40,7 +40,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Dynamic page container */}
         <main className="p-4 md:p-6 lg:p-8 w-full mx-auto overflow-x-hidden">
-          {children}
+          <div key={currentPage} className="osca-page-enter">
+            {children}
+          </div>
         </main>
       </div>
     </div>
