@@ -29,7 +29,7 @@ import { auditLogsService } from '../services/supabaseService';
 
 
 
-import { FileText, Search, Filter, Eye, CheckCircle, XCircle, Clock, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus, Trash2 } from 'lucide-react';
+import { FileText, Search, Filter, Eye, CheckCircle, XCircle, RefreshCw, X, Maximize2, ShieldCheck, ShieldX, User, MapPin, Users, Wallet, Heart, Plus, Trash2 } from 'lucide-react';
 
 // Defined outside the page component so controlled inputs retain focus while
 // a field is being edited. A component declared inside the page is recreated
@@ -170,7 +170,7 @@ const DOC_LABELS: Record<string, string> = {
 
 
 
-const STATUS_OPTIONS = ['All', 'Pending', 'Under Review', 'Verified', 'Approved', 'Rejected', 'Claimed', 'Unclaimed'];
+const STATUS_OPTIONS = ['All'];
 
 
 
@@ -221,6 +221,7 @@ const STATUS_BADGE: Record<string, string> = {
   'Rejected': 'bg-red-50 text-red-700 border-red-200',
   'Claimed': 'bg-purple-50 text-purple-700 border-purple-200',
   'Unclaimed': 'bg-orange-50 text-orange-700 border-orange-200',
+  'Submitted': 'bg-blue-50 text-blue-700 border-blue-200',
 
 
 
@@ -1404,6 +1405,27 @@ export default function GranteeClaimFormsPage() {
     setUpdatingStatus(false);
   };
 
+  const handleMarkSubmitted = async (record: any) => {
+    setUpdatingStatus(true);
+    try {
+      const submittedAt = new Date().toISOString();
+      const { error } = await supabase.from('centenarian_honoring')
+        .update({ status: 'Submitted', submitted_at: submittedAt })
+        .eq('id', record.id);
+      if (error) {
+        showToast('Failed to mark claim form as Submitted', 'error');
+      } else {
+        const logCreated = await logClaimStatusSMS(record, 'Submitted');
+        showToast(logCreated ? 'Claim form marked as Submitted' : 'Form submitted, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
+        fetchRecords();
+      }
+    } catch {
+      showToast('Failed to mark claim form as Submitted', 'error');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
+
   const handleRestore = async () => {
     if (!hasPermission('canRestoreClaimForm')) return;
     if (!selectedRecord || selectedRecord.status !== 'Rejected') return;
@@ -2391,14 +2413,10 @@ export default function GranteeClaimFormsPage() {
 
 
                         {record.status}
-
-
-
-
-
-
-
                       </span>
+                      {record.status === 'Submitted' && record.submitted_at && (
+                        <p className="mt-1 text-[10px] text-slate-500">{formatDate(record.submitted_at)}</p>
+                      )}
 
 
 
@@ -2464,40 +2482,24 @@ export default function GranteeClaimFormsPage() {
 
 
                       </button>
+                      {record.status === 'Approved' && (
+                        <button
+                          type="button"
+                          onClick={() => handleMarkSubmitted(record)}
+                          disabled={updatingStatus}
+                          className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+                          title="Mark as Submitted"
+                        >
+                          <CheckCircle size={13} className="text-blue-600" />
+                          <span className="text-[11px] font-bold text-blue-700">Submitted</span>
+                        </button>
+                      )}
                       {hasPermission('canEditClaimForm') && <button
                         onClick={() => setFormToDelete(record)}
                         className="p-2 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-colors"
                         title="Delete form"
                         aria-label={`Delete claim form for ${record.first_name} ${record.last_name}`}
                       ><Trash2 size={14} className="text-red-600" /></button>}
-                {record.status === 'Approved' && (
-                  <>
-                    <button onClick={async () => {
-                      const { error } = await supabase.from('centenarian_honoring').update({ status: 'Claimed' }).eq('id', record.id);
-                      if (error) showToast('Failed to mark as Claimed', 'error');
-                      else {
-                        const logCreated = await logClaimStatusSMS(record, 'Claimed');
-                        showToast(logCreated ? 'Marked as Claimed' : 'Marked as Claimed, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-                        fetchRecords();
-                      }
-                    }} className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Claimed">
-                      <CheckCircle size={13} className="text-emerald-600" />
-                      <span className="text-[11px] font-bold text-emerald-700">Claimed</span>
-                    </button>
-                    <button onClick={async () => {
-                      const { error } = await supabase.from('centenarian_honoring').update({ status: 'Unclaimed' }).eq('id', record.id);
-                      if (error) showToast('Failed to mark as Unclaimed', 'error');
-                      else {
-                        const logCreated = await logClaimStatusSMS(record, 'Unclaimed');
-                        showToast(logCreated ? 'Marked as Unclaimed' : 'Marked as Unclaimed, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-                        fetchRecords();
-                      }
-                    }} className="px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-colors flex items-center gap-1.5" title="Mark as Unclaimed">
-                      <Clock size={13} className="text-amber-600" />
-                      <span className="text-[11px] font-bold text-amber-700">Unclaimed</span>
-                    </button>
-                  </>
-                )}
                       </div>
                     </td>
 

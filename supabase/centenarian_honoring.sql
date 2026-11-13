@@ -538,7 +538,8 @@ CREATE TABLE IF NOT EXISTS centenarian_honoring (
 
 
 
-  status TEXT NOT NULL DEFAULT 'Pending'
+  status TEXT NOT NULL DEFAULT 'Pending',
+  submitted_at TIMESTAMPTZ
 
 
 
@@ -592,7 +593,7 @@ CREATE TABLE IF NOT EXISTS centenarian_honoring (
 
 
 
-    CHECK (status IN ('Pending', 'Under Review', 'Verified', 'Approved', 'Rejected', 'Ready for claim', 'Unclaimed', 'Claimed')),
+    CHECK (status IN ('Pending', 'Under Review', 'Verified', 'Approved', 'Rejected', 'Ready for claim', 'Unclaimed', 'Claimed', 'Submitted')),
 
 
 
