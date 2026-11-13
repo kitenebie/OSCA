@@ -1543,7 +1543,7 @@ export default function ReportsPage() {
                   }} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
                     <option value="">-- Select a Senior --</option>
                     {seniors.map((s) => (
-                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} \u2014 Brgy. {s.barangay}</option>
+                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
                     ))}
                   </select>
                 </div>
