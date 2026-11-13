@@ -1542,7 +1542,7 @@ export default function ReportsPage() {
                     setFormData({...formData, transferSeniorId: sid, oscaIdNo: s?.oscaNumber || s?.id || ''});
                   }} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
                     <option value="">-- Select a Senior --</option>
-                    {seniors.filter(s => s.status === 'Approved').map((s) => (
+                    {seniors.map((s) => (
                       <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} \u2014 Brgy. {s.barangay}</option>
                     ))}
                   </select>

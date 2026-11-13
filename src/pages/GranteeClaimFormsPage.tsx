@@ -350,22 +350,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const [rejectRemarks, setRejectRemarks] = useState('');
-
-
-
-
-
-
-
-  const [showRejectInput, setShowRejectInput] = useState(false);
-
-
-
-
-
-
-
   const [docValidation, setDocValidation] = useState<Record<string, boolean | null>>({});
 
 
@@ -915,22 +899,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-    setShowRejectInput(false);
-
-
-
-
-
-
-
-    setRejectRemarks('');
-
-
-
-
-
-
-
     // Load doc validation (simple boolean per doc)
 
 
@@ -1380,31 +1348,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  // Approve
-
-
-
-
-
-
-
-  const handleApprove = async () => {
-    if (!hasPermission('canApproveClaimForm')) return;
-    if (!selectedRecord || selectedRecord.status === 'Rejected') return;
-    setUpdatingStatus(true);
-    if (!(await handleSave())) return;
-
-    const { error } = await supabase.from('centenarian_honoring').update({ status: 'Approved' }).eq('id', selectedRecord.id);
-    if (error) showToast('Failed to approve', 'error');
-    else {
-      const logCreated = await logClaimStatusSMS(selectedRecord, 'Approved');
-      showToast(logCreated ? 'Claim form APPROVED' : 'Claim form approved, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-      setSelectedRecord({ ...selectedRecord, status: 'Approved' });
-      fetchRecords();
-    }
-    setUpdatingStatus(false);
-  };
-
   const handleMarkSubmitted = async (record: any) => {
     setUpdatingStatus(true);
     try {
@@ -1424,242 +1367,6 @@ export default function GranteeClaimFormsPage() {
     } finally {
       setUpdatingStatus(false);
     }
-  };
-
-  const handleRestore = async () => {
-    if (!hasPermission('canRestoreClaimForm')) return;
-    if (!selectedRecord || selectedRecord.status !== 'Rejected') return;
-    setUpdatingStatus(true);
-    const restoredIsEligible = Boolean(selectedRecord.is_eligible);
-    const restoredIsNotEligible = !restoredIsEligible;
-    const { error } = await supabase.from('centenarian_honoring').update({
-      status: 'Pending',
-      is_eligible: restoredIsEligible,
-      is_not_eligible: restoredIsNotEligible,
-    }).eq('id', selectedRecord.id);
-    if (error) showToast('Failed to restore claim form', 'error');
-    else {
-      const logCreated = await logClaimStatusSMS(selectedRecord, 'Pending');
-      showToast(logCreated ? 'Claim form restored to Pending' : 'Claim form restored, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-      setIsEligible(restoredIsEligible);
-      setIsNotEligible(restoredIsNotEligible);
-      setSelectedRecord({ ...selectedRecord, status: 'Pending', is_eligible: restoredIsEligible, is_not_eligible: restoredIsNotEligible });
-      setShowRejectInput(false);
-      fetchRecords();
-    }
-    setUpdatingStatus(false);
-  };
-
-  // Reject
-
-
-
-
-
-
-
-  const handleReject = async () => {
-    if (!hasPermission('canRejectClaimForm')) return;
-
-
-
-
-
-
-
-    if (!rejectRemarks.trim()) { showToast('Please enter remarks for rejection', 'error'); return; }
-
-
-
-
-
-
-
-    if (!selectedRecord) return;
-
-
-
-
-
-
-
-    setUpdatingStatus(true);
-
-
-
-
-
-
-
-    const invalidDocNames = getInvalidDocNames();
-
-
-
-
-
-
-
-    const fullRemarks = [remarks, rejectRemarks, invalidDocNames].filter(Boolean).join('\n');
-
-
-
-
-
-
-
-    const updatePayload: any = {
-
-
-
-
-
-
-
-      status: 'Rejected',
-
-
-
-
-
-
-
-      remarks_note_lacking_docs: fullRemarks || null,
-
-
-
-
-
-
-
-      invalid_documents: invalidDocNames || null,
-
-
-
-
-
-
-
-      is_eligible: false,
-
-
-
-
-
-
-
-      is_not_eligible: true,
-
-
-
-
-
-
-
-    };
-
-
-
-
-
-
-
-    for (let i = 1; i <= 11; i++) {
-
-
-
-
-
-
-
-      updatePayload[`is_doc${i}_valid`] = docValidation[`doc${i}`] ?? null;
-
-
-
-
-
-
-
-    }
-
-
-
-
-
-
-
-    const { error } = await supabase.from('centenarian_honoring').update(updatePayload).eq('id', selectedRecord.id);
-
-
-
-
-
-
-
-    if (error) showToast('Failed to reject', 'error');
-
-
-
-
-
-
-
-    else {
-
-
-
-
-
-
-
-      const logCreated = await logClaimStatusSMS(selectedRecord, 'Rejected');
-      showToast(logCreated ? 'Claim form REJECTED' : 'Claim form rejected, but the SMS log could not be saved.', logCreated ? 'success' : 'error');
-
-
-
-
-
-
-
-      setSelectedRecord({ ...selectedRecord, status: 'Rejected' });
-
-
-
-
-
-
-
-      fetchRecords();
-
-
-
-
-
-
-
-    }
-
-
-
-
-
-
-
-    setUpdatingStatus(false);
-
-
-
-
-
-
-
-    setShowRejectInput(false);
-
-
-
-
-
-
-
   };
 
 
@@ -2721,8 +2428,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-                {/* Approve / Reject buttons */}
-
 
 
 
@@ -2776,89 +2481,6 @@ export default function GranteeClaimFormsPage() {
 
 
 
-
-            {/* Reject Remarks Input */}
-
-
-
-
-
-
-
-            {showRejectInput && (
-
-
-
-
-
-
-
-              <div className="sticky top-[73px] z-10 bg-red-50 border-b border-red-200 px-6 py-3 flex items-center gap-3">
-
-
-
-
-
-
-
-                <input type="text" value={rejectRemarks} onChange={(e) => setRejectRemarks(capitalizeInput(e.target.value))}
-
-
-
-
-
-
-
-                  placeholder="Reason for rejection (required)..."
-
-
-
-
-
-
-
-                  className="flex-1 px-4 py-2 bg-white border border-red-200 rounded-xl text-sm font-semibold focus:ring-1 focus:ring-red-400 focus:outline-none" autoFocus tabIndex={0}
-                />
-
-
-
-
-
-
-
-                <button onClick={handleReject} disabled={updatingStatus}
-
-
-
-
-
-
-
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl disabled:opacity-50">Confirm Reject</button>
-
-
-
-
-
-
-
-                <button onClick={() => setShowRejectInput(false)} className="px-3 py-2 bg-white border border-slate-200 text-xs font-bold text-slate-600 rounded-xl">Cancel</button>
-
-
-
-
-
-
-
-              </div>
-
-
-
-
-
-
-
-            )}
 
 
 
@@ -4017,34 +3639,6 @@ export default function GranteeClaimFormsPage() {
                   className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-700 hover:bg-slate-800 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md transition-all active:scale-[0.98]">
                   <CheckCircle size={16} /> {updatingStatus ? 'Saving...' : 'Save Changes'}
                 </button>}
-
-                {hasPermission('canApproveClaimForm') && <button onClick={handleApprove} disabled={updatingStatus || selectedRecord.status === 'Rejected'}
-
-
-
-                  className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-emerald-600/10 transition-all active:scale-[0.98]">
-
-
-
-                  <CheckCircle size={16} /> {updatingStatus ? 'Processing...' : 'Approve'}
-
-
-
-                </button>}
-
-
-
-                {selectedRecord.status === 'Rejected' && hasPermission('canRestoreClaimForm') ? (
-                  <button onClick={handleRestore} disabled={updatingStatus}
-                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-amber-500/10 transition-all active:scale-[0.98]">
-                    <RefreshCw size={16} /> Restore
-                  </button>
-                ) : selectedRecord.status !== 'Rejected' && hasPermission('canRejectClaimForm') ? (
-                  <button onClick={() => setShowRejectInput(true)} disabled={updatingStatus}
-                    className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl shadow-md shadow-red-500/10 transition-all active:scale-[0.98]">
-                    <XCircle size={16} /> Reject
-                  </button>
-                ) : null}
 
 
 
