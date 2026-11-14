@@ -7,7 +7,7 @@ import BarangayChart from '../components/dashboard/BarangayChart';
 import PendingApprovalsWidget from '../components/dashboard/PendingApprovalsWidget';
 import RecentRegistrationsWidget from '../components/dashboard/RecentRegistrationsWidget';
 import { Users, CreditCard, Landmark, Calendar, ShieldCheck } from 'lucide-react';
-import { getBarangayScope } from '../utils/dataAccess';
+import { getBarangayScope, isSuperAdmin } from '../utils/dataAccess';
 import { getMonthlyPension, isSocPenProgram } from '../utils/pension';
 import { APPROVED_STATUSES, COMPLIANCE_STATUSES } from '../constants/seniorStatusGroups';
 
@@ -166,7 +166,11 @@ export default function DashboardPage() {
       {/* Dashboard Visualizer widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-3">
-          <BarangayChart seniors={dashboardSeniors} barangayScope={barangayScope} />
+          <BarangayChart
+            seniors={dashboardSeniors}
+            barangayScope={barangayScope}
+            showBarangayTab={isSuperAdmin(currentUser?.role)}
+          />
         </div>
         <div className="lg:col-span-2">
           {hasPermission('canViewPendingApprovals')

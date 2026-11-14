@@ -698,14 +698,6 @@ export default function ReportsPage() {
       icon: ClipboardList,
       color: 'green',
     },
-    {
-      id: 'philhealth-transmittal' as DocumentType,
-      title: 'PhilHealth Transmittal',
-      subtitle: 'PMRF Submission',
-      description: 'Transmittal letter for PhilHealth Office — PMRF submission for senior citizens per barangay.',
-      icon: FileText,
-      color: 'blue',
-    },
   ];
 
   const colorMap: Record<string, { bg: string; border: string; icon: string; hover: string }> = {
@@ -1638,8 +1630,8 @@ export default function ReportsPage() {
                   <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wide">Select Senior Citizen</label>
                   <select value={formData.certSeniorId} onChange={(e) => setFormData({...formData, certSeniorId: e.target.value})} className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold focus:ring-1 focus:ring-teal-500 focus:outline-none">
                     <option value="">-- Select a Senior --</option>
-                    {seniors.filter(s => s.status === 'Approved').map((s) => (
-                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} â€” Brgy. {s.barangay}</option>
+                    {seniors.map((s) => (
+                      <option key={s.id} value={s.id}>{s.firstName} {s.middleName} {s.lastName} — Brgy. {s.barangay}</option>
                     ))}
                   </select>
                 </div>

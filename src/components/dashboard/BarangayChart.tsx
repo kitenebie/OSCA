@@ -10,12 +10,17 @@ interface BarangayChartProps {
   seniors: SeniorCitizen[];
   /** undefined is the Super Admin's municipality-wide scope. */
   barangayScope: string | null | undefined;
+  showBarangayTab: boolean;
 }
 
-export default function BarangayChart({ seniors, barangayScope }: BarangayChartProps) {
+export default function BarangayChart({ seniors, barangayScope, showBarangayTab }: BarangayChartProps) {
   const { barangays: barangaysData } = useBarangays();
-  const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>('barangay');
+  const [activeTab, setActiveTab] = useState<'barangay' | 'demographic' | 'gender' | 'trends'>(showBarangayTab ? 'barangay' : 'demographic');
   const [isDark, setIsDark] = useState(document.documentElement.classList.contains('dark'));
+
+  useEffect(() => {
+    setActiveTab(showBarangayTab ? 'barangay' : 'demographic');
+  }, [showBarangayTab]);
 
   // Re-render charts when dark mode changes
   useEffect(() => {
@@ -114,22 +119,14 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
   });
   const trendValues = sortedMonths.map(m => monthlyCounts[m]);
 
-  // Barangay-scoped users see day-by-day registrations for their own
-  // barangay; Super Admins retain the municipality-wide barangay breakdown.
-  const dailyCounts: Record<string, number> = {};
+  const barangayCounts: Record<string, number> = Object.fromEntries(visibleBarangays.map((barangay) => [barangay.name, 0]));
   seniors.forEach((senior) => {
-    const registrationDay = senior.registeredDate?.slice(0, 10);
-    if (registrationDay && /^\d{4}-\d{2}-\d{2}$/.test(registrationDay)) {
-      dailyCounts[registrationDay] = (dailyCounts[registrationDay] || 0) + 1;
-    }
+    const barangay = senior.barangay || 'Unknown';
+    barangayCounts[barangay] = (barangayCounts[barangay] || 0) + 1;
   });
-  const sortedDays = Object.keys(dailyCounts).sort().slice(-30);
-  const dailyLabels = sortedDays.map((day) =>
-    new Date(`${day}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-  );
-  const dailyValues = sortedDays.map((day) => dailyCounts[day]);
-  const firstChartLabels = dailyLabels.length > 0 ? dailyLabels : ['No registrations'];
-  const firstChartValues = dailyValues.length > 0 ? dailyValues : [0];
+  const sortedBarangays = Object.entries(barangayCounts).sort(([nameA, countA], [nameB, countB]) => countB - countA || nameA.localeCompare(nameB));
+  const barangayLabels = sortedBarangays.length ? sortedBarangays.map(([name]) => name) : ['No barangays'];
+  const barangayValues = sortedBarangays.length ? sortedBarangays.map(([, count]) => count) : [0];
 
   // --- Apex Charts Configuration ---
 
@@ -142,7 +139,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     plotOptions: {
       bar: {
         borderRadius: 4,
-        horizontal: false,
+        horizontal: true,
         barHeight: '75%',
         distributed: true
       }
@@ -183,7 +180,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
       offsetX: 0
     },
     xaxis: {
-      categories: firstChartLabels,
+      categories: barangayLabels,
       labels: { style: { colors: chartLabelColor, fontSize: '10px', fontFamily: 'Inter' } }
     },
     yaxis: {
@@ -192,14 +189,14 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
     grid: { borderColor: chartGridColor },
     tooltip: {
       theme: chartTooltipTheme,
-      y: { formatter: (val) => `${val} Registrations` }
+      y: { formatter: (val) => `${val} Seniors` }
     },
     legend: { show: false }
   };
 
   const barChartSeries = [{
-    name: 'Registrations',
-    data: firstChartValues
+    name: 'Seniors',
+    data: barangayValues
   }];
 
   // Donut Chart options (Demographics: Age & Status)
@@ -377,16 +374,18 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
         
         {/* Navigation Tabs */}
         <div className="flex bg-slate-100 p-1 rounded-xl self-start md:self-auto shrink-0 overflow-x-auto max-w-full whitespace-nowrap scrollbar-none">
-          <button
-            onClick={() => setActiveTab('barangay')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
-              ${activeTab === 'barangay' 
-                ? 'bg-white text-teal-600 shadow-sm' 
-                : 'text-slate-500 hover:text-slate-800'}`}
-          >
-            <BarChart size={13} />
-            <span>Registrations</span>
-          </button>
+          {showBarangayTab && (
+            <button
+              onClick={() => setActiveTab('barangay')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
+                ${activeTab === 'barangay'
+                  ? 'bg-white text-teal-600 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-800'}`}
+            >
+              <BarChart size={13} />
+              <span>Per Barangay</span>
+            </button>
+          )}
           <button
             onClick={() => setActiveTab('demographic')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-150 shrink-0
@@ -431,7 +430,7 @@ export default function BarangayChart({ seniors, barangayScope }: BarangayChartP
               height={380} 
             />
             <div className="text-center text-[10px] text-slate-400 font-mono mt-2 uppercase">
-              Daily registrations (last 30 active dates)
+              Seniors by barangay
             </div>
           </div>
         )}
