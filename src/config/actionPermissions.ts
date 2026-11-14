@@ -16,6 +16,7 @@ export type ActionPermissionKey =
 type LegacyPermission = keyof RolePermission['permissions'];
 
 export const ACTION_PERMISSIONS: { key: ActionPermissionKey; label: string; group: string; fallback: LegacyPermission }[] = [
+  { key: 'canPreviewReports', label: 'Preview generated reports', group: 'Reports & Documents', fallback: 'canGenerateReports' },
   { key: 'canViewTableList', label: 'View senior table list', group: 'Senior Profiles', fallback: 'canViewSeniors' },
   { key: 'canViewOnlyAssignedBrgy', label: 'Limit records to assigned barangay', group: 'Senior Profiles', fallback: 'canViewSeniors' },
   { key: 'canEditRecord', label: 'Edit senior record and photo', group: 'Senior Profiles', fallback: 'canEditSenior' },
