@@ -5,6 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import { auditLogsService } from '../../services/supabaseService';
 import { useBarangays } from '../../hooks/useBarangays';
 import { getBarangayScope } from '../../utils/dataAccess';
+import { adaptSmsTemplate } from '../../utils/adaptSmsTemplate';
 import { Send, FileText, Users, MapPin, Sparkles, MessageSquare, Search, ChevronDown, X } from 'lucide-react';
 
 /* ─── Searchable Select Component ─── */
@@ -131,21 +132,6 @@ function SearchableSelect({ id, options, value, onChange, placeholder = '-- Sele
 
 const SMS_TEMPLATES = [
   {
-    title: 'Individual Senior',
-    recipientType: 'individual' as const,
-    text: 'Good day [name] from [barangay]! '
-  },
-  {
-    title: 'Per Barangay',
-    recipientType: 'barangay' as const,
-    text: 'Good day seniors from barangay [barangay]! '
-  },
-  {
-    title: 'All Seniors in Juban',
-    recipientType: 'all' as const,
-    text: 'Good day seniors of Juban! '
-  },
-  {
     title: 'Paalala sa Pamimigay ng Pension',
     text: 'Magandang araw [name]! Nais po naming ipaalala na ang pamimigay ng inyong Social Pension ngayong buwan ay gaganapin sa [barangay] Barangay Hall sa darating na Hulyo 25, 2026, 9:00 AM. Mangyaring dalhin ang inyong OSCA ID at sariling ballpen. Salamat po mula sa LGU Juban MSWDO.'
   },
@@ -174,6 +160,7 @@ export default function SMSComposer() {
   const [selectedSeniorId, setSelectedSeniorId] = useState('');
   const [selectedBarangay, setSelectedBarangay] = useState(() => barangayScope ?? '');
   const [message, setMessage] = useState('');
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
   const [isSending, setIsSending] = useState(false);
 
   // --- MOCK SMS GATEWAY API INTEGRATION ---
@@ -196,13 +183,14 @@ export default function SMSComposer() {
    */
 
   const handleSelectTemplate = (templateText: string) => {
-    setMessage(templateText);
-    showToast('SMS template loaded. [name] and [barangay] will be replaced with each recipient’s details.', 'info');
+    setActiveTemplate(templateText);
+    setMessage(adaptSmsTemplate(templateText, recipientType));
+    showToast('SMS template loaded and adjusted for the selected recipient type.', 'info');
   };
 
-  const handleLoadTemplate = (template: typeof SMS_TEMPLATES[number]) => {
-    if ('recipientType' in template) setRecipientType(template.recipientType);
-    handleSelectTemplate(template.text);
+  const handleRecipientTypeChange = (type: typeof recipientType) => {
+    setRecipientType(type);
+    if (activeTemplate) setMessage(adaptSmsTemplate(activeTemplate, type));
   };
 
   const handleSend = async (e: React.FormEvent) => {
@@ -262,6 +250,7 @@ export default function SMSComposer() {
           });
           setSelectedSeniorId('');
           setMessage('');
+          setActiveTemplate(null);
         }
       } else {
         // Barangay or All batch SMS
@@ -281,6 +270,7 @@ export default function SMSComposer() {
             severity: 'info',
           });
           setMessage('');
+          setActiveTemplate(null);
         } else {
           showToast('No valid recipients with contact numbers found in the selected barangay.', 'warning');
         }
@@ -316,7 +306,7 @@ export default function SMSComposer() {
             <div className="grid grid-cols-3 gap-2 bg-slate-100/80 p-1 rounded-xl">
               <button
                 type="button"
-                onClick={() => setRecipientType('individual')}
+                onClick={() => handleRecipientTypeChange('individual')}
                 className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all
                   ${recipientType === 'individual' 
                     ? 'bg-white text-teal-700 shadow-sm' 
@@ -327,7 +317,7 @@ export default function SMSComposer() {
               </button>
               <button
                 type="button"
-                onClick={() => setRecipientType('barangay')}
+                onClick={() => handleRecipientTypeChange('barangay')}
                 className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all
                   ${recipientType === 'barangay' 
                     ? 'bg-white text-teal-700 shadow-sm' 
@@ -338,7 +328,7 @@ export default function SMSComposer() {
               </button>
               <button
                 type="button"
-                onClick={() => setRecipientType('all')}
+                onClick={() => handleRecipientTypeChange('all')}
                 className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all
                   ${recipientType === 'all' 
                     ? 'bg-white text-teal-700 shadow-sm' 
@@ -393,7 +383,7 @@ export default function SMSComposer() {
             <textarea
               id="sms-message"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={(e) => { setMessage(e.target.value); setActiveTemplate(null); }}
               placeholder="Type your message here... You can use [name] and [barangay] tokens for auto-replace."
               rows={6}
               required
@@ -427,7 +417,7 @@ export default function SMSComposer() {
             <button
               key={i}
               type="button"
-              onClick={() => handleLoadTemplate(tpl)}
+              onClick={() => handleSelectTemplate(tpl.text)}
               className="w-full text-left p-3.5 bg-slate-50 hover:bg-teal-50/20 border border-slate-200/80 hover:border-teal-500/50 rounded-xl transition-all duration-150 group active:scale-99"
             >
               <div className="flex items-center gap-1.5 text-teal-600 group-hover:text-teal-700 transition-colors">
