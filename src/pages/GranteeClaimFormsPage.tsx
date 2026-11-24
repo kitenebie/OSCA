@@ -245,7 +245,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-  const { showToast, selectedFormId, setCurrentPage } = useUIStore();
+  const { showToast, selectedFormId, setCurrentPage, sidebarOpen } = useUIStore();
   const { currentUser, login, hasPermission } = useAuthStore();
   const { seniors, sendSMS, sendBatchSMS } = useSeniorsStore();
 
@@ -2280,7 +2280,7 @@ export default function GranteeClaimFormsPage() {
 
 
 
-      <div className={`fixed inset-0 z-50 flex transition-all duration-300 ${drawerOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+      <div className={`fixed inset-x-0 bottom-0 top-[72px] z-50 flex transition-all duration-300 ${sidebarOpen ? 'lg:left-64' : 'lg:left-20'} ${drawerOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
 
 
 
