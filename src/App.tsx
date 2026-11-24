@@ -165,7 +165,7 @@ export default function App() {
       className="min-h-screen bg-slate-50/50 text-slate-800 antialiased selection:bg-teal-500/10 selection:text-teal-800"
       onChangeCapture={(event) => {
         const target = event.target;
-        if ((target instanceof HTMLInputElement && ['text', 'search'].includes(target.type)) || target instanceof HTMLTextAreaElement) {
+        if ((target instanceof HTMLInputElement && ['text', 'search', 'email', 'tel', 'url'].includes(target.type)) || target instanceof HTMLTextAreaElement) {
           target.value = capitalizeInput(target.value);
         }
       }}
