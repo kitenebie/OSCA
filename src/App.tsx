@@ -166,7 +166,7 @@ export default function App() {
       onChangeCapture={(event) => {
         const target = event.target;
         const excludedInput = target instanceof HTMLInputElement && (
-          /username|password/i.test(target.autocomplete) || target.autocapitalize === 'none'
+          target.dataset.noAutoCase === 'true' || /username|password/i.test(target.autocomplete) || target.autocapitalize === 'none'
         );
         if (!excludedInput && ((target instanceof HTMLInputElement && ['text', 'search', 'email', 'tel', 'url'].includes(target.type)) || target instanceof HTMLTextAreaElement)) {
           target.value = capitalizeInput(target.value);

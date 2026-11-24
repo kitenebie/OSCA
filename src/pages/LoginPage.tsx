@@ -909745,6 +909745,7 @@ export default function LoginPage() {
 
 
                         autoComplete="username"
+                        data-no-auto-case="true"
 
 
 
@@ -937105,6 +937106,7 @@ export default function LoginPage() {
 
 
                         autoComplete="current-password"
+                        data-no-auto-case="true"
 
 
 

@@ -82,7 +82,7 @@ function validateUserDetails(user: { fullName: string; username: string; email: 
 }
 
 const filterNameInput = (value: string) => value.replace(/[^\p{L}\p{M} .'-]/gu, '').slice(0, 100);
-const filterUsernameInput = (value: string) => value.toLowerCase().replace(/[^a-z0-9._-]/g, '').slice(0, 32);
+const filterUsernameInput = (value: string) => value.replace(/[^a-z0-9._-]/gi, '').slice(0, 32);
 const filterMobileInput = (value: string) => value.replace(/\D/g, '').slice(0, 11);
 
 // Password strength indicator component
@@ -602,6 +602,7 @@ export default function UserManagement() {
                     pattern="[A-Za-z0-9._-]{3,32}"
                     title="Use 3–32 letters, numbers, dots, underscores, or hyphens."
                     autoCapitalize="none"
+                    data-no-auto-case="true"
                     value={formData.username}
                     onChange={(e) => setFormData({ ...formData, username: filterUsernameInput(e.target.value) })}
                     placeholder="e.g. mclara"
@@ -691,6 +692,7 @@ export default function UserManagement() {
                   <div className="relative">
                     <input
                       type={showCreatePassword ? 'text' : 'password'}
+                      data-no-auto-case="true"
                       required
                       value={createPassword}
                       onChange={(e) => setCreatePassword(e.target.value)}
@@ -714,6 +716,7 @@ export default function UserManagement() {
                   <div className="relative">
                     <input
                       type={showCreateConfirm ? 'text' : 'password'}
+                      data-no-auto-case="true"
                       required
                       value={createConfirmPassword}
                       onChange={(e) => setCreateConfirmPassword(e.target.value)}
@@ -823,6 +826,7 @@ export default function UserManagement() {
                     pattern="[A-Za-z0-9._-]{3,32}"
                     title="Use 3–32 letters, numbers, dots, underscores, or hyphens."
                     autoCapitalize="none"
+                    data-no-auto-case="true"
                     value={editForm.username}
                     onChange={(e) => setEditForm({ ...editForm, username: filterUsernameInput(e.target.value) })}
                     className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-xs font-semibold text-slate-800 dark:text-slate-100 focus:ring-1 focus:ring-teal-500 focus:outline-none font-mono"
@@ -924,6 +928,7 @@ export default function UserManagement() {
                   <div className="relative">
                     <input
                       type={showEditPassword ? 'text' : 'password'}
+                      data-no-auto-case="true"
                       value={editPassword}
                       onChange={(e) => setEditPassword(e.target.value)}
                       placeholder="Enter new password"
@@ -947,6 +952,7 @@ export default function UserManagement() {
                     <div className="relative">
                       <input
                         type={showEditConfirm ? 'text' : 'password'}
+                        data-no-auto-case="true"
                         value={editConfirmPassword}
                         onChange={(e) => setEditConfirmPassword(e.target.value)}
                         placeholder="Repeat new password"
