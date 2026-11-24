@@ -22,6 +22,7 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import SessionDismissedModal from './components/rbac/SessionDismissedModal';
 import { applySystemTheme, getStoredTheme } from './utils/theme';
+import { capitalizeInput } from './utils/capitalizeInput';
 import { RolePermission } from './types';
 
 const PAGE_PERMISSIONS: Record<AppPages, keyof RolePermission['permissions']> = {
@@ -160,7 +161,15 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 text-slate-800 antialiased selection:bg-teal-500/10 selection:text-teal-800">
+    <div
+      className="min-h-screen bg-slate-50/50 text-slate-800 antialiased selection:bg-teal-500/10 selection:text-teal-800"
+      onChangeCapture={(event) => {
+        const target = event.target;
+        if ((target instanceof HTMLInputElement && ['text', 'search'].includes(target.type)) || target instanceof HTMLTextAreaElement) {
+          target.value = capitalizeInput(target.value);
+        }
+      }}
+    >
       
       {/* Auth state manager router */}
       {isCheckingSession ? (
